@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Hackiebox Custom Firmware by Team RevvoX</title>
+
+    <style>
+      /* Show it is fixed to the top */
+      body {
+        min-height: 75rem;
+        padding-top: 4.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading-div">
+      LOADING...
+    </div>
+    <div id="body-div" style="display:none;">
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#">Hackiebox CFW by RevvoX</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav mr-auto">
+            <li id="nav-page-home" class="nav-item active">
+              <a class="nav-link" href="?page=home">Home</a>
+            </li>
+            <li id="nav-page-settings" class="nav-item">
+              <a class="nav-link" href="?page=settings">Settings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true"></a>
+            </li>
+          </ul>
+          <form class="form-inline mt-2 mt-md-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search" data-kpxc-id="kpxcpw342845639">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+      </nav>
+      
+      
+      <main id="main" role="main" class="container">
+        <div id="main-home">
+          <div class="jumbotron">
+            <h1>Home</h1>
+            <p class="lead">This example is a quick exercise to illustrate how fixed to top navbar works. As you scroll, it will remain fixed to the top of your browser’s viewport.</p>
+            <a class="btn btn-lg btn-primary" href="/docs/4.4/components/navbar/" role="button">View navbar docs »</a>
+          </div>
+        </div>
+        <div id="main-settings">
+          <div class="nav-scroller bg-white shadow-sm">
+            <nav class="nav nav-underline">
+              <a class="nav-link active" href="#">Dashboard</a>
+              <a class="nav-link" href="#">
+                Friends
+                <span class="badge badge-pill bg-light align-text-bottom">27</span>
+              </a>
+              <a class="nav-link" href="#">Explore</a>
+              <a class="nav-link" href="#">Suggestions</a>
+              <a class="nav-link" href="#">Link</a>
+              <a class="nav-link" href="#">Link</a>
+              <a class="nav-link" href="#">Link</a>
+              <a class="nav-link" href="#">Link</a>
+              <a class="nav-link" href="#">Link</a>
+            </nav>
+          </div>
+
+          
+          <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
+            <img class="mr-3" src="/docs/4.4/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48">
+            <div class="lh-100">
+              <h6 class="mb-0 text-white lh-100">Bootstrap</h6>
+              <small>Since 2011</small>
+            </div>
+          </div>
+          <div class="my-3 p-3 bg-white rounded shadow-sm">
+            <h6 class="border-bottom border-gray pb-2 mb-0">Recent updates</h6>
+            <div class="media text-muted pt-3">
+              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff" dy=".3em">32x32</text></svg>
+              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                <strong class="d-block text-gray-dark">@username</strong>
+                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+              </p>
+            </div>
+            <div class="media text-muted pt-3">
+              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#e83e8c"></rect><text x="50%" y="50%" fill="#e83e8c" dy=".3em">32x32</text></svg>
+              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                <strong class="d-block text-gray-dark">@username</strong>
+                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+              </p>
+            </div>
+            <div class="media text-muted pt-3">
+              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#6f42c1"></rect><text x="50%" y="50%" fill="#6f42c1" dy=".3em">32x32</text></svg>
+              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                <strong class="d-block text-gray-dark">@username</strong>
+                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+              </p>
+            </div>
+            <small class="d-block text-right mt-3">
+              <a href="#">All updates</a>
+            </small>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+      class Site {
+        constructor(page = null) {
+          this._params = new URLSearchParams(window.location.search);
+          if (page == null) {
+            this.loadPage(this._params.get("page"));
+          } else {
+            this.loadPage(page);
+          }
+        }
+        loadPage(page) {
+          this._loading(true);
+          switch (page) {
+            case "settings":
+
+              break;
+            default:
+              page = "home";
+              break;
+          }
+          this._page = page;
+
+          $("#main").children().hide();
+          $("#navbarCollapse ul").children().removeClass("active");
+          $("#nav-page-" + page).addClass("active");
+
+          $("#main-" + page).show();
+          this._loading(false);
+        }
+        _loading(isLoading) {
+          if (isLoading) {
+            $("#loading-div").show();
+            $("#body-div").hide();
+          } else {
+            $("#loading-div").hide();
+            $("#body-div").show();
+          }
+        }
+      }
+    </script>
+    <script>
+      $(function() {
+          let site = new Site("settings");
+      });
+    </script>
+  </body>
+</html>
