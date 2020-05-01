@@ -12,10 +12,53 @@
 
     <style>
       /* Show it is fixed to the top */
-      body {
+      #body-div {
         min-height: 75rem;
-        padding-top: 4.5rem;
+        padding-top: 56px;
       }
+      #main {
+        padding-top: 10px;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: nowrap;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        color: rgba(255, 255, 255, .75);
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .nav-underline .nav-link {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+        font-size: .875rem;
+        color: #6c757d;
+      }
+
+      .nav-underline .nav-link:hover {
+        color: #007bff;
+      }
+
+      .nav-underline .active {
+        font-weight: 500;
+        color: #343a40;
+      }
+
+      .text-white-50 { color: rgba(255, 255, 255, .5); }
+
+      .bg-purple { background-color: #6f42c1; }
     </style>
   </head>
   <body>
@@ -24,21 +67,15 @@
     </div>
     <div id="body-div" style="display:none;">
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="#">Hackiebox CFW by RevvoX</a>
+        <a class="navbar-brand" href="#" onclick="site.loadPage('home'); return false;">Hackiebox CFW by RevvoX</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
-          <ul class="navbar-nav mr-auto">
-            <li id="nav-page-home" class="nav-item active">
-              <a class="nav-link" href="?page=home">Home</a>
-            </li>
-            <li id="nav-page-settings" class="nav-item">
-              <a class="nav-link" href="?page=settings">Settings</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true"></a>
-            </li>
+          <ul id="mainMenu" class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true"></a>
+          </li>
           </ul>
           <form class="form-inline mt-2 mt-md-0">
             <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search" data-kpxc-id="kpxcpw342845639">
@@ -46,6 +83,19 @@
           </form>
         </div>
       </nav>
+      <div id="submenu" class="nav-scroller bg-white shadow-sm">
+        <div id="submenu-settings">
+          <nav class="nav nav-underline">
+            <a class="nav-link active" href="#">Dashboard</a>
+            <a class="nav-link" href="#">
+              Friends
+              <span class="badge badge-pill bg-light align-text-bottom">27</span>
+            </a>
+            <a class="nav-link" href="#">Explore</a>
+            <a class="nav-link" href="#">Suggestions</a>
+          </nav>
+        </div>
+      </div>
       
       
       <main id="main" role="main" class="container">
@@ -57,26 +107,8 @@
           </div>
         </div>
         <div id="main-settings">
-          <div class="nav-scroller bg-white shadow-sm">
-            <nav class="nav nav-underline">
-              <a class="nav-link active" href="#">Dashboard</a>
-              <a class="nav-link" href="#">
-                Friends
-                <span class="badge badge-pill bg-light align-text-bottom">27</span>
-              </a>
-              <a class="nav-link" href="#">Explore</a>
-              <a class="nav-link" href="#">Suggestions</a>
-              <a class="nav-link" href="#">Link</a>
-              <a class="nav-link" href="#">Link</a>
-              <a class="nav-link" href="#">Link</a>
-              <a class="nav-link" href="#">Link</a>
-              <a class="nav-link" href="#">Link</a>
-            </nav>
-          </div>
-
-          
           <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
-            <img class="mr-3" src="/docs/4.4/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48">
+            <img class="mr-3" src="/docs/4.4/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48"/>
             <div class="lh-100">
               <h6 class="mb-0 text-white lh-100">Bootstrap</h6>
               <small>Since 2011</small>
@@ -110,6 +142,71 @@
             </small>
           </div>
         </div>
+        <div id="main-content">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Model No</th>
+                <th scope="col">Audio ID</th>
+                <th scope="col">Title</th>
+                <th scope="col">Series</th>
+                <th scope="col">Category</th>
+                <th scope="col">Location/UID</th>
+                <th scope="col">Language</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>01-0177</td>
+                <td>1542991276</td>
+                <td>Lieblings-Klassiker - Peter Pan und vier weitere Klassiker</td>
+                <td>Lieblings-Klassiker</td>
+                <td>Hörspiele & Hörbücher</td>
+                <td>167B191B/500304E0 E00403501B197B16</td>
+                <td>de</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="main-about">
+          <div class="jumbotron">
+            <h1>About</h1>
+            <p class="lead">Hackiebox Custom Firmware {version} by Team RevvoX</p>
+            <p class="">Build date: {build-date}</p>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Handle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
 
@@ -122,6 +219,8 @@
       class Site {
         constructor(page = null) {
           this._params = new URLSearchParams(window.location.search);
+          this._mainMenu = new MainMenu();
+
           if (page == null) {
             this.loadPage(this._params.get("page"));
           } else {
@@ -131,20 +230,32 @@
         loadPage(page) {
           this._loading(true);
           switch (page) {
+            case "content":
             case "settings":
+            case "help":
+            case "about":
 
               break;
             default:
               page = "home";
               break;
           }
-          this._page = page;
 
           $("#main").children().hide();
+          $("#submenu").children().hide();
+          $("#submenu").hide();
+
           $("#navbarCollapse ul").children().removeClass("active");
           $("#nav-page-" + page).addClass("active");
 
           $("#main-" + page).show();
+
+          if (this._mainMenu.hasSubMenu(page)) {
+            $("#submenu").show();
+            $("#submenu-" + page).show();
+          }
+
+          this._page = page;
           this._loading(false);
         }
         _loading(isLoading) {
@@ -157,10 +268,108 @@
           }
         }
       }
+      class MainMenu {
+        constructor() {
+          this._setEntries();
+        }
+        hasSubMenu(page) {
+          var retVal = false;
+          this._entries.forEach(entry => {
+            let subentries = entry["sub"];
+            if (entry["id"] == page && entry["submenu"]) {
+              retVal = true;
+              return;
+            }
+
+            if (subentries) {
+              subentries.forEach(subentry => {
+                if (subentry["id"] == page && subentry["submenu"]) {
+                  retVal = true;
+                  return;
+                }
+              });
+            }
+          });
+          return retVal;
+        }
+
+        _setEntries() {
+          this._entries = [
+            { "id": "home", "name": "Home" },
+            { "id": "content", "name": "Content", "submenu": true },
+            { "id": "settings", "name": "Settings", "submenu": true },
+            { "id": "help", "name": "Help","sub":
+              [
+                { "id": "help", "name": "Help", "submenu": true },
+                { "id": "github", "name": "GitHub", "url": "https://github.com/toniebox-reverse-engineering/hackiebox_cfw" },
+                { "id": "about", "name": "About" }
+              ]
+            }
+          ];
+          this._generateMenu();
+        }
+        _generateMenu() {
+          this._entries.forEach(entry => {
+            let subentries = entry["sub"];
+            let menu = $("#mainMenu");
+
+            let li = $("<li/>")
+              .addClass("nav-item")
+              .attr("id", "nav-page-"+entry["id"]);
+            if (!subentries) {
+              let a = $("<a/>")
+                .addClass("nav-link")
+                .attr("href", "#")
+                .attr("target", "_blank")
+                .attr("onclick", "site.loadPage('" + entry["id"] + "'); return false;")
+                .html(entry["name"]);
+              if (entry["url"]) {
+                a.attr("href", entry["url"]);
+                a.removeAttr("onclick");
+              }
+              li.append(a);
+
+            } else {
+              li.addClass("dropdown");
+              let a = $("<a/>")
+                .addClass("nav-link")
+                .addClass("dropdown-toggle")
+                .attr("id", "dropdown-" + entry["id"])
+                .attr("data-toggle", "dropdown")
+                .attr("aria-haspopup", "true")
+                .attr("aria-expanded", "false")
+                .attr("href", "#")
+                .html(entry["name"]);
+              li.append(a);
+              let div = $("<div/>")
+                .addClass("dropdown-menu")
+                .attr("aria-labelledby", "dropdown-" + entry["id"]);
+              subentries.forEach(subentry => {
+                let a = $("<a/>")
+                  .addClass("dropdown-item")
+                  .attr("id", "nav-page-dropdown-"+entry["id"]+"-"+subentry["id"])
+                  .attr("href", "#")
+                  .attr("target", "_blank")
+                  .attr("onclick", "site.loadPage('" + subentry["id"] + "'); return false;")
+                  .html(subentry["name"]);
+                  if (subentry["url"]) {
+                    a.attr("href", subentry["url"]);
+                    a.removeAttr("onclick");
+                  }
+                div.append(a);
+              });
+              li.append(div);
+            }
+            menu.append(li);
+          });
+          $('.dropdown-toggle').dropdown();
+        }
+      }
     </script>
     <script>
+      var site;
       $(function() {
-          let site = new Site("settings");
+          site = new Site("content");
       });
     </script>
   </body>
