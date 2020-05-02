@@ -10,6 +10,8 @@
     <!-- Bootstrap Table CSS-->
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css" integrity="sha384-stUTdwV9AgSXI+zB6SWTZSIq0SP1EKWXA/H6rWp1hNmSwvjkuFCwPhqcA01KnlWS" crossorigin="anonymous">
     
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-switch@3.4.0/dist/css/bootstrap3/bootstrap-switch.css" integrity="sha384-Wg1u8Kclt9oq0YZoQpkNL8aE9jWVU205nvS5LwJ4MZ3BgvZki5FkD+egd0luNjHV" crossorigin="anonymous">
+ 
     <title>Hackiebox Custom Firmware by Team RevvoX</title>
 
     <style>
@@ -109,6 +111,7 @@
           </div>
         </div>
         <div id="main-settings">
+          <h1>Settings</h1>
           <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
             <img class="mr-3" src="/docs/4.4/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48"/>
             <div class="lh-100">
@@ -145,6 +148,7 @@
           </div>
         </div>
         <div id="main-content" class="w-100">
+          <h1>Content</h1>
           <table class="table" id="table-content"
             data-search="true"
             data-pagination="true"
@@ -176,39 +180,106 @@
             </thead>
           </table>
         </div>
+        <div id="main-boxtests">
+          <h1>Box Tests</h1>
+          <div>
+            <h2>Power</h2>
+            <p>
+              <input type="checkbox" name="test-check-power-sd"> SD
+            </p>
+            <p>
+              <input type="checkbox" name="test-check-power-main"> Audio, Accelerometer, RFID, LED Blue / Red?
+            </p>
+          </div>
+          <div>
+            <h2>Ears</h2>
+            <p>
+              <input type="checkbox" name="test-check-ear-small" disabled="disabled"> Small ear
+              <input type="checkbox" name="test-check-ear-big" disabled="disabled"> Big ear
+            </p>
+          </div>
+          <div>
+            <h2>Accelerometer</h2>
+            <p>
+              x, y, z
+              tap events
+            </p>
+          </div>
+          <div>
+            <h2>RFID</h2>
+            <p>
+              UID, Set Privacy, Reveal Privacy
+            </p>
+          </div>
+          <div>
+            <h2>SD</h2>
+            <p>
+              List files
+            </p>
+          </div>
+          <div>
+            <h2>LEDs</h2>
+            <p>
+              <input type="checkbox" name="test-check-led-red"> Red
+              <input type="checkbox" name="test-check-led-green"> Green
+              <input type="checkbox" name="test-check-led-blue"> Blue
+            </p>
+          </div>
+          <div>
+            <h2>WiFi</h2>
+            <p>
+              
+            </p>
+          </div>
+          <div>
+            <h2>Battery</h2>
+            <p>
+              <input type="checkbox" name="test-check-battery-charger" disabled="disabled"> Charging
+            </p>
+            <p>
+              VAL
+            </p>
+          </div>
+          <div>
+            <h2>Serial</h2>
+          </div>
+        </div>
         <div id="main-about">
+          <h1>About</h1>
           <div class="jumbotron">
             <h1>About</h1>
             <p class="lead">Hackiebox Custom Firmware {version} by Team RevvoX</p>
             <p class="">Build date: {build-date}</p>
+            <p class=""><a href="https://github.com/toniebox-reverse-engineering" target="_blank">Toniebox Reverse Engineering GitHub</a></p>
           </div>
           <table class="table">
             <thead>
               <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
+                <th scope="col">Member</th>
+                <th scope="col">Scope</th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
+                <td>g3gg0</td>
+                <td>Reversing Toniebox software + Tonie RFID / audio files, teddy Dev</td>
+                <td><a href="https://www.g3gg0.de/wordpress/" target="_blank">g3gg0's hobby hacking blog</a></td>
               </tr>
               <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
+                <td>Gambrius</td>
+                <td>Reversing Tonie RFID / audio files</td>
+                <td><a href="http://gt-blog.de/" target="_blank">Gambrius Tech Blog</a></td>
               </tr>
               <tr>
-                <th scope="row">3</th>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
+                <td>Honeybee</td>
+                <td>Reversing Toniebox hardware, CFW Dev</td>
+                <td>summsisumm</td>
+              </tr>
+              <tr>
+                <td>moritz</td>
+                <td>Reversing Toniebox hardware / schematics</td>
+                <td></td>
               </tr>
             </tbody>
           </table>
@@ -221,17 +292,21 @@
     <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-    
+
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js" integrity="sha384-W/LH8RGi1CAONGTnvEB4NWjQ6p4GE6qGHSFZUOalxWWwyvcIr8btqBmjvMSBs+HT" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/multiple-sort/bootstrap-table-multiple-sort.js" integrity="sha384-MgH1FlFbvyjPxrvMK/Fr+KL+cd0ck0HW5IHjdh+o3jItnQ+3BV87gxPFNxz5xwbs" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/mobile/bootstrap-table-mobile.min.js" integrity="sha384-LOjwcKPHMdZtBozkXFs5WKUKTc3uH13dd0rly8aXMpwVx5i1wc14svJdyJVWiS8G" crossorigin="anonymous"></script>
+    
+    <script src="https://unpkg.com/bootstrap-switch@3.4.0/dist/js/bootstrap-switch.js" integrity="sha384-q3sTGLJpoYQ878rzOOulCOOPuCgPNS+mTduIHtCHtBFILPoptsW7Bk716ckhZlMt" crossorigin="anonymous"></script>
+
     <script>
       class Site {
         constructor(page = null) {
           this._params = new URLSearchParams(window.location.search);
           this._mainMenu = new MainMenu();
           this._contentPage = new ContentPage();
+
+          $("input[type='checkbox']").bootstrapSwitch();
 
           if (page == null) {
             this.loadPage(this._params.get("page"));
@@ -247,6 +322,7 @@
               break;
             case "settings":
             case "help":
+            case "boxtests":
             case "about":
 
               break;
@@ -290,6 +366,7 @@
         _downloadData(async = true) {
           var tmpData;
           $.ajax({ dataType: "json", url: this._source, async: async, data: this._data, success: function( data ) {
+            //TODO: htmlencode everything to prevent xss
             tmpData = data;
           }});
           this._data = tmpData;
@@ -342,6 +419,7 @@
             { "id": "help", "name": "Help","sub":
               [
                 { "id": "help", "name": "Help", "submenu": true },
+                { "id": "boxtests", "name": "Box Tests", "submenu": true },
                 { "id": "github", "name": "GitHub", "url": "https://github.com/toniebox-reverse-engineering/hackiebox_cfw" },
                 { "id": "about", "name": "About" }
               ]
@@ -410,11 +488,11 @@
     <script>
       var site;
       $(function() {
-          site = new Site("content");
+          site = new Site("boxtests");
       });
 
       function imageFormatter(value) {
-        return '<img src="'+value+'" style="max-width:100px;">'
+        return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
       }
     </script>
   </body>
