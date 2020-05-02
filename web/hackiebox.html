@@ -7,7 +7,9 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
+    <!-- Bootstrap Table CSS-->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css" integrity="sha384-stUTdwV9AgSXI+zB6SWTZSIq0SP1EKWXA/H6rWp1hNmSwvjkuFCwPhqcA01KnlWS" crossorigin="anonymous">
+    
     <title>Hackiebox Custom Firmware by Team RevvoX</title>
 
     <style>
@@ -98,7 +100,7 @@
       </div>
       
       
-      <main id="main" role="main" class="container">
+      <main id="main" role="main" class="" style="padding-left: 10px; padding-right: 10px;">
         <div id="main-home">
           <div class="jumbotron">
             <h1>Home</h1>
@@ -142,32 +144,36 @@
             </small>
           </div>
         </div>
-        <div id="main-content">
-          <table class="table">
+        <div id="main-content" class="w-100">
+          <table class="table" id="table-content"
+            data-search="true"
+            data-pagination="true"
+            data-flat="true"
+            data-show-multi-sort="true"
+            data-show-columns="true"
+            data-show-columns-search="true"
+            data-show-columns-toggle-all="true"
+            data-show-toggle="true"
+            data-mobile-responsive="true"
+            data-check-on-init="true"
+            data-sort-priority='[{"sortName": "language","sortOrder":"asc"},{"sortName":"no","sortOrder":"asc"}]'
+            >
             <thead>
               <tr>
-                <th scope="col">#</th>
-                <th scope="col">Model No</th>
-                <th scope="col">Audio ID</th>
-                <th scope="col">Title</th>
-                <th scope="col">Series</th>
-                <th scope="col">Category</th>
+                <th data-field="language" data-sortable="true">Lang.</th>
+                <th data-field="no" data-sortable="true">#</th>
+                <th data-field="model" data-sortable="true">Model No</th>
+                <th data-field="pic" data-field="image" data-formatter="imageFormatter">Picture</th>
+                <th data-field="audio_id" data-sortable="true">Audio ID</th>
+                <th data-field="title" data-sortable="true">Title</th>
+                <th data-field="series" data-sortable="true">Series</th>
+                <th data-field="episodes" data-sortable="true" data-visible="false">Episodes</th>
+                <th data-field="tracks" data-sortable="true" data-visible="false">Tracks</th>
+                <th data-field="category" data-sortable="true">Category</th>
+
                 <th scope="col">Location/UID</th>
-                <th scope="col">Language</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <th scope="row">1</th>
-                <td>01-0177</td>
-                <td>1542991276</td>
-                <td>Lieblings-Klassiker - Peter Pan und vier weitere Klassiker</td>
-                <td>Lieblings-Klassiker</td>
-                <td>Hörspiele & Hörbücher</td>
-                <td>167B191B/500304E0 E00403501B197B16</td>
-                <td>de</td>
-              </tr>
-            </tbody>
           </table>
         </div>
         <div id="main-about">
@@ -212,14 +218,20 @@
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    
+    <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js" integrity="sha384-W/LH8RGi1CAONGTnvEB4NWjQ6p4GE6qGHSFZUOalxWWwyvcIr8btqBmjvMSBs+HT" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/multiple-sort/bootstrap-table-multiple-sort.js" integrity="sha384-MgH1FlFbvyjPxrvMK/Fr+KL+cd0ck0HW5IHjdh+o3jItnQ+3BV87gxPFNxz5xwbs" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/mobile/bootstrap-table-mobile.min.js" integrity="sha384-LOjwcKPHMdZtBozkXFs5WKUKTc3uH13dd0rly8aXMpwVx5i1wc14svJdyJVWiS8G" crossorigin="anonymous"></script>
     <script>
       class Site {
         constructor(page = null) {
           this._params = new URLSearchParams(window.location.search);
           this._mainMenu = new MainMenu();
+          this._contentPage = new ContentPage();
 
           if (page == null) {
             this.loadPage(this._params.get("page"));
@@ -231,6 +243,8 @@
           this._loading(true);
           switch (page) {
             case "content":
+              this._contentPage.generatePage();
+              break;
             case "settings":
             case "help":
             case "about":
@@ -266,6 +280,33 @@
             $("#loading-div").hide();
             $("#body-div").show();
           }
+        }
+      }
+      class ContentPage {
+        constructor() {
+          this._source = "http://gt-blog.de/JSON/tonies_json.php?source=cfw";
+          this._data = null;
+        }
+        _downloadData(async = true) {
+          var tmpData;
+          $.ajax({ dataType: "json", url: this._source, async: async, data: this._data, success: function( data ) {
+            tmpData = data;
+          }});
+          this._data = tmpData;
+        }
+        _getData() {
+          if (this._data == null) 
+            this._downloadData(false);
+          return this._data;
+        }
+        generatePage() {
+          let data = this._getData();
+          let tab = $('#table-content')
+          tab.bootstrapTable({data: data});
+
+          /*data.forEach(entry => {
+            
+          });*/
         }
       }
       class MainMenu {
@@ -371,6 +412,10 @@
       $(function() {
           site = new Site("content");
       });
+
+      function imageFormatter(value) {
+        return '<img src="'+value+'" style="max-width:100px;">'
+      }
     </script>
   </body>
 </html>
