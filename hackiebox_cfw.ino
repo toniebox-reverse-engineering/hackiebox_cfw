@@ -1,8 +1,11 @@
+#include "Hackiebox.h"
+
+Hackiebox hackiebox = Hackiebox();
+
 void setup() {
-  Serial.begin(115200);
-  Serial.println("START!");
+  hackiebox.setup();
 }
 
 void loop() {
-  Serial.println("LOOP");
+  hackiebox.loop();
 }
