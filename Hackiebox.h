@@ -5,6 +5,7 @@
 
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
+#include "BoxLEDs.h"
 #include "BoxPower.h"
 
 #include "WrapperWiFi.h"
@@ -20,6 +21,7 @@ class Hackiebox {
 
         BoxBattery _boxBattery;
         BoxButtonEars _boxEars;
+        BoxLEDs _boxLEDs;
         BoxPower _boxPower;
 
         WrapperWiFi _wifi;
