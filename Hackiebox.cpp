@@ -4,8 +4,13 @@ void Hackiebox::setup() {
     Log.init(LOG_LEVEL_VERBOSE, 115200);
     Log.info("Booting Hackiebox...");
 
+    _boxBattery = BoxBattery();
+    _boxBattery.begin();
+    _boxBattery.loop();
+
     _boxEars = BoxButtonEars();
     _boxEars.begin();
+
 
     /*
     _wifi = WrapperWiFi(WIFI_SSID, WIFI_PASS);
@@ -19,6 +24,7 @@ void Hackiebox::setup() {
 }
 
 void Hackiebox::loop() {  
-    //_server.handle();
+    _boxBattery.loop();
     _boxEars.loop();
+    //_server.handle();
 }
