@@ -3,8 +3,9 @@
 
 #include "BaseHeader.h"
 
-#include "BoxButtonEars.h"
 #include "BoxBattery.h"
+#include "BoxButtonEars.h"
+#include "BoxPower.h"
 
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
@@ -17,8 +18,9 @@ class Hackiebox {
         loop();
     private:
 
-        BoxButtonEars _boxEars;
         BoxBattery _boxBattery;
+        BoxButtonEars _boxEars;
+        BoxPower _boxPower;
 
         WrapperWiFi _wifi;
         WrapperWebServer _server;

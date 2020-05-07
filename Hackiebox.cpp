@@ -6,6 +6,11 @@ void Hackiebox::setup() {
 
     _boxBattery = BoxBattery();
     _boxBattery.begin();
+
+    _boxPower.begin();
+    _boxPower.setSdPower(true);
+    _boxPower.setOtherPower(true);
+
     _boxBattery.loop();
 
     _boxEars = BoxButtonEars();
@@ -26,5 +31,6 @@ void Hackiebox::setup() {
 void Hackiebox::loop() {  
     _boxBattery.loop();
     _boxEars.loop();
+    _boxPower.loop();
     //_server.handle();
 }
