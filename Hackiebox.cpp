@@ -11,11 +11,9 @@ void Hackiebox::setup() {
     _boxLEDs.begin();
     _boxLEDs.testLEDs();
 
-    _boxBattery = BoxBattery();
     _boxBattery.begin();
     _boxBattery.loop();
 
-    _boxEars = BoxButtonEars();
     _boxEars.begin();
 
 
