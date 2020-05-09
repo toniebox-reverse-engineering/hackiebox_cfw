@@ -16,8 +16,8 @@ class BoxButtonEars {
 
     private:
 
-        int _earLongPressMs = 1000;
-        int _earVeryLongPressMs = 10000;
+        uint16_t _earLongPressMs = 1000;
+        uint16_t _earVeryLongPressMs = 10000;
 
         PressedTime _earSmallPressedTime = NOT;
         PressedTime _earBigPressedTime = NOT;

@@ -16,10 +16,10 @@ void BoxBattery::loop() {
 bool BoxBattery::isChargerConnected() {
     return digitalRead(8);
 }
-int BoxBattery::getBatteryAdcRaw() {
+uint16_t BoxBattery::getBatteryAdcRaw() {
     return analogRead(60);
 }
-int BoxBattery::getBatteryVoltage() {
+uint16_t BoxBattery::getBatteryVoltage() {
     if (isChargerConnected()) {
         return 10000 * getBatteryAdcRaw() / _batteryVoltageChargerFactor;
     }
