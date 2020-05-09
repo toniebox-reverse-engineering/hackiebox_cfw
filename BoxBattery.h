@@ -7,7 +7,8 @@ class BoxBattery {
     public:
         void
             begin(),
-            loop();
+            loop(),
+            reloadConfig();
         
         bool isChargerConnected();
         uint16_t getBatteryAdcRaw();
@@ -17,9 +18,9 @@ class BoxBattery {
         void logBatteryStatus();
 
     private:
-        uint32_t _batteryVoltageFactor = 67690;
-        uint32_t _batteryVoltageChargerFactor = 71907;
-        uint16_t _batteryMinimalAdc = 2400;
+        uint32_t _batteryVoltageFactor;
+        uint32_t _batteryVoltageChargerFactor;
+        uint16_t _batteryMinimalAdc;
 };
 
 #endif

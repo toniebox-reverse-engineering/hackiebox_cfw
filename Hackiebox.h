@@ -18,7 +18,6 @@ class Hackiebox {
         setup(),
         loop();
     private:
-
         BoxBattery _boxBattery;
         BoxButtonEars _boxEars;
         BoxLEDs _boxLEDs;

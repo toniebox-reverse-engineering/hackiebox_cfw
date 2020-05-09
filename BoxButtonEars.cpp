@@ -1,6 +1,8 @@
 #include "BoxButtonEars.h"
 
 void BoxButtonEars::begin() {  
+    reloadConfig();
+
     _earSmall.begin();
     _earBig.begin();
 }
@@ -87,4 +89,10 @@ void BoxButtonEars::loop() {
         _earSmallPressedTime = NOT;
         _earBigPressedTime = NOT;
     }
+}
+
+void BoxButtonEars::reloadConfig() { 
+    ConfigStruct* config = Config.getConfig();
+    _earLongPressMs = config->buttonEars.longPressMs;
+    _earVeryLongPressMs = config->buttonEars.veryLongPressMs;
 }

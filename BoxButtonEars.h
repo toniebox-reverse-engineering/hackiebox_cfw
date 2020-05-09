@@ -11,13 +11,13 @@ class BoxButtonEars {
 
         void
             begin(),
-            loop();
-        
+            loop(),
+            reloadConfig();
 
     private:
 
-        uint16_t _earLongPressMs = 1000;
-        uint16_t _earVeryLongPressMs = 10000;
+        uint16_t _earLongPressMs;
+        uint16_t _earVeryLongPressMs;
 
         PressedTime _earSmallPressedTime = NOT;
         PressedTime _earBigPressedTime = NOT;

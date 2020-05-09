@@ -1,5 +1,7 @@
 #include "Hackiebox.h"
 
+
+BoxConfig Config;
 void Hackiebox::setup() {  
     Log.init(LOG_LEVEL_VERBOSE, 115200);
     Log.info("Booting Hackiebox...");
@@ -7,6 +9,8 @@ void Hackiebox::setup() {
     _boxPower.begin();
     _boxPower.setSdPower(true);
     _boxPower.setOtherPower(true);
+
+    Config.begin(); //SD Card needed!
 
     _boxLEDs.begin();
     _boxLEDs.testLEDs();

@@ -1,8 +1,18 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_START_ADDRESS 0
 #define CONFIG_ACTIVE_VERSION 1
+
+typedef struct {
+  uint32_t voltageFactor;
+  uint32_t voltageChargerFactor;
+  uint16_t minimalAdc;
+} ConfigBattery;
+
+typedef struct {
+  uint16_t longPressMs;
+  uint16_t veryLongPressMs;
+} ConfigButtonEars;
 
 typedef struct {
   uint8_t a;
@@ -28,6 +38,8 @@ typedef struct {
 
 typedef struct {
   uint8_t version;
+  ConfigBattery battery;
+  ConfigButtonEars buttonEars;
   ConfigWifi wifi;
 } ConfigStruct;
 

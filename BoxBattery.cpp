@@ -1,6 +1,8 @@
 #include "BoxBattery.h"
 
 void BoxBattery::begin() {
+    reloadConfig();
+
     pinMode(8, INPUT); //Charger pin
 
     logBatteryStatus();
@@ -42,4 +44,12 @@ void BoxBattery::logBatteryStatus() {
     Log.info(" ADC Raw: %c", getBatteryAdcRaw());
     Log.info(" Estimated Voltage: %d.%dV", voltageNum, voltageDec);
     Log.info(" Battery Low: %T", isBatteryLow());
+}
+
+void BoxBattery::reloadConfig() { 
+    ConfigStruct* config = Config.getConfig();
+
+    _batteryVoltageFactor = config->battery.voltageFactor;
+    _batteryVoltageChargerFactor = config->battery.voltageChargerFactor;
+    _batteryMinimalAdc = config->battery.minimalAdc;
 }
