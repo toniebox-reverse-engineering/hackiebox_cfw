@@ -11,6 +11,8 @@
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
 
+#include "ArduinoJson-v6.15.1.h"
+
 
 class Hackiebox { 
     public:

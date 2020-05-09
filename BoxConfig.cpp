@@ -12,9 +12,18 @@ void BoxConfig::write() {
 
 }
 
-ConfigStruct* BoxConfig::getConfig() { 
+ConfigStruct* BoxConfig::get() { 
     return &_config;
 }
+
+String BoxConfig::getAsJson() { 
+    
+}
+void BoxConfig::setFromJson() { 
+    
+}
+
+void BoxConfig::_initializeConfig() { 
 
 void BoxConfig::_initializeConfig() { 
     _config.version = CONFIG_ACTIVE_VERSION;

@@ -11,7 +11,10 @@ class BoxConfig {
             read(),
             write();
 
-        ConfigStruct* getConfig();
+        String getAsJson();
+        void setFromJson(String);
+
+        ConfigStruct* get();
     private:
         ConfigStruct _config;
 

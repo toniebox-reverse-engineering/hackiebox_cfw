@@ -35,7 +35,19 @@ void WrapperWebServer::handleRoot(void) {
 }
 void WrapperWebServer::handleSse(void) {
   _server->send(200, "text/event-stream", "SSE");
+  //TODO: Keep alive connection without blocking others
 }
 void WrapperWebServer::handleAjax(void) {
-  _server->send(200, "text/html", "AJAX");
+  String api;
+  for (uint8_t i=0; i<_server->args(); i++) {
+    if (_server->argName(i).equals("api")) {
+      api = _server->arg(i);
+    }
+  }
+
+  if (api.equals("get-config") {
+    _server->send(200, "text/json", "{json}");
+  } else {
+    handleNotFound(void);
+  }
 }
