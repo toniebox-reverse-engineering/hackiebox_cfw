@@ -84,8 +84,14 @@ void WrapperWebServer::handleAjax(void) {
         _server->setContentLength(size);
         _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
         _server->send(200, "application/octet-stream", "");
+
+        uint8_t buffer[4096];
+        size_t read;
         while (file.curPosition() < size) {
-          if (_server->client().write(file.readChar()) == 0) //TODO: Read in 4k Blocks for more speed
+          read = file.read(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
+          if (read == 0)
+            break;
+          if (_server->client().write(buffer, read) == 0) 
             break;
         }
 
