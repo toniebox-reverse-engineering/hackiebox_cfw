@@ -20,7 +20,7 @@ void WrapperWebServer::handleNotFound(void) {
   message += "URI: ";
   message += _server->uri();
   message += "\nMethod: ";
-  //message += (_server->method() == HTTP_GET)?"GET":"POST";
+  message += (_server->method() == HTTP_GET)?"GET":"POST";
   message += "\nArguments: ";
   message += _server->args();
   message += "\n";
@@ -38,16 +38,16 @@ void WrapperWebServer::handleSse(void) {
   //TODO: Keep alive connection without blocking others
 }
 void WrapperWebServer::handleAjax(void) {
-  String api;
+  String cmd;
   for (uint8_t i=0; i<_server->args(); i++) {
-    if (_server->argName(i).equals("api")) {
-      api = _server->arg(i);
+    if (_server->argName(i).equals("cmd")) {
+      cmd = _server->arg(i);
     }
   }
 
-  if (api.equals("get-config") {
-    _server->send(200, "text/json", "{json}");
+  if (cmd.equals("get-config")) {
+    _server->send(200, "text/json", Config.getAsJson());
   } else {
-    handleNotFound(void);
+    handleNotFound();
   }
 }

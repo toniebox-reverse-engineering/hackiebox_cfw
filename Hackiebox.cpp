@@ -21,20 +21,25 @@ void Hackiebox::setup() {
     _boxEars.begin();
 
 
-    /*
+    
+    _boxLEDs.setBlue(true);
     _wifi = WrapperWiFi(WIFI_SSID, WIFI_PASS);
     _wifi.begin();
 
     _server = WrapperWebServer();
     _server.begin();
-    */
+    _boxLEDs.setBlue(false);
+    _boxLEDs.setGreen(true);
+    
 
     Log.info("Hackiebox started!");
+
+    Log.info("Config: %s", Config.getAsJson().c_str());
 }
 
 void Hackiebox::loop() {  
     _boxBattery.loop();
     _boxEars.loop();
     _boxPower.loop();
-    //_server.handle();
+    _server.handle();
 }

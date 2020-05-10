@@ -7,6 +7,7 @@ typedef struct {
   uint32_t voltageFactor;
   uint32_t voltageChargerFactor;
   uint16_t minimalAdc;
+  uint8_t sleepMinutes;
 } ConfigBattery;
 
 typedef struct {

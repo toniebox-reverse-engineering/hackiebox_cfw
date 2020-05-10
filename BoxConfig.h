@@ -4,6 +4,8 @@
 #include "BaseHeader.h"
 #include "ConfigStructures.h"
 
+#define BOXCONFIG_JSON_SIZE 1024
+
 class BoxConfig {
     public:
         void
