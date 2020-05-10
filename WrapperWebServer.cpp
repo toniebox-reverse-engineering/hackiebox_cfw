@@ -40,12 +40,12 @@ void WrapperWebServer::handleSse(void) {
 }
 void WrapperWebServer::handleAjax(void) {
   String cmd;
-  String param;
+  String param1;
   for (uint8_t i=0; i<_server->args(); i++) {
     if (_server->argName(i).equals("cmd")) {
       cmd = _server->arg(i);
-    } else if (_server->argName(i).equals("param")) {
-      param = _server->arg(i);
+    } else if (_server->argName(i).equals("param1")) {
+      param1 = _server->arg(i);
     }
   }
 
@@ -54,9 +54,9 @@ void WrapperWebServer::handleAjax(void) {
       _server->send(200, "text/json", Config.getAsJson());
       return;
     } else if (cmd.equals("get-dir")) {
-      if (!param)
-        param = String();
-      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)param.c_str()));
+      if (!param1)
+        param1 = String();
+      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)param1.c_str()));
       return;
     }
   }
