@@ -1,4 +1,5 @@
 #include "WrapperWebServer.h"
+#include "Hackiebox.h"
 
 void WrapperWebServer::begin() {  
   _server = new WebServer(80);
@@ -39,15 +40,26 @@ void WrapperWebServer::handleSse(void) {
 }
 void WrapperWebServer::handleAjax(void) {
   String cmd;
+  String param;
   for (uint8_t i=0; i<_server->args(); i++) {
     if (_server->argName(i).equals("cmd")) {
       cmd = _server->arg(i);
+    } else if (_server->argName(i).equals("param")) {
+      param = _server->arg(i);
     }
   }
 
-  if (cmd.equals("get-config")) {
-    _server->send(200, "text/json", Config.getAsJson());
-  } else {
-    handleNotFound();
+  if (cmd) {
+    if (cmd.equals("get-config")) {
+      _server->send(200, "text/json", Config.getAsJson());
+      return;
+    } else if (cmd.equals("get-dir")) {
+      if (!param)
+        param = String();
+      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)param.c_str()));
+      return;
+    }
   }
+
+  handleNotFound();
 }

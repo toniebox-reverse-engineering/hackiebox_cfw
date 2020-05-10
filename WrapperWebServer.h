@@ -2,7 +2,6 @@
 #define WrapperWebServer_h
 
 #include "BaseHeader.h"
-
 #include <WebServer.h>
 
 class WrapperWebServer { 
