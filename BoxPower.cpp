@@ -10,14 +10,14 @@ void BoxPower::loop() {
 }
 
 void BoxPower::setSdPower(bool power) {
-    digitalWrite(58, power);
+    digitalWrite(58, !power);
 }
 void BoxPower::setOtherPower(bool power) {
     digitalWrite(61, power);
 }
 
 bool BoxPower::getSdPower() {
-    return digitalRead(58);
+    return !digitalRead(58);
 }
 bool BoxPower::getOtherPower() {
     return digitalRead(61);
