@@ -48,15 +48,15 @@ void BoxConfig::setFromJson(String json) {
 
     JsonObject batteryDoc = doc["battery"];
     ConfigBattery* batteryCfg = &_config.battery;
-    batteryCfg->voltageFactor = batteryDoc["voltageFactor"];
-    batteryCfg->voltageChargerFactor = batteryDoc["voltageChargerFactor"];
-    batteryCfg->minimalAdc = batteryDoc["minimalAdc"];
-    batteryCfg->sleepMinutes = batteryDoc["sleepMinutes"];
+    batteryCfg->voltageFactor = batteryDoc["voltageFactor"].as<uint32_t>();
+    batteryCfg->voltageChargerFactor = batteryDoc["voltageChargerFactor"].as<uint32_t>();
+    batteryCfg->minimalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
+    batteryCfg->sleepMinutes = batteryDoc["sleepMinutes"].as<uint8_t>();
 
     JsonObject buttonsDoc = doc["buttonEars"];
     ConfigButtonEars* buttonCfg = &_config.buttonEars;
-    buttonCfg->longPressMs = buttonsDoc["longPressMs"];
-    buttonCfg->veryLongPressMs = buttonsDoc["veryLongPressMs"];
+    buttonCfg->longPressMs = buttonsDoc["longPressMs"].as<uint16_t>();
+    buttonCfg->veryLongPressMs = buttonsDoc["veryLongPressMs"].as<uint16_t>();
 }
 
 void BoxConfig::_initializeConfig() { 
