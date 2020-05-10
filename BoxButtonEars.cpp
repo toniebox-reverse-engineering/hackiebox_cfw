@@ -92,7 +92,7 @@ void BoxButtonEars::loop() {
 }
 
 void BoxButtonEars::reloadConfig() { 
-    ConfigStruct* config = Config.getConfig();
+    ConfigStruct* config = Config.get();
     _earLongPressMs = config->buttonEars.longPressMs;
     _earVeryLongPressMs = config->buttonEars.veryLongPressMs;
 }

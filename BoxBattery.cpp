@@ -47,7 +47,7 @@ void BoxBattery::logBatteryStatus() {
 }
 
 void BoxBattery::reloadConfig() { 
-    ConfigStruct* config = Config.getConfig();
+    ConfigStruct* config = Config.get();
 
     _batteryVoltageFactor = config->battery.voltageFactor;
     _batteryVoltageChargerFactor = config->battery.voltageChargerFactor;
