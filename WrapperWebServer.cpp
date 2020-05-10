@@ -41,11 +41,15 @@ void WrapperWebServer::handleSse(void) {
 void WrapperWebServer::handleAjax(void) {
   String cmd;
   String param1;
+  String param2;
+
   for (uint8_t i=0; i<_server->args(); i++) {
     if (_server->argName(i).equals("cmd")) {
       cmd = _server->arg(i);
     } else if (_server->argName(i).equals("param1")) {
       param1 = _server->arg(i);
+    } else if (_server->argName(i).equals("param2")) {
+      param2 = _server->arg(i);
     }
   }
 
@@ -58,6 +62,30 @@ void WrapperWebServer::handleAjax(void) {
         param1 = String();
       _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)param1.c_str()));
       return;
+    } else if (cmd.equals("get-file")) {
+      long size = 0;
+
+      if (!param1)
+        param1 = String();
+      if (param2)
+        size = param2.toInt();
+
+      FileFs file;
+      if (file.open((char*)param1.c_str(), FA_OPEN_EXISTING | FA_READ)) {
+        if (size == 0 || file.fileSize() < size) 
+          size = file.fileSize();
+
+        _server->setContentLength(size);
+        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + param1 + String("\"")).c_str());
+        _server->send(200, "application/octet-stream", "");
+        while (file.curPosition() < size) {
+          if (_server->client().write(file.readChar()) == 0)
+            break;
+        }
+
+        file.close();
+        return;
+      }
     }
   }
 
