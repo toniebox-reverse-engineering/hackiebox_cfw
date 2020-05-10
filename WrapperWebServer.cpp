@@ -75,11 +75,17 @@ void WrapperWebServer::handleAjax(void) {
         if (size == 0 || file.fileSize() < size) 
           size = file.fileSize();
 
+        String filename = param1;
+        int16_t index = filename.lastIndexOf("/");
+        if (index > 0) {
+          filename.remove(0, index+1);
+        }
+
         _server->setContentLength(size);
-        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + param1 + String("\"")).c_str());
+        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
         _server->send(200, "application/octet-stream", "");
         while (file.curPosition() < size) {
-          if (_server->client().write(file.readChar()) == 0)
+          if (_server->client().write(file.readChar()) == 0) //TODO: Read in 4k Blocks for more speed
             break;
         }
 
