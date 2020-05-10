@@ -7,6 +7,7 @@
 #include "BoxButtonEars.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
+#include "BoxSD.h"
 
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
@@ -17,11 +18,13 @@ class Hackiebox {
     void
         setup(),
         loop();
+
+        BoxBattery boxBattery;
+        BoxButtonEars boxEars;
+        BoxLEDs boxLEDs;
+        BoxPower boxPower;
+        BoxSD boxSD;
     private:
-        BoxBattery _boxBattery;
-        BoxButtonEars _boxEars;
-        BoxLEDs _boxLEDs;
-        BoxPower _boxPower;
 
         WrapperWiFi _wifi;
         WrapperWebServer _server;
@@ -30,5 +33,7 @@ class Hackiebox {
         _buttonLoop();
 
 };
+
+extern Hackiebox Box;
 
 #endif
