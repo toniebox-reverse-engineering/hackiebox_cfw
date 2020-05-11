@@ -77,7 +77,7 @@ void WrapperWebServer::handleAjax(void) {
 
         String filename = param1;
         int16_t index = filename.lastIndexOf("/");
-        if (index > 0) {
+        if (index != -1) {
           filename.remove(0, index+1);
         }
 
