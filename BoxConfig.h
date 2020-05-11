@@ -3,6 +3,7 @@
 
 #include "BaseHeader.h"
 #include "ConfigStructures.h"
+#include "BoxSD.h"
 
 #define BOXCONFIG_JSON_SIZE 1024
 
@@ -14,7 +15,7 @@ class BoxConfig {
             write();
 
         String getAsJson();
-        void setFromJson(String);
+        bool setFromJson(String);
 
         ConfigStruct* get();
     private:

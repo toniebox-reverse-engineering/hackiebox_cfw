@@ -1,15 +1,45 @@
 #include "BoxConfig.h"
 
+#define CONFIG_SD_PATH "/hackiebox.config.json"
+
 void BoxConfig::begin() { 
-    _initializeConfig();
     read();
 }
 
 void BoxConfig::read() {
-
+    _initializeConfig();
+    FileFs file;
+    if (file.open(CONFIG_SD_PATH, FA_OPEN_EXISTING | FA_READ)) {
+        char buffer[4096];
+        size_t read;
+        String json = String();
+        while (file.curPosition() < file.fileSize()) {
+            read = file.read(buffer, sizeof(buffer)); 
+            if (read == 0)
+                break;
+            for (int i=0; i<read; i++) {
+                json += buffer[i];
+            }
+        }
+        file.close();
+        if (!setFromJson(json)) {
+            Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+            write();
+        }
+    } else {
+        Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+        write();
+    }
 }
 void BoxConfig::write() { 
-
+    String json = getAsJson();
+    FileFs file;
+    if (file.open(CONFIG_SD_PATH, FA_CREATE_ALWAYS | FA_WRITE)) {
+        file.writeString((char*)json.c_str());
+        file.close();
+    } else {
+        Log.error("Could not write config file %", CONFIG_SD_PATH);
+    }
 }
 
 ConfigStruct* BoxConfig::get() { 
@@ -20,7 +50,7 @@ String BoxConfig::getAsJson() {
     DynamicJsonDocument doc(BOXCONFIG_JSON_SIZE);
     String json;
 
-    doc["version"] = CONFIG_ACTIVE_VERSION;
+    doc["version"] = _config.version;
     
     JsonObject batteryDoc = doc.createNestedObject("battery");
     ConfigBattery* batteryCfg = &_config.battery;
@@ -34,17 +64,29 @@ String BoxConfig::getAsJson() {
     buttonsDoc["longPressMs"] = buttonCfg->longPressMs;
     buttonsDoc["veryLongPressMs"] = buttonCfg->veryLongPressMs;
 
+    JsonObject wifiDoc = doc.createNestedObject("wifi");
+    ConfigWifi* wifiCfg = &_config.wifi;
+    wifiDoc["ssid"] = wifiCfg->ssid;
+    wifiDoc["password"] = wifiCfg->password;
+
     serializeJson(doc, json);
     return json;
 }
-void BoxConfig::setFromJson(String json) { 
+bool BoxConfig::setFromJson(String json) { 
     DynamicJsonDocument doc(BOXCONFIG_JSON_SIZE);
 
     DeserializationError err = deserializeJson(doc, json);
     if (err) {
-        Log.error("deserializeJson() returned %s", err.c_str());
-        return;
+        Log.error("deserializeJson() returned %s, %s", err.c_str(), json.c_str());
+        return false;
     }
+
+    uint8_t version = doc["version"].as<uint8_t>();
+    if (version != CONFIG_ACTIVE_VERSION) {
+        Log.error("Wrong config version %i, expected %i", version, CONFIG_ACTIVE_VERSION);
+        return false;
+    }
+    _config.version = version;
 
     JsonObject batteryDoc = doc["battery"];
     ConfigBattery* batteryCfg = &_config.battery;
@@ -57,18 +99,34 @@ void BoxConfig::setFromJson(String json) {
     ConfigButtonEars* buttonCfg = &_config.buttonEars;
     buttonCfg->longPressMs = buttonsDoc["longPressMs"].as<uint16_t>();
     buttonCfg->veryLongPressMs = buttonsDoc["veryLongPressMs"].as<uint16_t>();
+
+    JsonObject wifiDoc = doc["wifi"];
+    ConfigWifi* wifiCfg = &_config.wifi;
+    strncpy(&wifiCfg->ssid[0], wifiDoc["ssid"].as<char*>(), sizeof(wifiCfg->ssid));
+    strncpy(&wifiCfg->password[0], wifiDoc["password"].as<char*>(), sizeof(wifiCfg->password));
+
+    return true;
 }
 
 void BoxConfig::_initializeConfig() { 
     _config.version = CONFIG_ACTIVE_VERSION;
 
-    //Battery
-    _config.battery.voltageFactor = 67690;
-    _config.battery.voltageChargerFactor = 71907;
-    _config.battery.minimalAdc = 2400;
-    _config.battery.sleepMinutes = 15;
+    ConfigBattery* battery = &_config.battery;
+    battery->voltageFactor = 67690;
+    battery->voltageChargerFactor = 71907;
+    battery->minimalAdc = 2400;
+    battery->sleepMinutes = 15;
 
-    //Button Ears
-    _config.buttonEars.longPressMs = 1000;
-    _config.buttonEars.veryLongPressMs = 10000;
+    ConfigButtonEars* buttons = &_config.buttonEars;
+    buttons->longPressMs = 1000;
+    buttons->veryLongPressMs = 10000;
+
+    ConfigWifi* wifi = &_config.wifi;
+    wifi->dhcp = true;
+    #ifdef WIFI_SSID
+        strcpy(wifi->ssid, WIFI_SSID);
+    #endif
+    #ifdef WIFI_PASS
+        strcpy(wifi->password, WIFI_PASS); 
+    #endif
 }

@@ -1,6 +1,5 @@
 #include "Hackiebox.h"
 
-
 BoxConfig Config;
 Hackiebox Box;
 void Hackiebox::setup() {  
@@ -11,8 +10,10 @@ void Hackiebox::setup() {
     boxPower.setSdPower(true);
     boxPower.setOtherPower(true);
 
+    boxSD.begin();
     Config.begin(); //SD Card needed!
-
+    ConfigStruct* config = Config.get();
+    
     boxLEDs.begin();
     boxLEDs.testLEDs();
 
@@ -20,11 +21,9 @@ void Hackiebox::setup() {
     boxBattery.loop();
 
     boxEars.begin();
-
-    boxSD.begin();
     
     boxLEDs.setBlue(true);
-    _wifi = WrapperWiFi(WIFI_SSID, WIFI_PASS);
+    _wifi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     _wifi.begin();
 
     _server = WrapperWebServer();

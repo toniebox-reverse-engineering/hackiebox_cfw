@@ -1,7 +1,7 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_ACTIVE_VERSION 1
+#define CONFIG_ACTIVE_VERSION 2
 
 typedef struct {
   uint32_t voltageFactor;
@@ -28,6 +28,7 @@ typedef struct {
   char password[64];
   char spacer2[64];
   
+  bool dhcp;
   ConfigIP ip;
   ConfigIP subnet;
   ConfigIP dns;
