@@ -4,3 +4,7 @@
 #define LOGLEVEL LOG_LEVEL_INFOS
 //#define LOGLEVEL LOG_LEVEL_DEBUG
 //#define LOGLEVEL LOG_LEVEL_VERBOSE
+
+/* Wifi Settings to compile into CFW */
+//#define WIFI_SSID "SSID"
+//#define WIFI_PASS "passw0rd"
