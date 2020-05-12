@@ -1,6 +1,8 @@
 #include "WrapperWebServer.h"
 #include "Hackiebox.h"
 
+#include <SLFS.h>
+
 void WrapperWebServer::begin() {  
   _server = new WebServer(80);
 
@@ -77,9 +79,8 @@ void WrapperWebServer::handleAjax(void) {
 
         String filename = param1;
         int16_t index = filename.lastIndexOf("/");
-        if (index != -1) {
+        if (index != -1)
           filename.remove(0, index+1);
-        }
 
         _server->setContentLength(size);
         _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
@@ -97,9 +98,46 @@ void WrapperWebServer::handleAjax(void) {
 
         file.close();
         return;
+      } else {
+        Log.error("Could not open %s", (char*)param1.c_str());
+      }
+    } else if (cmd.equals("get-flash-file")) {
+      long size = 0;
+
+      if (!param1)
+        param1 = String();
+      if (param2)
+        size = param2.toInt();
+
+      if (SerFlash.open((char*)param1.c_str(), FS_MODE_OPEN_READ) == SL_FS_OK) {
+        if (size == 0) 
+          size = SerFlash.size();
+        
+        String filename = param1;
+        int16_t index = filename.lastIndexOf("/");
+        if (index != -1) 
+          filename.remove(0, index+1);
+
+        _server->setContentLength(size);
+        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
+        _server->send(200, "application/octet-stream", "");
+
+        uint8_t buffer[1024];
+        size_t read = -1;
+        while (SerFlash.available()) {
+          read = SerFlash.readBytes(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
+          if (read == 0)
+            break;
+          if (_server->client().write(buffer, read) == 0) 
+            break;
+        }
+
+        SerFlash.close();
+        return;
+      } else {
+        Log.error("Could not open %s, error %s", (char*)param1.c_str(), SerFlash.lastErrorString());
       }
     }
   }
-
   handleNotFound();
 }
