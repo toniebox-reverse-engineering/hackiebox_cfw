@@ -15,9 +15,13 @@ class WrapperWebServer {
             handleNotFound(void),
             handleRoot(void),
             handleSse(void),
-            handleAjax(void);
+            handleAjax(void),
+            handleUploadFile(void),
+            handleUploadFlashFile(void);
 
         WebServer* _server;
+        FileFs _uploadFile;
+        bool _uploadFileOpen = false;
 
 };
 

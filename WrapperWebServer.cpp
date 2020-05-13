@@ -7,11 +7,15 @@ void WrapperWebServer::begin() {
   _server = new WebServer(80);
 
   _server->enableCORS(true); //DEV ONLY!
-  
+
+  //first callback is called after the request has ended with all parsed arguments
+  //second callback handles file uploads at that location
   _server->onNotFound([&](){ WrapperWebServer::handleNotFound(); });
-  _server->on("/", [&](){ WrapperWebServer::handleRoot(); });
-  _server->on("/api/sse", [&](){ WrapperWebServer::handleSse(); });
-  _server->on("/api/ajax", [&](){ WrapperWebServer::handleAjax(); });
+  _server->on("/", HTTP_GET, [&](){ WrapperWebServer::handleRoot(); });
+  _server->on("/api/sse", HTTP_GET, [&](){ WrapperWebServer::handleSse(); });
+  _server->on("/api/ajax", HTTP_GET, [&](){ WrapperWebServer::handleAjax(); });
+  _server->on("/api/upload/file", HTTP_POST, [&](){ }, [&](){ WrapperWebServer::handleUploadFile(); });
+  _server->on("/api/upload/flash-file", HTTP_POST, [&](){ WrapperWebServer::handleUploadFlashFile(); });
   _server->begin();
 }
 void WrapperWebServer::handle(void) {
@@ -41,19 +45,9 @@ void WrapperWebServer::handleSse(void) {
   //TODO: Keep alive connection without blocking others
 }
 void WrapperWebServer::handleAjax(void) {
-  String cmd;
-  String param1;
-  String param2;
-
-  for (uint8_t i=0; i<_server->args(); i++) {
-    if (_server->argName(i).equals("cmd")) {
-      cmd = _server->arg(i);
-    } else if (_server->argName(i).equals("param1")) {
-      param1 = _server->arg(i);
-    } else if (_server->argName(i).equals("param2")) {
-      param2 = _server->arg(i);
-    }
-  }
+  String cmd = _server->arg("cmd");
+  String param1 = _server->arg("param1");
+  String param2 = _server->arg("param2");
 
   if (cmd) {
     if (cmd.equals("get-config")) {
@@ -88,12 +82,13 @@ void WrapperWebServer::handleAjax(void) {
 
         uint8_t buffer[4096];
         size_t read;
+
         while (file.curPosition() < size) {
           read = file.read(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
           if (read == 0)
-            break;
+            break; //error or empty
           if (_server->client().write(buffer, read) == 0) 
-            break;
+            break; //error
         }
 
         file.close();
@@ -127,9 +122,9 @@ void WrapperWebServer::handleAjax(void) {
         while (SerFlash.available()) {
           read = SerFlash.readBytes(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
           if (read == 0)
-            break;
+            break; //error or empty
           if (_server->client().write(buffer, read) == 0) 
-            break;
+            break; //error
         }
 
         SerFlash.close();
@@ -137,7 +132,51 @@ void WrapperWebServer::handleAjax(void) {
       } else {
         Log.error("Could not open %s, error %s", (char*)param1.c_str(), SerFlash.lastErrorString());
       }
+    } else if (cmd.equals("set-file")) {
+    } else if (cmd.equals("move-file")) {
     }
   }
   handleNotFound();
+}
+
+void WrapperWebServer::handleUploadFile() {
+  HTTPUpload& upload = _server->upload();
+  if (upload.status == UPLOAD_FILE_START) {
+    String filename = _server->arg("filename");
+    bool overwrite = false;
+    if (!_server->arg("overwrite").equals("")) {
+      overwrite = true;
+    }
+
+    if (!filename.startsWith("/"))
+      filename = "/" + filename;
+    Log.info("handleUploadFile Name: %s, overwrite: %T", (char*)filename.c_str(), overwrite);
+
+    uint8_t filemode = FA_CREATE_NEW | FA_WRITE;
+    if (overwrite)
+      filemode = FA_CREATE_ALWAYS | FA_WRITE;
+
+    _uploadFileOpen = _uploadFile.open((char*)filename.c_str(), filemode);
+    if (_uploadFileOpen)
+      return;
+    Log.error("File could not be opened.");
+  } else if (upload.status == UPLOAD_FILE_WRITE) {
+    //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
+    if (_uploadFileOpen) {
+      _uploadFile.write(upload.buf, upload.currentSize);
+      return;
+    }
+  } else if (upload.status == UPLOAD_FILE_END) {
+    if (_uploadFileOpen) {
+      _uploadFile.close();
+      Log.info("handleUploadFile Size: %ikB", upload.totalSize / 1024);
+      _server->send(200, "text/html", "{\"success\":true}");
+      return;
+    }
+  }
+  handleNotFound();
+}
+
+void WrapperWebServer::handleUploadFlashFile() {
+  handleNotFound(); //TBD
 }
