@@ -244,6 +244,28 @@
             <h2>Serial</h2>
           </div>
         </div>
+        <div id="main-fileupload">
+          <h1>File Upload</h1>
+          <h2>SD card</h2>
+          <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverloayPost(event, '/api/upload/file');">
+            <div class="form-group">
+              <label for="file">Local file</label>
+              <input name="file" type="file" size="50" accept="*/*" class="form-control"> 
+            </div>
+            <div class="form-group">
+              <label for="file">Overwrite</label></br>
+              <input name="overwrite" type="checkbox" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="path">SD path</label>
+              <input name="path" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="submit" value="Upload" class="form-control">
+            </div>
+          </form>
+          <h2>Flash</h2>
+        </div>
         <div id="main-about">
           <h1>About</h1>
           <div class="jumbotron">
@@ -268,7 +290,7 @@
               </tr>
               <tr>
                 <td>Gambrius</td>
-                <td>Reversing Tonie RFID / audio files</td>
+                <td>Reversing Tonie RFID / audio files / tonies.json</td>
                 <td><a href="http://gt-blog.de/" target="_blank">Gambrius Tech Blog</a></td>
               </tr>
               <tr>
@@ -305,6 +327,8 @@
           this._params = new URLSearchParams(window.location.search);
           this._mainMenu = new MainMenu();
           this._contentPage = new ContentPage();
+          this._server = this._params.get("server");
+          this._initSse();
 
           $("input[type='checkbox']").bootstrapSwitch();
 
@@ -323,6 +347,7 @@
             case "settings":
             case "help":
             case "boxtests":
+            case "fileupload":
             case "about":
 
               break;
@@ -356,6 +381,17 @@
             $("#loading-div").hide();
             $("#body-div").show();
           }
+        }
+        getDomainPort() {
+          if (this._server == null || this._server == "")
+            return location.hostname+(location.port ? ':'+location.port: '');
+          return this._server;
+        }
+        _initSse() { /*
+          this._sseEventSource = new EventSource("http://"+this._getDomainPort()+"/api/sse");
+          this._sseEventSource.onmessage = function(event) {
+            alert(event);
+          };*/
         }
       }
       class ContentPage {
@@ -416,10 +452,15 @@
             { "id": "home", "name": "Home" },
             { "id": "content", "name": "Content", "submenu": true },
             { "id": "settings", "name": "Settings", "submenu": true },
+            { "id": "expert", "name": "Expert", "sub":
+              [
+                { "id": "boxtests", "name": "Box Tests", "submenu": true },
+                { "id": "fileupload", "name": "File Upload", "submenu": false },
+              ]
+            },
             { "id": "help", "name": "Help","sub":
               [
                 { "id": "help", "name": "Help", "submenu": true },
-                { "id": "boxtests", "name": "Box Tests", "submenu": true },
                 { "id": "github", "name": "GitHub", "url": "https://github.com/toniebox-reverse-engineering/hackiebox_cfw" },
                 { "id": "about", "name": "About" }
               ]
@@ -488,11 +529,15 @@
     <script>
       var site;
       $(function() {
-          site = new Site("boxtests");
+          site = new Site("fileupload");
       });
 
       function imageFormatter(value) {
         return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
+      }
+      function submitOverloayPost(e, target) {
+        var action = "http://" + site.getDomainPort() + target + "?" + $(e.target).serialize();
+        $(e.target).attr("action", action);
       }
     </script>
   </body>
