@@ -19,6 +19,10 @@ class WrapperWebServer {
             handleUploadFile(void),
             handleUploadFlashFile(void);
 
+        bool 
+            commandGetFile(const char* path, long read_start, long read_length),
+            commandGetFlashFile(const char* path, long read_start, long read_length);
+
         WebServer* _server;
         FileFs _uploadFile;
         bool _uploadFileOpen = false;

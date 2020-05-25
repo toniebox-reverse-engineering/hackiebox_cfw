@@ -46,119 +46,168 @@ void WrapperWebServer::handleSse(void) {
 }
 void WrapperWebServer::handleAjax(void) {
   String cmd = _server->arg("cmd");
-  String param1 = _server->arg("param1");
-  String param2 = _server->arg("param2");
 
   if (cmd) {
     if (cmd.equals("get-config")) {
       _server->send(200, "text/json", Config.getAsJson());
       return;
     } else if (cmd.equals("get-dir")) {
-      if (!param1)
-        param1 = String();
-      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)param1.c_str()));
+      String path = _server->arg("path");
+      if (!path)
+        path = String();
+      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)path.c_str()));
       return;
     } else if (cmd.equals("get-file")) {
-      long size = 0;
-
-      if (!param1)
-        param1 = String();
-      if (param2)
-        size = param2.toInt();
-
-      FileFs file;
-      if (file.open((char*)param1.c_str(), FA_OPEN_EXISTING | FA_READ)) {
-        if (size == 0 || file.fileSize() < size) 
-          size = file.fileSize();
-
-        String filename = param1;
-        int16_t index = filename.lastIndexOf("/");
-        if (index != -1)
-          filename.remove(0, index+1);
-
-        _server->setContentLength(size);
-        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
-        _server->send(200, "application/octet-stream", "");
-
-        uint8_t buffer[4096];
-        size_t read;
-
-        while (file.curPosition() < size) {
-          read = file.read(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
-          if (read == 0)
-            break; //error or empty
-          if (_server->client().write(buffer, read) == 0) 
-            break; //error
-        }
-
-        file.close();
+      String filename = _server->arg("filepath");
+      long read_start = _server->arg("start").toInt();
+      long read_length = _server->arg("length").toInt();
+      int16_t index = filename.lastIndexOf("/");
+      if (index != -1)
+        filename.remove(0, index+1);
+      if (commandGetFile(filename.c_str(), read_start, read_length))
         return;
-      } else {
-        Log.error("Could not open %s", (char*)param1.c_str());
-      }
     } else if (cmd.equals("get-flash-file")) {
-      long size = 0;
-
-      if (!param1)
-        param1 = String();
-      if (param2)
-        size = param2.toInt();
-
-      if (SerFlash.open((char*)param1.c_str(), FS_MODE_OPEN_READ) == SL_FS_OK) {
-        if (size == 0) 
-          size = SerFlash.size();
-        
-        String filename = param1;
-        int16_t index = filename.lastIndexOf("/");
-        if (index != -1) 
-          filename.remove(0, index+1);
-
-        _server->setContentLength(size);
-        _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
-        _server->send(200, "application/octet-stream", "");
-
-        uint8_t buffer[1024];
-        size_t read = -1;
-        while (SerFlash.available()) {
-          read = SerFlash.readBytes(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
-          if (read == 0)
-            break; //error or empty
-          if (_server->client().write(buffer, read) == 0) 
-            break; //error
-        }
-
-        SerFlash.close();
+      String filename = _server->arg("filepath");
+      long read_start = _server->arg("start").toInt();
+      long read_length = _server->arg("length").toInt();
+      int16_t index = filename.lastIndexOf("/");
+      if (index != -1)
+        filename.remove(0, index+1);
+      if (commandGetFlashFile(filename.c_str(), read_start, read_length))
         return;
-      } else {
-        Log.error("Could not open %s, error %s", (char*)param1.c_str(), SerFlash.lastErrorString());
-      }
-    } else if (cmd.equals("set-file")) {
+    } else if (cmd.equals("copy-file")) {
+      char* source = (char*)_server->arg("source").c_str();
+      char* target = (char*)_server->arg("target").c_str();
+      //TBD
     } else if (cmd.equals("move-file")) {
+      char* source = (char*)_server->arg("source").c_str();
+      char* target = (char*)_server->arg("target").c_str();
+      if (!FatFs.isDir(source) && !FatFs.exists(target)) {
+        if (FatFs.rename(source, target)) {
+          _server->send(200, "text/json", "{ \"success\": true }");
+          return;
+        }
+      }
+    } else if (cmd.equals("delete-file")) {
+      char* filepath = (char*)_server->arg("filepath").c_str();
+      if (!FatFs.isDir(filepath) && FatFs.exists(filepath)) {
+        if (FatFs.remove(filepath)) {
+          _server->send(200, "text/json", "{ \"success\": true }");
+          return;
+        }
+      }
+    } else if (cmd.equals("create-dir")) {
+      char* dir = (char*)_server->arg("dir").c_str();
+      if (!FatFs.exists(dir)) {
+        if (FatFs.mkdir(dir)) {
+          _server->send(200, "text/json", "{ \"success\": true }");
+          return;
+        }
+      }
+
+    } else if (cmd.equals("move-dir")) {
+      char* source = (char*)_server->arg("source").c_str();
+      char* target = (char*)_server->arg("target").c_str();
+      if (FatFs.isDir(source) && !FatFs.exists(target)) {
+        if (FatFs.rename(source, target)) {
+          _server->send(200, "text/json", "{ \"success\": true }");
+          return;
+        }
+      }
+    } else if (cmd.equals("copy-dir")) {
+      char* source = (char*)_server->arg("source").c_str();
+      char* target = (char*)_server->arg("target").c_str();
+      //TBD
+    } else if (cmd.equals("delete-dir")) {
+      char* dir = (char*)_server->arg("dir").c_str();
+      if (FatFs.isDir(dir) && FatFs.exists(dir)) {
+        if (FatFs.rmdir(dir)) {
+          _server->send(200, "text/json", "{ \"success\": true }");
+          return;
+        }
+      }
     }
   }
   handleNotFound();
 }
 
+bool WrapperWebServer::commandGetFile(const char* path, long read_start, long read_length) {
+  FileFs file;
+  if (file.open((char*)path, FA_OPEN_EXISTING | FA_READ)) {
+    if (read_length == 0 || file.fileSize() < read_length) 
+      read_length = file.fileSize();
+
+    _server->setContentLength(read_length);
+    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + String(path) + String("\"")).c_str());
+    _server->send(200, "application/octet-stream", "");
+
+    uint8_t buffer[4096];
+    size_t read;
+
+    file.seekSet(read_start);
+    while (file.curPosition() < read_length) {
+      read = file.read(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
+      if (read == 0)
+        break; //error or empty
+      if (_server->client().write(buffer, read) == 0) 
+        break; //error
+    }
+
+    file.close();
+    return true;
+  } else {
+    Log.error("Could not open %s", path);
+  }
+  return false;
+}
+bool WrapperWebServer::commandGetFlashFile(const char* path, long read_start, long read_length) {
+  if (SerFlash.open((char*)path, FS_MODE_OPEN_READ) == SL_FS_OK) {
+    if (read_length == 0 || SerFlash.size() < read_length) 
+      read_length = SerFlash.size();
+
+    _server->setContentLength(read_length);
+    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + String(path) + String("\"")).c_str());
+    _server->send(200, "application/octet-stream", "");
+
+    uint8_t buffer[1024];
+    size_t read = -1;
+    SerFlash.seek(read_start);
+    while (SerFlash.available()) {
+      read = SerFlash.readBytes(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
+      if (read == 0)
+        break; //error or empty
+      if (_server->client().write(buffer, read) == 0) 
+        break; //error
+    }
+
+    SerFlash.close();
+    return true;
+  } else {
+    Log.error("Could not open %s, error %s", (char*)path, SerFlash.lastErrorString());
+  }
+  return false;
+}
+
 void WrapperWebServer::handleUploadFile() {
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
-    String filename = _server->arg("filename");
+    String filename = _server->arg("filepath");
     bool overwrite = false;
-    if (!_server->arg("overwrite").equals("")) {
+    if (!_server->arg("overwrite").equals(""))
       overwrite = true;
-    }
+    long write_start = _server->arg("start").toInt();
 
-    if (!filename.startsWith("/"))
-      filename = "/" + filename;
-    Log.info("handleUploadFile Name: %s, overwrite: %T", (char*)filename.c_str(), overwrite);
+    Log.info("handleUploadFile Name: %s, overwrite: %T, start=%l", (char*)filename.c_str(), overwrite, write_start);
 
     uint8_t filemode = FA_CREATE_NEW | FA_WRITE;
     if (overwrite)
       filemode = FA_CREATE_ALWAYS | FA_WRITE;
 
     _uploadFileOpen = _uploadFile.open((char*)filename.c_str(), filemode);
-    if (_uploadFileOpen)
+    if (_uploadFileOpen) {
+      _uploadFile.seekSet(write_start);
       return;
+    }
     Log.error("File could not be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
