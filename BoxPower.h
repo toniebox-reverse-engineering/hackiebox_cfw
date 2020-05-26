@@ -6,6 +6,7 @@
 class BoxPower {
     public:
         void
+            initPins(),
             begin(),
             loop();
         

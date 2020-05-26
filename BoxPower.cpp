@@ -3,14 +3,16 @@
 #include "Hackiebox.h"
 #include <driverlib/prcm.h>
 
+void BoxPower::initPins() {
+    pinMode(58, OUTPUT); //SD Power pin
+    pinMode(61, OUTPUT); //Audio, Accelerometer, RFID, LED Blue / Red?
+}
+
 void BoxPower::begin() {
     _sleepMinutes = Config.get()->battery.sleepMinutes;
     _lastFeed = millis();
 
     Log.info("Initialize BoxPower class, sleepMinutes=%i", _sleepMinutes);
-
-    pinMode(58, OUTPUT); //SD Power pin
-    pinMode(61, OUTPUT); //Audio, Accelerometer, RFID, LED Blue / Red?
 }
 
 void BoxPower::loop() {

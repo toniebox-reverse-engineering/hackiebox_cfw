@@ -3,10 +3,12 @@
 BoxConfig Config;
 Hackiebox Box;
 void Hackiebox::setup() {  
+    //watchdog set 30s?
+
     Log.init(LOG_LEVEL_VERBOSE, 115200);
     Log.info("Booting Hackiebox...");
 
-    boxPower.begin();
+    boxPower.initPins();
     boxPower.setSdPower(true);
     boxPower.setOtherPower(true);
 
@@ -14,6 +16,8 @@ void Hackiebox::setup() {
     Config.begin(); //SD Card needed!
     ConfigStruct* config = Config.get();
     
+    boxPower.begin();
+
     boxLEDs.begin();
     boxLEDs.testLEDs();
 
@@ -39,6 +43,8 @@ void Hackiebox::setup() {
 }
 
 void Hackiebox::loop() {  
+    //watchdog.feed
+
     boxBattery.loop();
     boxEars.loop();
     boxPower.loop();
