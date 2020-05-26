@@ -10,6 +10,10 @@ class BoxPower {
             loop();
         
         void
+            feedSleepTimer(),
+            hibernate();
+
+        void
             setSdPower(bool power),
             setOtherPower(bool power);
 
@@ -18,6 +22,8 @@ class BoxPower {
             getOtherPower();
 
     private:
+        uint8_t _sleepMinutes;
+        uint32_t _lastFeed;
 };
 
 #endif

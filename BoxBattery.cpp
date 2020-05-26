@@ -1,5 +1,7 @@
 #include "BoxBattery.h"
 
+#include "Hackiebox.h"
+
 void BoxBattery::begin() {
     reloadConfig();
 
@@ -8,10 +10,15 @@ void BoxBattery::begin() {
     logBatteryStatus();
 }
 void BoxBattery::loop() {
-    if (isBatteryLow() && !isChargerConnected()) {
-        //Powerdown?
-        Log.info("Battery is low, please connect the charger!");
-        logBatteryStatus();
+    if (!isChargerConnected()) {
+        if (isBatteryCritical()) {
+            Log.info("Battery is critical, please connect the charger, hibernating!");
+            logBatteryStatus();
+            Box.boxPower.hibernate();
+        } else if (isBatteryLow()) {
+            Log.info("Battery is low, please connect the charger!");
+            logBatteryStatus();
+        }
     }
 }
 
@@ -29,7 +36,12 @@ uint16_t BoxBattery::getBatteryVoltage() {
 
 }
 bool BoxBattery::isBatteryLow() {
-    if (getBatteryAdcRaw() < _batteryMinimalAdc)
+    if (getBatteryAdcRaw() < _batteryLowAdc)
+        return true;
+    return false;
+}
+bool BoxBattery::isBatteryCritical() {
+    if (getBatteryAdcRaw() < _batteryCriticalAdc)
         return true;
     return false;
 }
@@ -51,5 +63,6 @@ void BoxBattery::reloadConfig() {
 
     _batteryVoltageFactor = config->battery.voltageFactor;
     _batteryVoltageChargerFactor = config->battery.voltageChargerFactor;
-    _batteryMinimalAdc = config->battery.minimalAdc;
+    _batteryLowAdc = config->battery.lowAdc;
+    _batteryCriticalAdc = config->battery.criticalAdc;
 }

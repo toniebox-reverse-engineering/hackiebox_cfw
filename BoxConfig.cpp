@@ -56,7 +56,8 @@ String BoxConfig::getAsJson() {
     ConfigBattery* batteryCfg = &_config.battery;
     batteryDoc["voltageFactor"] = batteryCfg->voltageFactor;
     batteryDoc["voltageChargerFactor"] = batteryCfg->voltageChargerFactor;
-    batteryDoc["minimalAdc"] = batteryCfg->minimalAdc;
+    batteryDoc["lowAdc"] = batteryCfg->lowAdc;
+    batteryDoc["criticalAdc"] = batteryCfg->criticalAdc;
     batteryDoc["sleepMinutes"] = batteryCfg->sleepMinutes;
 
     JsonObject buttonsDoc = doc.createNestedObject("buttonEars");
@@ -81,18 +82,14 @@ bool BoxConfig::setFromJson(String json) {
         return false;
     }
 
-    uint8_t version = doc["version"].as<uint8_t>();
-    if (version != CONFIG_ACTIVE_VERSION) {
-        Log.error("Wrong config version %i, expected %i", version, CONFIG_ACTIVE_VERSION);
-        return false;
-    }
-    _config.version = version;
+    _config.version = doc["version"].as<uint8_t>();
 
     JsonObject batteryDoc = doc["battery"];
     ConfigBattery* batteryCfg = &_config.battery;
     batteryCfg->voltageFactor = batteryDoc["voltageFactor"].as<uint32_t>();
     batteryCfg->voltageChargerFactor = batteryDoc["voltageChargerFactor"].as<uint32_t>();
-    batteryCfg->minimalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
+    batteryCfg->lowAdc = batteryDoc["lowAdc"].as<uint16_t>();
+    batteryCfg->criticalAdc = batteryDoc["criticalAdc"].as<uint16_t>();
     batteryCfg->sleepMinutes = batteryDoc["sleepMinutes"].as<uint8_t>();
 
     JsonObject buttonsDoc = doc["buttonEars"];
@@ -105,6 +102,21 @@ bool BoxConfig::setFromJson(String json) {
     strncpy(&wifiCfg->ssid[0], wifiDoc["ssid"].as<char*>(), sizeof(wifiCfg->ssid));
     strncpy(&wifiCfg->password[0], wifiDoc["password"].as<char*>(), sizeof(wifiCfg->password));
 
+    // Convert old config version to latest one.
+    if (_config.version != CONFIG_ACTIVE_VERSION) {
+        switch (_config.version) {
+        case 2:
+            batteryCfg->criticalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
+            batteryCfg->lowAdc = batteryCfg->criticalAdc + 100;
+            _config.version = CONFIG_ACTIVE_VERSION;
+            break;
+        
+        default:
+            _initializeConfig();
+            break;
+        } 
+    }
+
     return true;
 }
 
@@ -114,7 +126,8 @@ void BoxConfig::_initializeConfig() {
     ConfigBattery* battery = &_config.battery;
     battery->voltageFactor = 67690;
     battery->voltageChargerFactor = 71907;
-    battery->minimalAdc = 2400;
+    battery->lowAdc = 2500;
+    battery->criticalAdc = 2400;
     battery->sleepMinutes = 15;
 
     ConfigButtonEars* buttons = &_config.buttonEars;

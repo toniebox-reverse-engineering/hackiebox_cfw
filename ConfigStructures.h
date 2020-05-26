@@ -1,12 +1,13 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_ACTIVE_VERSION 2
+#define CONFIG_ACTIVE_VERSION 3
 
 typedef struct {
   uint32_t voltageFactor;
   uint32_t voltageChargerFactor;
-  uint16_t minimalAdc;
+  uint16_t lowAdc;
+  uint16_t criticalAdc;
   uint8_t sleepMinutes;
 } ConfigBattery;
 
