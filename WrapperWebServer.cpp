@@ -126,8 +126,10 @@ void WrapperWebServer::handleAjax(void) {
     } else if (cmd.equals("box-power")) { 
       String sub = _server->arg("sub");
       if (sub.equals("reset")) {
+        sendJsonSuccess();
         Box.boxPower.reset();
       } else if (sub.equals("hibernate")) {
+        sendJsonSuccess();
         Box.boxPower.hibernate();
       }
     }
