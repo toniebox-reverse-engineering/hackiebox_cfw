@@ -20,11 +20,9 @@ void WrapperWebServer::begin() {
 }
 void WrapperWebServer::handle(void) {
   _server->handleClient();
-  Box.boxPower.feedSleepTimer();
 }
 
 void WrapperWebServer::handleNotFound(void) {
-
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += _server->uri();
@@ -40,13 +38,16 @@ void WrapperWebServer::handleNotFound(void) {
 }
 
 void WrapperWebServer::handleRoot(void) {
+  Box.boxPower.feedSleepTimer();
   _server->send(200, "text/html", "ROOT");
 }
 void WrapperWebServer::handleSse(void) {
+  Box.boxPower.feedSleepTimer();
   _server->send(200, "text/event-stream", "SSE");
   //TODO: Keep alive connection without blocking others
 }
 void WrapperWebServer::handleAjax(void) {
+  Box.boxPower.feedSleepTimer();
   String cmd = _server->arg("cmd");
 
   if (cmd) {
@@ -80,7 +81,7 @@ void WrapperWebServer::handleAjax(void) {
       char* target = (char*)_server->arg("target").c_str();
       if (!FatFs.isDir(source) && !FatFs.exists(target)) {
         if (FatFs.rename(source, target)) {
-          _server->send(200, "text/json", "{ \"success\": true }");
+          sendJsonSuccess();
           return;
         }
       }
@@ -88,7 +89,7 @@ void WrapperWebServer::handleAjax(void) {
       char* filepath = (char*)_server->arg("filepath").c_str();
       if (!FatFs.isDir(filepath) && FatFs.exists(filepath)) {
         if (FatFs.remove(filepath)) {
-          _server->send(200, "text/json", "{ \"success\": true }");
+          sendJsonSuccess();
           return;
         }
       }
@@ -96,7 +97,7 @@ void WrapperWebServer::handleAjax(void) {
       char* dir = (char*)_server->arg("dir").c_str();
       if (!FatFs.exists(dir)) {
         if (FatFs.mkdir(dir)) {
-          _server->send(200, "text/json", "{ \"success\": true }");
+          sendJsonSuccess();
           return;
         }
       }
@@ -106,7 +107,7 @@ void WrapperWebServer::handleAjax(void) {
       char* target = (char*)_server->arg("target").c_str();
       if (FatFs.isDir(source) && !FatFs.exists(target)) {
         if (FatFs.rename(source, target)) {
-          _server->send(200, "text/json", "{ \"success\": true }");
+          sendJsonSuccess();
           return;
         }
       }
@@ -118,13 +119,24 @@ void WrapperWebServer::handleAjax(void) {
       char* dir = (char*)_server->arg("dir").c_str();
       if (FatFs.isDir(dir) && FatFs.exists(dir)) {
         if (FatFs.rmdir(dir)) {
-          _server->send(200, "text/json", "{ \"success\": true }");
+          sendJsonSuccess();
           return;
         }
+      }
+    } else if (cmd.equals("box-power")) { 
+      String sub = _server->arg("sub");
+      if (sub.equals("reset")) {
+        Box.boxPower.reset();
+      } else if (sub.equals("hibernate")) {
+        Box.boxPower.hibernate();
       }
     }
   }
   handleNotFound();
+}
+
+void WrapperWebServer::sendJsonSuccess() {
+  _server->send(200, "text/json", "{ \"success\": true }");
 }
 
 bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_length) {
@@ -199,6 +211,7 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
 }
 
 void WrapperWebServer::handleUploadFile() {
+  Box.boxPower.feedSleepTimer();
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
     char* filename = (char*)_server->arg("filepath").c_str();
@@ -229,7 +242,7 @@ void WrapperWebServer::handleUploadFile() {
     if (_uploadFileOpen) {
       _uploadFile.close();
       Log.info("handleUploadFile Size: %ikB", upload.totalSize / 1024);
-      _server->send(200, "text/html", "{\"success\":true}");
+      sendJsonSuccess();
       return;
     }
   }
@@ -237,5 +250,6 @@ void WrapperWebServer::handleUploadFile() {
 }
 
 void WrapperWebServer::handleUploadFlashFile() {
+  Box.boxPower.feedSleepTimer();
   handleNotFound(); //TBD
 }

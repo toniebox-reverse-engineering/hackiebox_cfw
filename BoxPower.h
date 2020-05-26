@@ -11,6 +11,7 @@ class BoxPower {
         
         void
             feedSleepTimer(),
+            reset(),
             hibernate();
 
         void
@@ -24,6 +25,8 @@ class BoxPower {
     private:
         uint8_t _sleepMinutes;
         uint32_t _lastFeed;
+        
+        void _preparePowerDown();
 };
 
 #endif

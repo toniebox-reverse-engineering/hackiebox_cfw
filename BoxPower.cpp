@@ -1,8 +1,13 @@
 #include "BoxPower.h"
 
+#include "Hackiebox.h"
+#include <driverlib/prcm.h>
+
 void BoxPower::begin() {
     _sleepMinutes = Config.get()->battery.sleepMinutes;
     _lastFeed = millis();
+
+    Log.info("Initialize BoxPower class, sleepMinutes=%i, lastFeed=%l", _sleepMinutes, _lastFeed);
 
     pinMode(58, OUTPUT); //SD Power pin
     pinMode(61, OUTPUT); //Audio, Accelerometer, RFID, LED Blue / Red?
@@ -18,15 +23,32 @@ void BoxPower::loop() {
 
 void BoxPower::feedSleepTimer() {
     _lastFeed = millis();
+    Log.verbose("Sleep timer reset");
 }
 
-void BoxPower::hibernate() {
+void BoxPower::_preparePowerDown() {
+    Log.info("Prepare power down...");
     //TODO
     //smartconfig down
-    //enable ear wakeup interrupt
     //disable watchdog
     setSdPower(false);
     setOtherPower(false);
+    Box.boxLEDs.setAll(false);
+}
+void BoxPower::reset() {
+    _preparePowerDown();
+    Log.info("Reset box");
+    PRCMMCUReset(true);
+}
+void BoxPower::hibernate() {
+    _preparePowerDown();
+    Log.info("Go into hibernation");
+
+    //TODO
+    //enable ear wakeup interrupt
+    PRCMHibernateWakeupSourceEnable(PRCM_HIB_GPIO2 | PRCM_HIB_GPIO4);
+    //Utils_SpiFlashDeepPowerDown();
+    PRCMHibernateEnter();
 }
 
 void BoxPower::setSdPower(bool power) {

@@ -19,6 +19,9 @@ class WrapperWebServer {
             handleUploadFile(void),
             handleUploadFlashFile(void);
 
+        void 
+            sendJsonSuccess();
+
         bool 
             commandGetFile(String* path, long read_start, long read_length),
             commandGetFlashFile(String* path, long read_start, long read_length);
