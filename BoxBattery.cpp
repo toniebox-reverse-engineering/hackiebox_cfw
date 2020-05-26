@@ -56,6 +56,7 @@ void BoxBattery::logBatteryStatus() {
     Log.info(" ADC Raw: %c", getBatteryAdcRaw());
     Log.info(" Estimated Voltage: %d.%dV", voltageNum, voltageDec);
     Log.info(" Battery Low: %T", isBatteryLow());
+    Log.info(" Battery Critical: %T", isBatteryCritical());
 }
 
 void BoxBattery::reloadConfig() { 
