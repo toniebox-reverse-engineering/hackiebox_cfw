@@ -20,9 +20,11 @@ void WrapperWebServer::begin() {
 }
 void WrapperWebServer::handle(void) {
   _server->handleClient();
+  Box.boxPower.feedSleepTimer();
 }
 
 void WrapperWebServer::handleNotFound(void) {
+
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += _server->uri();
@@ -61,19 +63,13 @@ void WrapperWebServer::handleAjax(void) {
       String filename = _server->arg("filepath");
       long read_start = _server->arg("start").toInt();
       long read_length = _server->arg("length").toInt();
-      int16_t index = filename.lastIndexOf("/");
-      if (index != -1)
-        filename.remove(0, index+1);
-      if (commandGetFile(filename.c_str(), read_start, read_length))
+      if (commandGetFile(&filename, read_start, read_length))
         return;
     } else if (cmd.equals("get-flash-file")) {
-      String filename = _server->arg("filepath");
+      String filename =_server->arg("filepath");
       long read_start = _server->arg("start").toInt();
       long read_length = _server->arg("length").toInt();
-      int16_t index = filename.lastIndexOf("/");
-      if (index != -1)
-        filename.remove(0, index+1);
-      if (commandGetFlashFile(filename.c_str(), read_start, read_length))
+      if (commandGetFlashFile(&filename, read_start, read_length))
         return;
     } else if (cmd.equals("copy-file")) {
       char* source = (char*)_server->arg("source").c_str();
@@ -131,26 +127,35 @@ void WrapperWebServer::handleAjax(void) {
   handleNotFound();
 }
 
-bool WrapperWebServer::commandGetFile(const char* path, long read_start, long read_length) {
+bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_length) {
   FileFs file;
-  if (file.open((char*)path, FA_OPEN_EXISTING | FA_READ)) {
+  if (file.open((char*)path->c_str(), FA_OPEN_EXISTING | FA_READ)) {
     if (read_length == 0 || file.fileSize() < read_length) 
       read_length = file.fileSize();
 
+    String filename = *path;
+    int16_t index = filename.lastIndexOf("/");
+    if (index != -1)
+      filename.remove(0, index+1);
+
     _server->setContentLength(read_length);
-    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + String(path) + String("\"")).c_str());
+    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
     _server->send(200, "application/octet-stream", "");
 
-    uint8_t buffer[4096];
+    uint8_t buffer[512]; //higher buffer size may scramble the stream
     size_t read;
+    size_t write;
 
     file.seekSet(read_start);
     while (file.curPosition() < read_length) {
+      //_server->client().write(file.readChar());
       read = file.read(buffer, sizeof(buffer)); //TODO: may read to much if size is limited
       if (read == 0)
         break; //error or empty
-      if (_server->client().write(buffer, read) == 0) 
-        break; //error
+
+      write = _server->client().write(buffer, read);
+      if (write == 0) 
+        break; //error*/
     }
 
     file.close();
@@ -160,16 +165,21 @@ bool WrapperWebServer::commandGetFile(const char* path, long read_start, long re
   }
   return false;
 }
-bool WrapperWebServer::commandGetFlashFile(const char* path, long read_start, long read_length) {
-  if (SerFlash.open((char*)path, FS_MODE_OPEN_READ) == SL_FS_OK) {
+bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long read_length) {
+  if (SerFlash.open((char*)path->c_str(), FS_MODE_OPEN_READ) == SL_FS_OK) {
     if (read_length == 0 || SerFlash.size() < read_length) 
       read_length = SerFlash.size();
 
+    String filename = *path;
+    int16_t index = filename.lastIndexOf("/");
+    if (index != -1)
+      filename.remove(0, index+1);
+
     _server->setContentLength(read_length);
-    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + String(path) + String("\"")).c_str());
+    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
     _server->send(200, "application/octet-stream", "");
 
-    uint8_t buffer[1024];
+    uint8_t buffer[512];
     size_t read = -1;
     SerFlash.seek(read_start);
     while (SerFlash.available()) {
@@ -183,7 +193,7 @@ bool WrapperWebServer::commandGetFlashFile(const char* path, long read_start, lo
     SerFlash.close();
     return true;
   } else {
-    Log.error("Could not open %s, error %s", (char*)path, SerFlash.lastErrorString());
+    Log.error("Could not open %s, error %s", path, SerFlash.lastErrorString());
   }
   return false;
 }
@@ -191,19 +201,19 @@ bool WrapperWebServer::commandGetFlashFile(const char* path, long read_start, lo
 void WrapperWebServer::handleUploadFile() {
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
-    String filename = _server->arg("filepath");
+    char* filename = (char*)_server->arg("filepath").c_str();
     bool overwrite = false;
     if (!_server->arg("overwrite").equals(""))
       overwrite = true;
     long write_start = _server->arg("start").toInt();
 
-    Log.info("handleUploadFile Name: %s, overwrite: %T, start=%l", (char*)filename.c_str(), overwrite, write_start);
+    Log.info("handleUploadFile Name: %s, overwrite: %T, start=%l", filename, overwrite, write_start);
 
     uint8_t filemode = FA_CREATE_NEW | FA_WRITE;
     if (overwrite)
       filemode = FA_CREATE_ALWAYS | FA_WRITE;
 
-    _uploadFileOpen = _uploadFile.open((char*)filename.c_str(), filemode);
+    _uploadFileOpen = _uploadFile.open(filename, filemode);
     if (_uploadFileOpen) {
       _uploadFile.seekSet(write_start);
       return;
