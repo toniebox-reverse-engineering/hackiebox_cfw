@@ -2,6 +2,7 @@
 
 void BoxPower::begin() {
     _sleepMinutes = Config.get()->battery.sleepMinutes;
+    _lastFeed = millis();
 
     pinMode(58, OUTPUT); //SD Power pin
     pinMode(61, OUTPUT); //Audio, Accelerometer, RFID, LED Blue / Red?
@@ -9,7 +10,7 @@ void BoxPower::begin() {
 
 void BoxPower::loop() {
     uint32_t deltaMinutes = (millis() - _lastFeed) / (1000 * 60);
-    if (deltaMinutes >= _sleepMinutes) {
+    if (_sleepMinutes > 0 && deltaMinutes >= _sleepMinutes) {
         Log.info("Box not used, powering off.");
         hibernate();
     }
