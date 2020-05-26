@@ -14,7 +14,8 @@ class BoxLEDs {
         void
             setRed(bool power),
             setGreen(bool power),
-            setBlue(bool power);
+            setBlue(bool power),
+            setAll(bool power);
 
         bool
             getRed(),

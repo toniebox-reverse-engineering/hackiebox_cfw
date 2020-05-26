@@ -30,6 +30,12 @@ bool BoxLEDs::getBlue() {
     return digitalRead(17);
 }
 
+void BoxLEDs::setAll(bool enabled) {
+    setRed(enabled);
+    setGreen(enabled);
+    setBlue(enabled);
+}
+
 void BoxLEDs::testLEDs() {
     bool ledR = getRed();
     bool ledG = getGreen();
