@@ -39,7 +39,9 @@ void WrapperWebServer::handleNotFound(void) {
 
 void WrapperWebServer::handleRoot(void) {
   Box.boxPower.feedSleepTimer();
-  _server->send(200, "text/html", "ROOT");
+  //_server->send(200, "text/html", "ROOT");
+  String hackiebox = String("/revvox/web/hackiebox.html");
+  commandGetFile(&hackiebox, 0, 0, false);
 }
 void WrapperWebServer::handleSse(void) {
   Box.boxPower.feedSleepTimer();
@@ -64,7 +66,7 @@ void WrapperWebServer::handleAjax(void) {
       String filename = _server->arg("filepath");
       long read_start = _server->arg("start").toInt();
       long read_length = _server->arg("length").toInt();
-      if (commandGetFile(&filename, read_start, read_length))
+      if (commandGetFile(&filename, read_start, read_length, true))
         return;
     } else if (cmd.equals("get-flash-file")) {
       String filename =_server->arg("filepath");
@@ -154,7 +156,7 @@ void WrapperWebServer::sendJsonSuccess() {
   _server->send(200, "text/json", "{ \"success\": true }");
 }
 
-bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_length) {
+bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_length, bool download) {
   FileFs file;
   if (file.open((char*)path->c_str(), FA_OPEN_EXISTING | FA_READ)) {
     if (read_length == 0 || file.fileSize() < read_length) 
@@ -166,8 +168,12 @@ bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_l
       filename.remove(0, index+1);
 
     _server->setContentLength(read_length);
-    _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
-    _server->send(200, "application/octet-stream", "");
+    if (download) {
+      _server->sendHeader("Content-Disposition", (String("attachment; filename=\"") + filename + String("\"")).c_str());
+      _server->send(200, "application/octet-stream", "");
+    } else {
+      _server->send(200, "text/html", "");
+    }
 
     uint8_t buffer[512]; //higher buffer size may scramble the stream
     size_t read;
@@ -229,7 +235,8 @@ void WrapperWebServer::handleUploadFile() {
   Box.boxPower.feedSleepTimer();
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
-    char* filename = (char*)_server->arg("filepath").c_str();
+    String filepath = _server->arg("filepath");
+    char* filename = (char*)filepath.c_str();
     bool overwrite = false;
     if (!_server->arg("overwrite").equals(""))
       overwrite = true;

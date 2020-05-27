@@ -23,7 +23,7 @@ class WrapperWebServer {
             sendJsonSuccess();
 
         bool 
-            commandGetFile(String* path, long read_start, long read_length),
+            commandGetFile(String* path, long read_start, long read_length, bool download),
             commandGetFlashFile(String* path, long read_start, long read_length);
 
         WebServer* _server;
