@@ -55,7 +55,7 @@ void WrapperWebServer::handleAjax(void) {
       _server->send(200, "text/json", Config.getAsJson());
       return;
     } else if (cmd.equals("get-dir")) {
-      String path = _server->arg("path");
+      String path = _server->arg("dir");
       if (!path)
         path = String();
       _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)path.c_str()));
@@ -73,12 +73,16 @@ void WrapperWebServer::handleAjax(void) {
       if (commandGetFlashFile(&filename, read_start, read_length))
         return;
     } else if (cmd.equals("copy-file")) {
-      char* source = (char*)_server->arg("source").c_str();
-      char* target = (char*)_server->arg("target").c_str();
+      String source_str = _server->arg("source");
+      String target_str = _server->arg("target");
+      char* source = (char*)source_str.c_str();
+      char* target = (char*)target_str.c_str();
       //TBD
     } else if (cmd.equals("move-file")) {
-      char* source = (char*)_server->arg("source").c_str();
-      char* target = (char*)_server->arg("target").c_str();
+      String source_str = _server->arg("source");
+      String target_str = _server->arg("target");
+      char* source = (char*)source_str.c_str();
+      char* target = (char*)target_str.c_str();
       if (!FatFs.isDir(source) && !FatFs.exists(target)) {
         if (FatFs.rename(source, target)) {
           sendJsonSuccess();
@@ -86,7 +90,10 @@ void WrapperWebServer::handleAjax(void) {
         }
       }
     } else if (cmd.equals("delete-file")) {
-      char* filepath = (char*)_server->arg("filepath").c_str();
+      String filepath_str = _server->arg("filepath");
+      char* filepath = (char*)filepath_str.c_str();
+
+      Log.info("Deleting %s", filepath);
       if (!FatFs.isDir(filepath) && FatFs.exists(filepath)) {
         if (FatFs.remove(filepath)) {
           sendJsonSuccess();
@@ -94,7 +101,8 @@ void WrapperWebServer::handleAjax(void) {
         }
       }
     } else if (cmd.equals("create-dir")) {
-      char* dir = (char*)_server->arg("dir").c_str();
+      String dir_str = _server->arg("dir");
+      char* dir = (char*)dir_str.c_str();
       if (!FatFs.exists(dir)) {
         if (FatFs.mkdir(dir)) {
           sendJsonSuccess();
@@ -103,8 +111,10 @@ void WrapperWebServer::handleAjax(void) {
       }
 
     } else if (cmd.equals("move-dir")) {
-      char* source = (char*)_server->arg("source").c_str();
-      char* target = (char*)_server->arg("target").c_str();
+      String source_str = _server->arg("source");
+      String target_str = _server->arg("target");
+      char* source = (char*)source_str.c_str();
+      char* target = (char*)target_str.c_str();
       if (FatFs.isDir(source) && !FatFs.exists(target)) {
         if (FatFs.rename(source, target)) {
           sendJsonSuccess();
@@ -112,11 +122,14 @@ void WrapperWebServer::handleAjax(void) {
         }
       }
     } else if (cmd.equals("copy-dir")) {
-      char* source = (char*)_server->arg("source").c_str();
-      char* target = (char*)_server->arg("target").c_str();
+      String source_str = _server->arg("source");
+      String target_str = _server->arg("target");
+      char* source = (char*)source_str.c_str();
+      char* target = (char*)target_str.c_str();
       //TBD
     } else if (cmd.equals("delete-dir")) {
-      char* dir = (char*)_server->arg("dir").c_str();
+      String dir_str = _server->arg("dir");
+      char* dir = (char*)dir_str.c_str();
       if (FatFs.isDir(dir) && FatFs.exists(dir)) {
         if (FatFs.rmdir(dir)) {
           sendJsonSuccess();
