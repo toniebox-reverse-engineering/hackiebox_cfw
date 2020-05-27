@@ -1,6 +1,6 @@
 #include "BoxConfig.h"
 
-#define CONFIG_SD_PATH "/hackiebox.config.json"
+#define CONFIG_SD_PATH "/revvox/hackiebox.config.json"
 
 void BoxConfig::begin() { 
     read();
