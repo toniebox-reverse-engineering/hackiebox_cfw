@@ -1,11 +1,10 @@
 #include "Hackiebox.h"
 
-Hackiebox hackiebox = Hackiebox();
 
 void setup() {
-  hackiebox.setup();
+  Box.setup();
 }
 
 void loop() {
-  hackiebox.loop();
+  Box.loop();
 }
