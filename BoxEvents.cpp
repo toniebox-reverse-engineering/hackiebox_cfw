@@ -55,6 +55,27 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
     }
 
     Log.info("%s %s-%s", nameEar, nameLength, nameType);
+}
 
+void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
+    switch (state) {
+    case BoxBattery::BatteryEvent::BAT_CRITICAL:
+        Log.info("Battery is critical, please connect the charger, hibernating!");
+        Box.boxBattery.logBatteryStatus();
+        Box.boxPower.hibernate();
+        break;
+    case BoxBattery::BatteryEvent::BAT_LOW:
+        Log.info("Battery is low, please connect the charger!");
+        Box.boxBattery.logBatteryStatus();
+        break;
+    case BoxBattery::BatteryEvent::CHR_CONNECT:
+        Log.info("Charger was connected");
+        Box.boxBattery.logBatteryStatus();
+        break;
+    case BoxBattery::BatteryEvent::CHR_DISCONNECT:
+        Log.info("Charger was disconnected");
+        Box.boxBattery.logBatteryStatus();
+        break;
+    }
 }
 

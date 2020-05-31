@@ -2,8 +2,7 @@
 #define BoxEvents_h
 
 #include "BaseHeader.h"
-
-#include "BoxButtonEars.h"
+#include "Hackiebox.h"
 
 class BoxEvents {
     public:
@@ -17,6 +16,7 @@ class BoxEvents {
             loop();
         
         void handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::PressedType pressType, BoxButtonEars::PressedTime pressLength);
+        void handleBatteryEvent(BoxBattery::BatteryEvent state);
 
     private:
 };

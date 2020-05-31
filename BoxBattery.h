@@ -2,9 +2,17 @@
 #define BoxBattery_h
 
 #include "BaseHeader.h"
+#include "JC_Button.h"
 
 class BoxBattery {
     public:
+        enum class BatteryEvent {
+            BAT_LOW,
+            BAT_CRITICAL,
+            CHR_CONNECT,
+            CHR_DISCONNECT
+        };
+
         void
             begin(),
             loop(),
@@ -25,6 +33,8 @@ class BoxBattery {
         uint32_t _batteryVoltageChargerFactor;
         uint16_t _batteryLowAdc;
         uint16_t _batteryCriticalAdc;
+
+        Button _charger = Button(8, 25, false, false);
 };
 
 #endif

@@ -1,6 +1,5 @@
 #include "BoxBattery.h"
-
-#include "Hackiebox.h"
+#include "BoxEvents.h"
 
 void BoxBattery::begin() {
     reloadConfig();
@@ -10,20 +9,24 @@ void BoxBattery::begin() {
     logBatteryStatus();
 }
 void BoxBattery::loop() {
+    _charger.read();
+    if (_charger.wasPressed()) {
+        Events.handleBatteryEvent(BatteryEvent::CHR_CONNECT);
+    } else if (_charger.wasReleased()) {
+        Events.handleBatteryEvent(BatteryEvent::CHR_DISCONNECT);
+    }
+
     if (!isChargerConnected()) {
         if (isBatteryCritical()) {
-            Log.info("Battery is critical, please connect the charger, hibernating!");
-            logBatteryStatus();
-            Box.boxPower.hibernate();
+            Events.handleBatteryEvent(BatteryEvent::BAT_CRITICAL);
         } else if (isBatteryLow()) {
-            Log.info("Battery is low, please connect the charger!");
-            logBatteryStatus();
+            Events.handleBatteryEvent(BatteryEvent::BAT_LOW);
         }
     }
 }
 
 bool BoxBattery::isChargerConnected() {
-    return digitalRead(8);
+    return _charger.isPressed();
 }
 uint16_t BoxBattery::getBatteryAdcRaw() {
     return analogRead(60);
