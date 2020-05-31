@@ -1,4 +1,5 @@
 #include "BoxButtonEars.h"
+#include "BoxEvents.h"
 
 void BoxButtonEars::begin() {  
     reloadConfig();
@@ -9,85 +10,60 @@ void BoxButtonEars::begin() {
 
 void BoxButtonEars::loop() { 
     _earSmall.read();
-    
-    if (_earSmall.pressedFor(_earVeryLongPressMs) && _earSmallPressedTime == LONG) {
-        Log.info("Small ear very-long-pressed.");
-        _earSmallPressedTime = VERY_LONG;
-    } else if (_earSmall.pressedFor(_earLongPressMs) && _earSmallPressedTime == SHORT) {
-        Log.info("Small ear long-pressed.");
-        _earSmallPressedTime = LONG;
-    } else if (_earSmall.isPressed() && _earSmallPressedTime == NOT) {
-        Log.info("Small ear short-pressed.");
-        _earSmallPressedTime = SHORT;
+    if (_earSmall.pressedFor(_earVeryLongPressMs) && _earSmallPressedTime == PressedTime::LONG) {
+        _earSmallPressedTime = PressedTime::VERY_LONG;
+        if (!_earBig.isPressed() && _earBigPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::SMALL, PressedType::PRESS, _earSmallPressedTime);
+    } else if (_earSmall.pressedFor(_earLongPressMs) && _earSmallPressedTime == PressedTime::SHORT) {
+        _earSmallPressedTime = PressedTime::LONG;
+        if (!_earBig.isPressed() && _earBigPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::SMALL, PressedType::PRESS, _earSmallPressedTime);
+    } else if (_earSmall.isPressed() && _earSmallPressedTime == PressedTime::NOT) {
+        _earSmallPressedTime = PressedTime::SHORT;
+        if (!_earBig.isPressed() && _earBigPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::SMALL, PressedType::PRESS, _earSmallPressedTime);
     }
     
     _earBig.read();
-    if (_earBig.pressedFor(_earVeryLongPressMs) && _earBigPressedTime == LONG) {
-        Log.info("Big ear very-long-pressed.");
-        _earBigPressedTime = VERY_LONG;
-    } else if (_earBig.pressedFor(_earLongPressMs) && _earBigPressedTime == SHORT) {
-        Log.info("Big ear long-pressed.");
-        _earBigPressedTime = LONG;
-    } else if (_earBig.isPressed() && _earBigPressedTime == NOT) {
-        Log.info("Big ear short-pressed.");
-        _earBigPressedTime = SHORT;
+    if (_earBig.pressedFor(_earVeryLongPressMs) && _earBigPressedTime == PressedTime::LONG) {
+        _earBigPressedTime = PressedTime::VERY_LONG;
+        if (!_earSmall.isPressed() && _earSmallPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::BIG, PressedType::PRESS, _earBigPressedTime);
+    } else if (_earBig.pressedFor(_earLongPressMs) && _earBigPressedTime == PressedTime::SHORT) {
+        _earBigPressedTime = PressedTime::LONG;
+        if (!_earSmall.isPressed() && _earSmallPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::BIG, PressedType::PRESS, _earBigPressedTime);
+    } else if (_earBig.isPressed() && _earBigPressedTime == PressedTime::NOT) {
+        _earBigPressedTime = PressedTime::SHORT;
+        if (!_earSmall.isPressed() && _earSmallPressedTime == PressedTime::NOT)
+            Events.handleEarEvent(EarButton::BIG, PressedType::PRESS, _earBigPressedTime);
     }
 
-    if (_earSmallPressedTime == VERY_LONG && _earBigPressedTime == VERY_LONG && _earBothPressedTime == LONG) {
-        Log.info("Both ears very-long-pressed.");
-        _earBothPressedTime = VERY_LONG;
-    } else if (_earSmallPressedTime == LONG && _earBigPressedTime == LONG && _earBothPressedTime == SHORT) {
-        Log.info("Both ears long-pressed.");
-        _earBothPressedTime = LONG;
-    } else if (_earSmallPressedTime == SHORT && _earBigPressedTime == SHORT && _earBothPressedTime == NOT) {
-        Log.info("Both ears short-pressed.");
-        _earBothPressedTime = SHORT;
+    if (_earSmallPressedTime == PressedTime::VERY_LONG && _earBigPressedTime == PressedTime::VERY_LONG && _earBothPressedTime == PressedTime::LONG) {
+        _earBothPressedTime = PressedTime::VERY_LONG;
+        Events.handleEarEvent(EarButton::BOTH, PressedType::PRESS, _earBothPressedTime);
+    } else if (_earSmallPressedTime == PressedTime::LONG && _earBigPressedTime == PressedTime::LONG && _earBothPressedTime == PressedTime::SHORT) {
+        _earBothPressedTime = PressedTime::LONG;
+        Events.handleEarEvent(EarButton::BOTH, PressedType::PRESS, _earBothPressedTime);
+    } else if (_earSmallPressedTime == PressedTime::SHORT && _earBigPressedTime == PressedTime::SHORT && _earBothPressedTime == PressedTime::NOT) {
+        _earBothPressedTime = PressedTime::SHORT;
+        Events.handleEarEvent(EarButton::BOTH, PressedType::PRESS, _earBothPressedTime);
     }
     
-    if (_earBothPressedTime == NOT) {
+    if (_earBothPressedTime == PressedTime::NOT) {
         if (_earSmall.wasReleased()) {
-            switch (_earSmallPressedTime) {
-            case VERY_LONG:
-                Log.info("Small ear very-long-released.");
-                break;
-            case LONG:
-                Log.info("Small ear long-released.");
-                break;
-            case SHORT:
-                Log.info("Small ear short-released.");
-                break;
-            }
-            _earSmallPressedTime = NOT;
+            Events.handleEarEvent(EarButton::SMALL, PressedType::RELEASE, _earSmallPressedTime);
+            _earSmallPressedTime = PressedTime::NOT;
         } else if (_earBig.wasReleased()) {
-            switch (_earBigPressedTime) {
-            case VERY_LONG:
-                Log.info("Big ear very-long-released.");
-                break;
-            case LONG:
-                Log.info("Big ear long-released.");
-                break;
-            case SHORT:
-                Log.info("Big ear short-released.");
-                break;
-            }
-            _earBigPressedTime = NOT;
+            Events.handleEarEvent(EarButton::BIG, PressedType::RELEASE, _earBigPressedTime);
+            _earBigPressedTime = PressedTime::NOT;
         }
     } else if (_earSmall.wasReleased() || _earBig.wasReleased()) {
-        //TODO!!!
-        switch (_earBothPressedTime) {
-        case VERY_LONG:
-            Log.info("Big ear very-long-released.");
-            break;
-        case LONG:
-            Log.info("Big ear long-released.");
-            break;
-        case SHORT:
-            Log.info("Big ear short-released.");
-            break;
-        }
-        _earBothPressedTime = NOT;
-        _earSmallPressedTime = NOT;
-        _earBigPressedTime = NOT;
+        //TODO Prevent release event of other ear
+        Events.handleEarEvent(EarButton::BOTH, PressedType::RELEASE, _earBothPressedTime);
+        _earBothPressedTime = PressedTime::NOT;
+        _earSmallPressedTime = PressedTime::NOT;
+        _earBigPressedTime = PressedTime::NOT;
     }
 }
 

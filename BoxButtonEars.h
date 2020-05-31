@@ -6,8 +6,9 @@
 
 class BoxButtonEars {
     public:
-        enum PressedTime { NOT, SHORT, LONG, VERY_LONG };
-        enum EarButton { NONE, SMALL, BIG, BOTH };
+        enum class PressedTime { NOT, SHORT, LONG, VERY_LONG };
+        enum class EarButton { NONE, SMALL, BIG, BOTH };
+        enum class PressedType { NONE, PRESS, RELEASE };
 
         void
             begin(),
@@ -19,9 +20,9 @@ class BoxButtonEars {
         uint16_t _earLongPressMs;
         uint16_t _earVeryLongPressMs;
 
-        PressedTime _earSmallPressedTime = NOT;
-        PressedTime _earBigPressedTime = NOT;
-        PressedTime _earBothPressedTime = NOT;
+        PressedTime _earSmallPressedTime = PressedTime::NOT;
+        PressedTime _earBigPressedTime = PressedTime::NOT;
+        PressedTime _earBothPressedTime = PressedTime::NOT;
 
         Button _earSmall = Button(59, 25, false, true);
         Button _earBig = Button(57, 25, false, true);

@@ -5,6 +5,7 @@
 
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
+#include "BoxEvents.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
 #include "BoxSD.h"

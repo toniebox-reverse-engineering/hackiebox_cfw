@@ -1,6 +1,7 @@
 #include "Hackiebox.h"
 
 BoxConfig Config;
+BoxEvents Events;
 Hackiebox Box;
 void Hackiebox::setup() {  
     //watchdog set 30s?
