@@ -26,14 +26,14 @@ void Hackiebox::setup() {
 
     boxEars.begin();
     
-    boxLEDs.setBlue(true);
+    boxLEDs.setBlueBool(true);
     _wifi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     _wifi.begin();
 
     _server = WrapperWebServer();
     _server.begin();
-    boxLEDs.setBlue(false);
-    boxLEDs.setGreen(true);
+    boxLEDs.setBlueBool(false);
+    boxLEDs.setGreenBool(true);
     
 
     Log.info("Hackiebox started!");

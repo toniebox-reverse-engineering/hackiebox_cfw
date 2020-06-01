@@ -37,7 +37,7 @@ void BoxPower::_preparePowerDown() {
     //disable watchdog
     setSdPower(false);
     setOtherPower(false);
-    Box.boxLEDs.setAll(false);
+    Box.boxLEDs.setAllBool(false);
 }
 void BoxPower::reset() {
     _preparePowerDown();

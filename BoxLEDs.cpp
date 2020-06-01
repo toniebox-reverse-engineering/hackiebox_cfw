@@ -2,110 +2,136 @@
 #include "wiring_private.h"
 
 void BoxLEDs::begin() {
-    PWMPrepare(19); //Red
-    PWMPrepare(21); //Green
-    PWMPrepare(17); //Blue
-    //pinMode(21, OUTPUT); //Green
-    //pinMode(17, OUTPUT); //Blue
+    PWMPrepare(PIN_RED);
+    PWMPrepare(PIN_GREEN);
+    PWMPrepare(PIN_BLUE);
 
-    _stateRed = 0x01;
-    _stateGreen = 0x01;
-    _stateBlue = 0x01;
+    _stateRed = LED_PWM_MIN;
+    _stateGreen = LED_PWM_MIN;
+    _stateBlue = LED_PWM_MIN;
 }
 
 void BoxLEDs::loop() {
     
 }
 
-void BoxLEDs::setRed(bool enabled) {
-    if (enabled) {
-        _stateRed = 0xFE;
+void BoxLEDs::setRed(uint8_t intensity) {
+    if (intensity == 0x00) {
+        _stateRed = LED_PWM_MIN;
+    } else if (intensity == 0xFF) {
+        _stateRed = LED_PWM_MAX;
     } else {
-        _stateRed = 0x01;
+        _stateRed = intensity;
     }
-    analogWrite(19, _stateRed);
+    analogWrite(PIN_RED, _stateRed);
 }
-void BoxLEDs::setGreen(bool enabled) {
-    if (enabled) {
-        _stateGreen = 0xFE;
+void BoxLEDs::setGreen(uint8_t intensity) {
+    if (intensity == 0x00) {
+        _stateGreen = LED_PWM_MIN;
+    } else if (intensity == 0xFF) {
+        _stateGreen = LED_PWM_MAX;
     } else {
-        _stateGreen = 0x01;
+        _stateGreen = intensity;
     }
-    analogWrite(21, _stateGreen);
-    //digitalWrite(21, enabled);
+    analogWrite(PIN_GREEN, _stateGreen);
 }
-void BoxLEDs::setBlue(bool enabled) {
-    if (enabled) {
-        _stateBlue = 0xFE;
+void BoxLEDs::setBlue(uint8_t intensity) {
+    if (intensity == 0x00) {
+        _stateBlue = LED_PWM_MIN;
+    } else if (intensity == 0xFF) {
+        _stateBlue = LED_PWM_MAX;
     } else {
-        _stateBlue = 0x01;
+        _stateBlue = intensity;
     }
-    analogWrite(17, _stateBlue);
-    //digitalWrite(17, enabled);
+    analogWrite(PIN_BLUE, _stateBlue);
 }
 
-bool BoxLEDs::getRed() {
-    if (_stateRed > 0x01)
-        return true;
-    return false;
+void BoxLEDs::setRedBool(bool enabled) {
+    if (enabled) {
+        _stateRed = LED_PWM_MAX;
+    } else {
+        _stateRed = LED_PWM_MIN;
+    }
+    analogWrite(PIN_RED, _stateRed);
 }
-bool BoxLEDs::getGreen() {
-    if (_stateGreen > 0x01)
-        return true;
-    return false;
-    //return digitalRead(21);
+void BoxLEDs::setGreenBool(bool enabled) {
+    if (enabled) {
+        _stateGreen = LED_PWM_MAX;
+    } else {
+        _stateGreen = LED_PWM_MIN;
+    }
+    analogWrite(PIN_GREEN, _stateGreen);
 }
-bool BoxLEDs::getBlue() {
-    if (_stateBlue > 0x01)
-        return true;
-    return false;
-    //return digitalRead(17);
+void BoxLEDs::setBlueBool(bool enabled) {
+    if (enabled) {
+        _stateBlue = LED_PWM_MAX;
+    } else {
+        _stateBlue = LED_PWM_MIN;
+    }
+    analogWrite(PIN_BLUE, _stateBlue);
 }
 
-void BoxLEDs::setAll(bool enabled) {
-    setRed(enabled);
-    setGreen(enabled);
-    setBlue(enabled);
+uint8_t BoxLEDs::getRed() {
+    return _stateRed;
+}
+uint8_t BoxLEDs::getGreen() {
+    return _stateGreen;
+}
+uint8_t BoxLEDs::getBlue() {
+    return _stateBlue;
+}
+
+void BoxLEDs::setAllBool(bool enabled) {
+    setAllBool(enabled, enabled, enabled);
+}
+void BoxLEDs::setAllBool(bool red, bool green, bool blue) {
+    setRedBool(red);
+    setRedBool(green);
+    setRedBool(blue);
+}
+void BoxLEDs::setAll(uint8_t intensity) {
+    setAll(intensity, intensity, intensity);
+}
+void BoxLEDs::setAll(uint8_t red, uint8_t green, uint8_t blue) {
+    setRed(red);
+    setGreen(green);
+    setBlue(blue);
 }
 
 void BoxLEDs::testLEDs() {
-    bool ledR = getRed();
-    bool ledG = getGreen();
-    bool ledB = getBlue();
+    uint8_t ledR = getRed();
+    uint8_t ledG = getGreen();
+    uint8_t ledB = getBlue();
 
     Log.info("Testing LEDs...");
-    delay(500);
+    delay(250);
 
     Log.info(" Red");
-    setRed(true);
-    setGreen(false);
-    setBlue(false);
-    delay(500);
+    setAll(0xFF, 0x00, 0x00);
+    delay(250);
+    setAll(0x7F, 0x00, 0x00);
+    delay(250);
     Log.info(" Green");
-    setRed(false);
-    setGreen(true);
-    setBlue(false);
-    delay(500);
+    setAll(0x00, 0xFF, 0x00);
+    delay(250);
+    setAll(0x00, 0x7F, 0x00);
+    delay(250);
     Log.info(" Blue");
-    setRed(false);
-    setGreen(false);
-    setBlue(true);
-    delay(500);
+    setAll(0x00, 0x00, 0xFF);
+    delay(250);
+    setAll(0x00, 0x00, 0x7F);
+    delay(250);
     Log.info(" RGB");
-    setRed(true);
-    setGreen(true);
-    setBlue(true);
+    setAll(0xFF, 0xFF, 0xFF);
+    delay(250);
+    setAll(0x7F, 0x7F, 0x7F);
+    delay(250);
 
-    delay(500);
     Log.info(" Off");
-    setRed(false);
-    setGreen(false);
-    setBlue(false);
+    setAll(0x00);
 
     delay(500);
     Log.info(" Reset");
-    setRed(ledR);
-    setGreen(ledG);
-    setBlue(ledB);
+    setAll(ledR, ledG, ledB);
     Log.info(" Test finished.");
 }
