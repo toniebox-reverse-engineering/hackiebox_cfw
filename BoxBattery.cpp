@@ -6,10 +6,21 @@ void BoxBattery::begin() {
 
     pinMode(8, INPUT); //Charger pin
 
+    _wasLow = false;
+    _wasCritical = false;
+    _batteryAdcRaw = analogRead(60);
+    _batteryAdcLowRaw = 9999;
+
+    loop();
     logBatteryStatus();
 }
 void BoxBattery::loop() {
+    _batteryAdcRaw = analogRead(60);
     _charger.read();
+    
+    if (_batteryAdcRaw < _batteryAdcLowRaw || isChargerConnected())
+        _batteryAdcLowRaw = _batteryAdcRaw;
+
     if (_charger.wasPressed()) {
         Events.handleBatteryEvent(BatteryEvent::CHR_CONNECT);
     } else if (_charger.wasReleased()) {
@@ -17,26 +28,32 @@ void BoxBattery::loop() {
     }
 
     if (!isChargerConnected()) {
-        if (isBatteryCritical()) {
+        if (!_wasCritical && isBatteryCritical()) {
+            _wasCritical = true;
             Events.handleBatteryEvent(BatteryEvent::BAT_CRITICAL);
-        } else if (isBatteryLow()) {
+        } else if (!_wasLow && isBatteryLow()) {
+            _wasLow = true;
             Events.handleBatteryEvent(BatteryEvent::BAT_LOW);
         }
+    } else {
+        _wasLow = false;
+        _wasCritical = false;
     }
 }
 
 bool BoxBattery::isChargerConnected() {
-    return _charger.isPressed();
+    if (_charger.isPressed())
+        return true;
+    return false;
 }
 uint16_t BoxBattery::getBatteryAdcRaw() {
-    return analogRead(60);
+    return _batteryAdcRaw;
 }
 uint16_t BoxBattery::getBatteryVoltage() {
     if (isChargerConnected()) {
         return 10000 * getBatteryAdcRaw() / _batteryVoltageChargerFactor;
     }
     return 10000 * getBatteryAdcRaw() / _batteryVoltageFactor;
-
 }
 bool BoxBattery::isBatteryLow() {
     if (getBatteryAdcRaw() < _batteryLowAdc)

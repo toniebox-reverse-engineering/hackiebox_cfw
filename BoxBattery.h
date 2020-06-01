@@ -35,6 +35,10 @@ class BoxBattery {
         uint16_t _batteryCriticalAdc;
 
         Button _charger = Button(8, 25, false, false);
+        bool _wasLow;
+        bool _wasCritical;
+        uint16_t _batteryAdcRaw;
+        uint16_t _batteryAdcLowRaw;
 };
 
 #endif
