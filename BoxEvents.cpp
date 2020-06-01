@@ -55,6 +55,7 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
     }
 
     Log.info("%s %s-%s", nameEar, nameLength, nameType);
+    Box.boxPower.feedSleepTimer();
 }
 
 void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
