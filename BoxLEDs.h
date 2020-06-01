@@ -23,6 +23,9 @@ class BoxLEDs {
             getBlue();
 
     private:
+        uint8_t _stateRed;
+        uint8_t _stateGreen;
+        uint8_t _stateBlue;
 };
 
 #endif

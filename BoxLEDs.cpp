@@ -1,9 +1,16 @@
 #include "BoxLEDs.h"
+#include "wiring_private.h"
 
 void BoxLEDs::begin() {
-    //pinMode(19, OUTPUT); //Red Analog Pin TODO
-    pinMode(21, OUTPUT); //Green
-    pinMode(17, OUTPUT); //Blue
+    PWMPrepare(19); //Red
+    PWMPrepare(21); //Green
+    PWMPrepare(17); //Blue
+    //pinMode(21, OUTPUT); //Green
+    //pinMode(17, OUTPUT); //Blue
+
+    _stateRed = 0x01;
+    _stateGreen = 0x01;
+    _stateBlue = 0x01;
 }
 
 void BoxLEDs::loop() {
@@ -11,23 +18,48 @@ void BoxLEDs::loop() {
 }
 
 void BoxLEDs::setRed(bool enabled) {
-    //digitalWrite(19, enabled);
+    if (enabled) {
+        _stateRed = 0xFE;
+    } else {
+        _stateRed = 0x01;
+    }
+    analogWrite(19, _stateRed);
 }
 void BoxLEDs::setGreen(bool enabled) {
-    digitalWrite(21, enabled);
+    if (enabled) {
+        _stateGreen = 0xFE;
+    } else {
+        _stateGreen = 0x01;
+    }
+    analogWrite(21, _stateGreen);
+    //digitalWrite(21, enabled);
 }
 void BoxLEDs::setBlue(bool enabled) {
-    digitalWrite(17, enabled);
+    if (enabled) {
+        _stateBlue = 0xFE;
+    } else {
+        _stateBlue = 0x01;
+    }
+    analogWrite(17, _stateBlue);
+    //digitalWrite(17, enabled);
 }
 
 bool BoxLEDs::getRed() {
-    //return digitalRead(19);
+    if (_stateRed > 0x01)
+        return true;
+    return false;
 }
 bool BoxLEDs::getGreen() {
-    return digitalRead(21);
+    if (_stateGreen > 0x01)
+        return true;
+    return false;
+    //return digitalRead(21);
 }
 bool BoxLEDs::getBlue() {
-    return digitalRead(17);
+    if (_stateBlue > 0x01)
+        return true;
+    return false;
+    //return digitalRead(17);
 }
 
 void BoxLEDs::setAll(bool enabled) {
