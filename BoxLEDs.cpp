@@ -9,10 +9,17 @@ void BoxLEDs::begin() {
     _stateRed = LED_PWM_MIN;
     _stateGreen = LED_PWM_MIN;
     _stateBlue = LED_PWM_MIN;
+
+    _rainbowStepState = 0;
 }
 
 void BoxLEDs::loop() {
-    
+    setAll(_wheel(_rainbowStepState));
+    if (_rainbowStepState < 255) {
+        _rainbowStepState++;
+    } else {
+        _rainbowStepState = 0;
+    }
 }
 
 void BoxLEDs::setRed(uint8_t intensity) {
@@ -97,6 +104,9 @@ void BoxLEDs::setAll(uint8_t red, uint8_t green, uint8_t blue) {
     setGreen(green);
     setBlue(blue);
 }
+void BoxLEDs::setAll(CRGB crgb) {
+    setAll(crgb.red, crgb.green, crgb.blue);
+}
 
 void BoxLEDs::testLEDs() {
     uint8_t ledR = getRed();
@@ -134,4 +144,18 @@ void BoxLEDs::testLEDs() {
     Log.info(" Reset");
     setAll(ledR, ledG, ledB);
     Log.info(" Test finished.");
+}
+
+BoxLEDs::CRGB BoxLEDs::_wheel(uint8_t wheelPos) {
+  CRGB color;
+  if (wheelPos < 85) {
+   color.setRGB(wheelPos * 3, 255 - wheelPos * 3, 0);
+  } else if (wheelPos < 170) {
+   wheelPos -= 85;
+   color.setRGB(255 - wheelPos * 3, 0, wheelPos * 3);
+  } else {
+   wheelPos -= 170; 
+   color.setRGB(0, wheelPos * 3, 255 - wheelPos * 3);
+  }
+  return color;
 }

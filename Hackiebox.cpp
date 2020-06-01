@@ -48,5 +48,6 @@ void Hackiebox::loop() {
     boxBattery.loop();
     boxEars.loop();
     boxPower.loop();
+    boxLEDs.loop();
     _server.handle();
 }

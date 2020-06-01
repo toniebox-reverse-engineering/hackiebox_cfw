@@ -5,6 +5,16 @@
 
 class BoxLEDs {
     public:
+        struct CRGB {
+            uint8_t red, green, blue;
+
+            void setRGB(uint8_t r, uint8_t g, uint8_t b) {
+                red = r;
+                green = g;
+                blue = b;
+            }
+        };
+        
         void
             begin(),
             loop();
@@ -17,12 +27,14 @@ class BoxLEDs {
             setBlueBool(bool power),
             setAllBool(bool power),
             setAllBool(bool red, bool green, bool blue);
+
         void
             setRed(uint8_t intensity),
             setGreen(uint8_t intensity),
             setBlue(uint8_t intensity),
             setAll(uint8_t intensity),
-            setAll(uint8_t red, uint8_t green, uint8_t blue);
+            setAll(uint8_t red, uint8_t green, uint8_t blue),
+            setAll(CRGB crgb);
 
         uint8_t
             getRed(),
@@ -40,6 +52,9 @@ class BoxLEDs {
         uint8_t _stateRed;
         uint8_t _stateGreen;
         uint8_t _stateBlue;
+
+        CRGB _wheel(uint8_t wheelPos);
+        uint8_t _rainbowStepState;
 };
 
 #endif
