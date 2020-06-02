@@ -11,6 +11,8 @@ void BoxLEDs::begin() {
     _stateBlue = LED_PWM_MIN;
 
     _rainbowStepState = 0;
+
+    setInterval(100);
 }
 
 void BoxLEDs::loop() {

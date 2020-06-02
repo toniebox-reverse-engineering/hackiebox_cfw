@@ -3,6 +3,8 @@
 
 #include "BaseHeader.h"
 
+#include <ThreadController.h>
+
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
 #include "BoxEvents.h"
@@ -29,7 +31,8 @@ class Hackiebox {
 
         WrapperWiFi _wifi;
         WrapperWebServer _server;
-    
+
+        ThreadController _threadController;
     void
         _buttonLoop();
 

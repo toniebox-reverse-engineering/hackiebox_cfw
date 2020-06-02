@@ -3,7 +3,9 @@
 
 #include "BaseHeader.h"
 
-class BoxLEDs {
+#include <EnhancedThread.h>
+
+class BoxLEDs : public EnhancedThread {
     public:
         struct CRGB {
             uint8_t red, green, blue;
@@ -13,6 +15,11 @@ class BoxLEDs {
                 green = g;
                 blue = b;
             }
+        };
+        enum class IDLE_TYPE {
+            SOLID,
+            PULSE,
+            RAINBOW
         };
         
         void
@@ -55,6 +62,8 @@ class BoxLEDs {
 
         CRGB _wheel(uint8_t wheelPos);
         uint8_t _rainbowStepState;
+
+        IDLE_TYPE _idleType;
 };
 
 #endif
