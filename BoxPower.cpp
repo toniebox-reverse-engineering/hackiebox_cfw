@@ -11,6 +11,7 @@ void BoxPower::initPins() {
 void BoxPower::begin() {
     _sleepMinutes = Config.get()->battery.sleepMinutes;
     _lastFeed = millis();
+    setInterval(5000);
 
     Log.info("Initialize BoxPower class, sleepMinutes=%i", _sleepMinutes);
 }

@@ -6,6 +6,8 @@ void BoxButtonEars::begin() {
 
     _earSmall.begin();
     _earBig.begin();
+
+    setInterval(15);
 }
 
 void BoxButtonEars::loop() { 

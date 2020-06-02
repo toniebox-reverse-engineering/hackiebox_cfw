@@ -4,7 +4,9 @@
 #include "BaseHeader.h"
 #include "JC_Button.h"
 
-class BoxButtonEars {
+#include <EnhancedThread.h>
+
+class BoxButtonEars : public EnhancedThread {
     public:
         enum class PressedTime { NOT, SHORT, LONG, VERY_LONG };
         enum class EarButton { NONE, SMALL, BIG, BOTH };

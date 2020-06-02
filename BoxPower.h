@@ -3,7 +3,9 @@
 
 #include "BaseHeader.h"
 
-class BoxPower {
+#include <EnhancedThread.h>
+
+class BoxPower : public EnhancedThread {
     public:
         void
             initPins(),
