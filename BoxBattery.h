@@ -4,7 +4,9 @@
 #include "BaseHeader.h"
 #include "JC_Button.h"
 
-class BoxBattery {
+#include <EnhancedThread.h>
+
+class BoxBattery : public EnhancedThread {
     public:
         enum class BatteryEvent {
             BAT_LOW,

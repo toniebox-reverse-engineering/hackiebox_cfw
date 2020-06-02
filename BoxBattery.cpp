@@ -13,6 +13,8 @@ void BoxBattery::begin() {
 
     loop();
     logBatteryStatus();
+
+    setInterval(1000);
 }
 void BoxBattery::loop() {
     _batteryAdcRaw = analogRead(60);

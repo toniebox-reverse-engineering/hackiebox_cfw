@@ -36,6 +36,7 @@ void Hackiebox::setup() {
     boxLEDs.setGreenBool(true);
     
     _threadController = ThreadController();
+    _threadController.add(&boxBattery);
     _threadController.add(&boxLEDs);
  
     Log.info("Hackiebox started!");
@@ -47,9 +48,7 @@ void Hackiebox::setup() {
 void Hackiebox::loop() {  
     _threadController.run();
 
-    //watchdog.feed
-
-    boxBattery.loop();
+    //watchdog.fee
     boxEars.loop();
     boxPower.loop();
     _server.handle();
