@@ -95,8 +95,8 @@ void BoxLEDs::setAllBool(bool enabled) {
 }
 void BoxLEDs::setAllBool(bool red, bool green, bool blue) {
     setRedBool(red);
-    setRedBool(green);
-    setRedBool(blue);
+    setGreenBool(green);
+    setBlueBool(blue);
 }
 void BoxLEDs::setAll(uint8_t intensity) {
     setAll(intensity, intensity, intensity);
