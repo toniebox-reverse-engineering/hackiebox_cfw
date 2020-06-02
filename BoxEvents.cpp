@@ -80,3 +80,22 @@ void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
     }
 }
 
+void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
+    switch (state) {
+    case WrapperWiFi::ConnectionState::WAIT_CONNECT:
+        break;
+    case WrapperWiFi::ConnectionState::WAIT_IP:
+        Log.info("WiFi connected successfully, waiting for ip...");
+        break;
+    case WrapperWiFi::ConnectionState::CONNECTED:
+        Log.info("IP address: %s", WiFi.localIP().toString().c_str());
+        break;
+    case WrapperWiFi::ConnectionState::DISCONNECTED:
+        Log.info("WiFi connection lost");
+        break;
+    
+    default:
+        break;
+    }
+}
+

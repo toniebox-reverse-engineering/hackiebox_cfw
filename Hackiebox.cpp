@@ -18,28 +18,23 @@ void Hackiebox::setup() {
     ConfigStruct* config = Config.get();
     
     boxPower.begin();
-
-    boxBattery.begin();
-
     boxLEDs.begin();
-    boxLEDs.testLEDs();
-
+    boxLEDs.setAllBool(true);
+    boxBattery.begin();
     boxEars.begin();
     
-    boxLEDs.setBlueBool(true);
     _wifi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     _wifi.begin();
 
     _server = WrapperWebServer();
     _server.begin();
-    boxLEDs.setBlueBool(false);
-    boxLEDs.setGreenBool(true);
     
     _threadController = ThreadController();
     _threadController.add(&boxBattery);
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
+    _threadController.add(&_wifi);
  
     Log.info("Hackiebox started!");
 

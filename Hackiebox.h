@@ -18,9 +18,9 @@
 
 class Hackiebox { 
     public:
-    void
-        setup(),
-        loop();
+        void
+            setup(),
+            loop();
 
         BoxBattery boxBattery;
         BoxButtonEars boxEars;

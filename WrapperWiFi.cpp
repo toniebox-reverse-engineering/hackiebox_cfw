@@ -1,4 +1,5 @@
 #include "WrapperWiFi.h"
+#include "BoxEvents.h"
 
 WrapperWiFi::WrapperWiFi(const char* ssid, const char* password) {  
   _ssid = ssid;
@@ -24,30 +25,49 @@ WrapperWiFi::WrapperWiFi(const char* ssid, const char* password, const byte ip[4
   }
 }
 
-void WrapperWiFi::begin(void) {
-  
+void WrapperWiFi::begin() {
+  _state = ConnectionState::NONE;
   Log.debug("WrapperWiFi(ssid=\"%s\", password=\"%s\")", _ssid, _password);
 
   Log.info("Connecting to WiFi %s", _ssid);
   
   //stationary mode
   if (_ip[0] != 0) {
-    Log.info("Using static ip");
+    Log.info(" using static ip");
     WiFi.config(_ip, _dns, _subnet);
   } else {
-    Log.info("Using dynamic ip");
+    Log.info(" using dynamic ip");
   }
   
- WiFi.begin((char*)_ssid, (char*)_password); 
-  while (WiFi.status() != WL_CONNECTED) {
-    //Log.error("WiFi Connection Failed!");
-    //TODO AP Mode
+  WiFi.begin((char*)_ssid, (char*)_password); 
+  _state = ConnectionState::WAIT_CONNECT;
+  Events.handleWiFiEvent(_state);
+}
+
+void WrapperWiFi::loop() {
+  switch (_state) {
+  case ConnectionState::WAIT_CONNECT:
+    //TODO: CHECK FOR TIMEOUT / GOTO AP Mode
+    if (WiFi.status() == WL_CONNECTED) {
+      _state = ConnectionState::WAIT_IP;
+      Events.handleWiFiEvent(_state);
+      setInterval(100);
+    }
+    break;
+  case ConnectionState::WAIT_IP:
+    if (!(WiFi.localIP() == INADDR_NONE)) {
+      _state = ConnectionState::CONNECTED;
+      Events.handleWiFiEvent(_state);
+      setInterval(5000);
+    }
+  case ConnectionState::CONNECTED:
+    if (WiFi.status() != WL_CONNECTED) {
+      _state = ConnectionState::DISCONNECTED;
+      Events.handleWiFiEvent(_state);
+      setInterval(5000);
+    }
+  default:
+    break;
   }
-  Log.info("Connected successfully");
-  while (WiFi.localIP() == INADDR_NONE) {
-    
-  }
-  Log.info("IP address: %s", WiFi.localIP().toString().c_str());
-  //Log.info("IP address received");
   
 }
