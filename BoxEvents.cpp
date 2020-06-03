@@ -62,6 +62,7 @@ void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
     switch (state) {
     case BoxBattery::BatteryEvent::BAT_CRITICAL:
         Log.info("Battery is critical, please connect the charger, hibernating!");
+        Box.boxBattery.stopBatteryTest();
         Box.boxBattery.logBatteryStatus();
         Box.boxPower.hibernate();
         break;
@@ -92,6 +93,31 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
         Log.info("WiFi connection lost");
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
+    switch (event)
+    {
+    case BoxPower::PowerEvent::PRE_HIBERNATE:
+        Log.info("Go into hibernation...");
+        break;
+    case BoxPower::PowerEvent::PRE_RESET:
+        Log.info("Reset box...");
+        break;
+    case BoxPower::PowerEvent::IDLE:
+        if (Box.boxBattery.batteryTestActive()) {
+            Log.info("Box not used, but battery test is running, keep alive...");  
+            Box.boxPower.feedSleepTimer();
+            return;
+        }
+        
+        Log.info("Box not used, powering off.");  
+        Box.boxPower.hibernate();
         break;
     
     default:

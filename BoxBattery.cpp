@@ -41,6 +41,8 @@ void BoxBattery::loop() {
         _wasLow = false;
         _wasCritical = false;
     }
+
+    _batteryTestThread.runIfNeeded();
 }
 
 bool BoxBattery::isChargerConnected() {
@@ -88,4 +90,83 @@ void BoxBattery::reloadConfig() {
     _batteryVoltageChargerFactor = config->battery.voltageChargerFactor;
     _batteryLowAdc = config->battery.lowAdc;
     _batteryCriticalAdc = config->battery.criticalAdc;
+}
+
+void BoxBattery::_doBatteryTestStep() {
+    Log.info("Write battery test data...");
+
+    FileFs file;
+    if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
+        int voltageDec = getBatteryVoltage();
+        int voltageNum = voltageDec / 100;
+        voltageDec = voltageDec - voltageNum * 100;
+        
+        char* output;
+        asprintf(&output, "%i;%i;%i;%i.%i;%i;%i;",
+            (millis()-_batteryTestStartMillis) / (1000*60),
+            isChargerConnected(),
+            getBatteryAdcRaw(),
+            voltageNum, voltageDec,
+            isBatteryLow(),
+            isBatteryCritical()
+        );
+        file.writeString(output);
+        free(output);
+
+        file.writeString("\r\n");
+        file.close();
+    } else {
+        Log.error("Could not write battery logfile %", _batteryTestFilename);
+    }
+}
+void BoxBattery::startBatteryTest() {
+    Log.info("Starting battery test...");
+
+    _batteryTestThread.enabled = true;
+    _batteryTestStartMillis = millis();
+    FileFs file;
+    if (file.open(_batteryTestFilename, FA_CREATE_ALWAYS | FA_WRITE)) {
+        file.writeString("Timestamp;");
+        file.writeString("Charging;");
+        file.writeString("ADC;");
+        file.writeString("Estimated Voltage;");
+        file.writeString("Low;");
+        file.writeString("Critical;");
+        file.writeString("Comments");
+        file.writeString("\r\n");
+        file.writeString("0;;;;;;");
+        char* output;
+        asprintf(&output, "vFactor=%u, vChargerFactor=%u;", _batteryVoltageFactor, _batteryVoltageChargerFactor);
+        free(output);
+        file.writeString(output);
+        file.writeString("\r\n");
+        file.close();
+
+       _batteryTestThread.run();
+    } else {
+        Log.error("Could not initialize battery logfile %s", _batteryTestFilename);
+        _batteryTestThread.enabled = false;
+    }
+}
+void BoxBattery::stopBatteryTest() {
+    if (!_batteryTestThread.enabled)
+        return;
+    Log.info("Stopping battery test...");
+    _batteryTestThread.enabled = false;
+    _doBatteryTestStep();
+    FileFs file;
+    if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
+        char* output;
+        asprintf(&output, "%i;;;;;;stopped", (millis()-_batteryTestStartMillis) / (1000*60));
+        file.writeString(output);
+        free(output);
+        file.writeString("\r\n");
+        file.close();
+    } else {
+        Log.error("Could not write battery logfile %s", _batteryTestFilename);
+        _batteryTestThread.enabled = false;
+    }
+}
+bool BoxBattery::batteryTestActive() {
+    return _batteryTestThread.enabled;
 }

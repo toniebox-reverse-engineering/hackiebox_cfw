@@ -30,6 +30,13 @@ class BoxBattery : public EnhancedThread {
 
         void logBatteryStatus();
 
+        void startBatteryTest();
+        void stopBatteryTest();
+        bool batteryTestActive();
+        
+        EnhancedThread _batteryTestThread;
+        void _doBatteryTestStep();
+
     private:
         uint32_t _batteryVoltageFactor;
         uint32_t _batteryVoltageChargerFactor;
@@ -41,6 +48,9 @@ class BoxBattery : public EnhancedThread {
         bool _wasCritical;
         uint16_t _batteryAdcRaw;
         uint16_t _batteryAdcLowRaw;
+
+        char* _batteryTestFilename = "/revvox/batteryTest.csv";
+        long _batteryTestStartMillis;
 };
 
 #endif

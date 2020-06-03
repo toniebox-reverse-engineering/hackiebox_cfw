@@ -4,6 +4,7 @@
 #include "BaseHeader.h"
 #include "Hackiebox.h"
 #include "WrapperWiFi.h"
+#include "BoxPower.h"
 
 class BoxEvents {
     public:
@@ -11,6 +12,7 @@ class BoxEvents {
            BATTERY,
            EAR,
            WIFI,
+           POWER
         };
 
         void
@@ -20,6 +22,7 @@ class BoxEvents {
         void handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::PressedType pressType, BoxButtonEars::PressedTime pressLength);
         void handleBatteryEvent(BoxBattery::BatteryEvent state);
         void handleWiFiEvent(WrapperWiFi::ConnectionState state);
+        void handlePowerEvent(BoxPower::PowerEvent event);
 
     private:
 };

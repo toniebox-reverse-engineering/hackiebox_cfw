@@ -147,6 +147,16 @@ void WrapperWebServer::handleAjax(void) {
         sendJsonSuccess();
         Box.boxPower.hibernate();
       }
+    } else if (cmd.equals("box-battery")) {
+      String sub = _server->arg("sub");
+      if (sub.equals("start-test")) {
+        Box.boxBattery.startBatteryTest();
+        sendJsonSuccess();
+        return;
+      } else if (sub.equals("test-active")) {
+        //TODO
+        return;
+      }
     }
   }
   handleNotFound();

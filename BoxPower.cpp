@@ -21,8 +21,7 @@ void BoxPower::loop() {
     uint32_t deltaMinutes = (millis_tmp - _lastFeed) / (1000 * 60);
     if (_sleepMinutes > 0 && deltaMinutes >= _sleepMinutes) {
         Log.verbose("millis_tmp=%l, _lastFeed=%l, deltaMinutes=%l", millis_tmp, _lastFeed, deltaMinutes);
-        Log.info("Box not used, powering off.");
-        hibernate();
+        Events.handlePowerEvent(PowerEvent::IDLE);
     }
 }
 
@@ -41,17 +40,18 @@ void BoxPower::_preparePowerDown() {
     Box.boxLEDs.setAllBool(false);
 }
 void BoxPower::reset() {
+    Events.handlePowerEvent(PowerEvent::PRE_RESET);
+
     _preparePowerDown();
-    Log.info("Reset box");
     PRCMMCUReset(true);
 }
 void BoxPower::hibernate() {
-    _preparePowerDown();
-    Log.info("Go into hibernation");
+    Events.handlePowerEvent(PowerEvent::PRE_HIBERNATE);
 
-    //TODO
+    _preparePowerDown();
     //enable ear wakeup interrupt
     PRCMHibernateWakeupSourceEnable(PRCM_HIB_GPIO2 | PRCM_HIB_GPIO4);
+    //TODO
     //Utils_SpiFlashDeepPowerDown();
     PRCMHibernateEnter();
 }
