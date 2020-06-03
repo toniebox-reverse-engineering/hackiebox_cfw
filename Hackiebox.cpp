@@ -40,6 +40,14 @@ void Hackiebox::setup() {
 
     Log.info("Config: %s", Config.getAsJson().c_str());
     Log.info("SD root: %s", boxSD.jsonListDir("/").c_str());
+
+
+    boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
+    boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
+    boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));
+    boxEars.onRun(ThreadCallbackHandler([&]() { boxEars.loop(); }));
+    _wifi.onRun(ThreadCallbackHandler([&]() { _wifi.loop(); }));
+
 }
 
 void Hackiebox::loop() {  
