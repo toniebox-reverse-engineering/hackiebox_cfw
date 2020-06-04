@@ -8,6 +8,17 @@
 
 class BoxBattery : public EnhancedThread {
     public:
+        struct BatteryStats {
+            bool charging;
+            bool low;
+            bool critical;
+            uint16_t adcRaw;
+            uint16_t voltage;
+            bool testActive;
+            uint16_t testActiveMinutes;
+        };
+        
+
         enum class BatteryEvent {
             BAT_LOW,
             BAT_CRITICAL,
@@ -37,6 +48,8 @@ class BoxBattery : public EnhancedThread {
         EnhancedThread _batteryTestThread;
         void _doBatteryTestStep();
 
+        BoxBattery::BatteryStats getBatteryStats();
+
     private:
         uint32_t _batteryVoltageFactor;
         uint32_t _batteryVoltageChargerFactor;
@@ -50,7 +63,7 @@ class BoxBattery : public EnhancedThread {
         uint16_t _batteryAdcLowRaw;
 
         char* _batteryTestFilename = "/revvox/batteryTest.csv";
-        long _batteryTestStartMillis;
+        uint64_t _batteryTestStartMillis;
 };
 
 #endif

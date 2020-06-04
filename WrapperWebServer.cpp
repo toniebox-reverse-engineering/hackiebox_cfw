@@ -156,6 +156,21 @@ void WrapperWebServer::handleAjax(void) {
       } else if (sub.equals("test-active")) {
         //TODO
         return;
+      } else if (sub.equals("stats")) {
+        DynamicJsonDocument doc(194); //Size from https://arduinojson.org/v6/assistant/
+        String json;
+        JsonObject jsonStats = doc.createNestedObject();
+        BoxBattery::BatteryStats stats = Box.boxBattery.getBatteryStats();
+        jsonStats["charging"] = stats.charging;
+        jsonStats["low"] = stats.low;
+        jsonStats["critical"] = stats.critical;
+        jsonStats["adcRaw"] = stats.adcRaw;
+        jsonStats["voltage"] = stats.voltage;
+        jsonStats["testActive"] = stats.testActive;
+        jsonStats["testActiveMinutes"] = stats.testActiveMinutes;
+        serializeJson(doc, json);
+        _server->send(200, "text/json", json);
+        return;
       }
     }
   }

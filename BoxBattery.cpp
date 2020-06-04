@@ -170,3 +170,17 @@ void BoxBattery::stopBatteryTest() {
 bool BoxBattery::batteryTestActive() {
     return _batteryTestThread.enabled;
 }
+
+BoxBattery::BatteryStats BoxBattery::getBatteryStats() {
+    BoxBattery::BatteryStats stats;
+    
+    stats.charging = isChargerConnected();
+    stats.low = isBatteryLow();
+    stats.critical = isBatteryCritical();
+    stats.adcRaw = _batteryAdcRaw;
+    stats.voltage = getBatteryVoltage();
+    stats.testActive = batteryTestActive();
+    stats.testActiveMinutes = _batteryTestStartMillis / (1000*60);
+
+    return stats;
+}
