@@ -78,7 +78,7 @@ void BoxBattery::logBatteryStatus() {
     Log.info("Battery Status:");
     Log.info(" Charging: %T", isChargerConnected());
     Log.info(" ADC Raw: %c", getBatteryAdcRaw());
-    Log.info(" Estimated Voltage: %d.%dV", voltageNum, voltageDec);
+    Log.info(" Estimated Voltage: %d.%s%dV", voltageNum, (voltageDec<10) ? "0": "", voltageDec);
     Log.info(" Battery Low: %T", isBatteryLow());
     Log.info(" Battery Critical: %T", isBatteryCritical());
 }
@@ -102,11 +102,11 @@ void BoxBattery::_doBatteryTestStep() {
         voltageDec = voltageDec - voltageNum * 100;
         
         char* output;
-        asprintf(&output, "%i;%i;%i;%i.%i;%i;%i;",
+        asprintf(&output, "%i;%i;%i;%i.%s%i;%i;%i;",
             (millis()-_batteryTestStartMillis) / (1000*60),
             isChargerConnected(),
             getBatteryAdcRaw(),
-            voltageNum, voltageDec,
+            voltageNum, (voltageDec<10) ? "0": "", voltageDec,
             isBatteryLow(),
             isBatteryCritical()
         );
