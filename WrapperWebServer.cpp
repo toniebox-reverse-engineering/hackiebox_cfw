@@ -157,7 +157,7 @@ void WrapperWebServer::handleAjax(void) {
         //TODO
         return;
       } else if (sub.equals("stats")) {
-        DynamicJsonDocument doc(194); //Size from https://arduinojson.org/v6/assistant/
+        StaticJsonDocument<194> doc; //Size from https://arduinojson.org/v6/assistant/
         String json;
         JsonObject jsonStats = doc.createNestedObject();
         BoxBattery::BatteryStats stats = Box.boxBattery.getBatteryStats();

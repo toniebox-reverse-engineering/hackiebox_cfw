@@ -47,7 +47,7 @@ ConfigStruct* BoxConfig::get() {
 }
 
 String BoxConfig::getAsJson() { 
-    DynamicJsonDocument doc(BOXCONFIG_JSON_SIZE);
+    StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;
     String json;
 
     doc["version"] = _config.version;
@@ -74,7 +74,7 @@ String BoxConfig::getAsJson() {
     return json;
 }
 bool BoxConfig::setFromJson(String json) { 
-    DynamicJsonDocument doc(BOXCONFIG_JSON_SIZE);
+    StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;
 
     DeserializationError err = deserializeJson(doc, json);
     if (err) {

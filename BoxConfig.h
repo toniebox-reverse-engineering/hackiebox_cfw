@@ -5,7 +5,7 @@
 #include "ConfigStructures.h"
 #include "BoxSD.h"
 
-#define BOXCONFIG_JSON_SIZE 1024
+#define BOXCONFIG_JSON_SIZE 382 //Size from https://arduinojson.org/v6/assistant/
 
 class BoxConfig {
     public:
