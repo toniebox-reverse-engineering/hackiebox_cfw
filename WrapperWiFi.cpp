@@ -26,22 +26,7 @@ WrapperWiFi::WrapperWiFi(const char* ssid, const char* password, const byte ip[4
 }
 
 void WrapperWiFi::begin() {
-  _state = ConnectionState::NONE;
-  Log.debug("WrapperWiFi(ssid=\"%s\", password=\"%s\")", _ssid, _password);
-
-  Log.info("Connecting to WiFi %s", _ssid);
-  
-  //stationary mode
-  if (_ip[0] != 0) {
-    Log.info(" using static ip");
-    WiFi.config(_ip, _dns, _subnet);
-  } else {
-    Log.info(" using dynamic ip");
-  }
-  
-  WiFi.begin((char*)_ssid, (char*)_password); 
-  _state = ConnectionState::WAIT_CONNECT;
-  Events.handleWiFiEvent(_state);
+  reconnect();
 }
 
 void WrapperWiFi::loop() {
@@ -70,4 +55,27 @@ void WrapperWiFi::loop() {
     break;
   }
   
+}
+
+void WrapperWiFi::reconnect() { //TODO: LED Stuff
+  _state = ConnectionState::NONE;
+  Log.debug("WrapperWiFi(ssid=\"%s\", password=\"%s\")", _ssid, _password);
+
+  Log.info("Connecting to WiFi %s", _ssid);
+  
+  //stationary mode
+  if (_ip[0] != 0) {
+    Log.info(" using static ip");
+    WiFi.config(_ip, _dns, _subnet);
+  } else {
+    Log.info(" using dynamic ip");
+  }
+  
+  WiFi.begin((char*)_ssid, (char*)_password); 
+  _state = ConnectionState::WAIT_CONNECT;
+  Events.handleWiFiEvent(_state);
+}
+
+WrapperWiFi::ConnectionState WrapperWiFi::getStatus() {
+  return _state;
 }

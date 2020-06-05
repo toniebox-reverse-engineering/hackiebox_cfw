@@ -24,6 +24,12 @@ class WrapperWiFi : public EnhancedThread {
     void
       begin(),
       loop();
+
+    void
+      reconnect();
+
+    WrapperWiFi::ConnectionState getStatus();
+
   private:
     const char* _ssid;
     const char* _password;

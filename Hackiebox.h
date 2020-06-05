@@ -27,9 +27,9 @@ class Hackiebox {
         BoxLEDs boxLEDs;
         BoxPower boxPower;
         BoxSD boxSD;
+        WrapperWiFi boxWiFi;
     private:
 
-        WrapperWiFi _wifi;
         WrapperWebServer _server;
 
         ThreadController _threadController;

@@ -56,6 +56,13 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
 
     Log.info("%s %s-%s", nameEar, nameLength, nameType);
     Box.boxPower.feedSleepTimer();
+
+    if (earId == BoxButtonEars::EarButton::BIG
+        && pressType == BoxButtonEars::PressedType::PRESS
+        && pressLength == BoxButtonEars::PressedTime::LONG
+        && Box.boxWiFi.getStatus() != WrapperWiFi::ConnectionState::CONNECTED) {
+            Box.boxWiFi.reconnect();
+    }
 }
 
 void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {

@@ -23,8 +23,8 @@ void Hackiebox::setup() {
     boxBattery.begin();
     boxEars.begin();
     
-    _wifi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
-    _wifi.begin();
+    boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
+    boxWiFi.begin();
 
     _server = WrapperWebServer();
     _server.begin();
@@ -34,7 +34,7 @@ void Hackiebox::setup() {
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
-    _threadController.add(&_wifi);
+    _threadController.add(&boxWiFi);
  
     Log.info("Hackiebox started!");
 
@@ -45,7 +45,7 @@ void Hackiebox::setup() {
     boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
     boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));
     boxEars.onRun(ThreadCallbackHandler([&]() { boxEars.loop(); }));
-    _wifi.onRun(ThreadCallbackHandler([&]() { _wifi.loop(); }));
+    boxWiFi.onRun(ThreadCallbackHandler([&]() { boxWiFi.loop(); }));
 
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
