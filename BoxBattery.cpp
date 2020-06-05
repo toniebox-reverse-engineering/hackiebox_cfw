@@ -180,7 +180,7 @@ BoxBattery::BatteryStats BoxBattery::getBatteryStats() {
     stats.adcRaw = _batteryAdcRaw;
     stats.voltage = getBatteryVoltage();
     stats.testActive = batteryTestActive();
-    stats.testActiveMinutes = _batteryTestStartMillis / (1000*60);
+    stats.testActiveMinutes = (millis()-_batteryTestStartMillis) / (1000*60);
 
     return stats;
 }
