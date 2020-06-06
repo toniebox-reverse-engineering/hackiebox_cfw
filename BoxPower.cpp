@@ -38,6 +38,7 @@ void BoxPower::_preparePowerDown() {
     setSdPower(false);
     setOtherPower(false);
     Box.boxLEDs.setAllBool(false);
+    Serial.end();
 }
 void BoxPower::reset() {
     Events.handlePowerEvent(PowerEvent::PRE_RESET);
