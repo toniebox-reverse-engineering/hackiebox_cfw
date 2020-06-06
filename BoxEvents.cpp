@@ -57,11 +57,68 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
     Log.info("%s %s-%s", nameEar, nameLength, nameType);
     Box.boxPower.feedSleepTimer();
 
-    if (earId == BoxButtonEars::EarButton::BIG
-        && pressType == BoxButtonEars::PressedType::PRESS
-        && pressLength == BoxButtonEars::PressedTime::LONG
-        && Box.boxWiFi.getStatus() != WrapperWiFi::ConnectionState::CONNECTED) {
-            Box.boxWiFi.reconnect();
+    if (pressType == BoxButtonEars::PressedType::PRESS) {
+        if (pressLength == BoxButtonEars::PressedTime::SHORT) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+                
+            }
+        } else if (pressLength == BoxButtonEars::PressedTime::LONG) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                if (Box.boxWiFi.getStatus() != WrapperWiFi::ConnectionState::CONNECTED)
+                    Box.boxWiFi.reconnect();
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+                
+            }
+        } else if (pressLength == BoxButtonEars::PressedTime::VERY_LONG) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+                if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_DOWN) {
+                    Box.boxPower.reset();
+                } else if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_FRONT) {
+                    //Prepare Hibernation
+                    Box.boxLEDs.setAllBool(false);
+                    Box.boxEars.waitForRelease();
+                    delay(1000);
+                    Box.boxPower.hibernate();
+                }
+            }
+        }
+    } else if (pressType == BoxButtonEars::PressedType::RELEASE) {
+        if (pressLength == BoxButtonEars::PressedTime::SHORT) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+                
+            }
+        } else if (pressLength == BoxButtonEars::PressedTime::LONG) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                if (Box.boxWiFi.getStatus() != WrapperWiFi::ConnectionState::CONNECTED)
+                    Box.boxWiFi.reconnect();
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+                
+            }
+        } else if (pressLength == BoxButtonEars::PressedTime::VERY_LONG) {
+            if (earId == BoxButtonEars::EarButton::BIG) {
+                
+            } else if (earId == BoxButtonEars::EarButton::SMALL) {
+                
+            } else if (earId == BoxButtonEars::EarButton::BOTH) {
+
+            }
+        }
     }
 }
 
