@@ -27,7 +27,7 @@ void BoxPower::loop() {
 
 void BoxPower::feedSleepTimer() {
     _lastFeed = millis();
-    Log.verbose("Sleep timer reset, _lastFeed=%l", _lastFeed);
+    Log.verbose("Sleep timer reset, _lastFeed=%l, freeMEM=%i", _lastFeed, freeMemory());
 }
 
 void BoxPower::_preparePowerDown() {

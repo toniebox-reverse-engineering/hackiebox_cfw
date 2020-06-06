@@ -7,7 +7,7 @@ void Hackiebox::setup() {
     //watchdog set 30s?
 
     Log.init(LOG_LEVEL_VERBOSE, 115200);
-    Log.info("Booting Hackiebox...");
+    Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
     boxPower.initPins();
     boxPower.setSdPower(true);
@@ -35,11 +35,8 @@ void Hackiebox::setup() {
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
     _threadController.add(&boxWiFi);
- 
-    Log.info("Hackiebox started!");
 
     Log.info("Config: %s", Config.getAsJson().c_str());
-    Log.info("SD root: %s", boxSD.jsonListDir("/").c_str());
 
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
     boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
@@ -49,6 +46,8 @@ void Hackiebox::setup() {
 
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
+ 
+    Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
 }
 
 void Hackiebox::loop() {  
