@@ -74,3 +74,14 @@ void BoxButtonEars::reloadConfig() {
     _earLongPressMs = config->buttonEars.longPressMs;
     _earVeryLongPressMs = config->buttonEars.veryLongPressMs;
 }
+
+void BoxButtonEars::waitForRelease() {
+    while (true) {
+        delay(250);
+        _earSmall.read();
+        _earBig.read();
+        if (!_earSmall.isPressed() && !_earBig.isPressed()) 
+            break;
+    }
+    
+}

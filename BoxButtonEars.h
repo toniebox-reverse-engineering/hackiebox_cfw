@@ -15,7 +15,8 @@ class BoxButtonEars : public EnhancedThread {
         void
             begin(),
             loop(),
-            reloadConfig();
+            reloadConfig(),
+            waitForRelease();
 
     private:
 
