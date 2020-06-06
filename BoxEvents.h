@@ -8,11 +8,12 @@
 
 class BoxEvents {
     public:
-        enum EventSource {
+        enum class EventSource {
            BATTERY,
            EAR,
            WIFI,
-           POWER
+           POWER,
+           ACCELEROMETER
         };
 
         void
@@ -23,6 +24,7 @@ class BoxEvents {
         void handleBatteryEvent(BoxBattery::BatteryEvent state);
         void handleWiFiEvent(WrapperWiFi::ConnectionState state);
         void handlePowerEvent(BoxPower::PowerEvent event);
+        void handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient);
 
     private:
 };

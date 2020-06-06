@@ -5,6 +5,7 @@
 
 #include <ThreadController.h>
 
+#include "BoxAccelerometer.h"
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
 #include "BoxEvents.h"
@@ -22,6 +23,7 @@ class Hackiebox {
             setup(),
             loop();
 
+        BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
         BoxButtonEars boxEars;
         BoxLEDs boxLEDs;

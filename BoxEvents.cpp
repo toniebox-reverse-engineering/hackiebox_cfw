@@ -116,7 +116,7 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
     case BoxPower::PowerEvent::PRE_RESET:
         Log.info("Reset box...");
         break;
-    case BoxPower::PowerEvent::IDLE:
+    case BoxPower::PowerEvent::BOX_IDLE:
         if (Box.boxBattery.batteryTestActive()) {
             Log.info("Box not used, but battery test is running, keep alive...");  
             Box.boxPower.feedSleepTimer();
@@ -132,3 +132,35 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
     }
 }
 
+void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient) {
+    char* orientText;
+    switch (orient) {
+    case BoxAccelerometer::Orientation::EARS_UP:
+        orientText = "ears up";
+        break;
+    case BoxAccelerometer::Orientation::EARS_DOWN:
+        orientText = "ears down";
+        break;
+    case BoxAccelerometer::Orientation::EARS_FRONT:
+        orientText = "ears front";
+        break;
+    case BoxAccelerometer::Orientation::EARS_BACK:
+        orientText = "ears back";
+        break;
+    case BoxAccelerometer::Orientation::EARS_LEFT:
+        orientText = "ears left";
+        break;
+    case BoxAccelerometer::Orientation::EARS_RIGHT:
+        orientText = "ears right";
+        break;
+    case BoxAccelerometer::Orientation::OTHER:
+        orientText = "lockout";
+        break;
+    
+    default:
+        orientText = "unknown";
+        Log.error("Unknown orientation=%i", orient);
+        break;
+    }
+    Log.info("Box' orientation changed to %s", orientText);
+}

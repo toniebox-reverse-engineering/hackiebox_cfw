@@ -22,6 +22,7 @@ void Hackiebox::setup() {
     boxLEDs.setAllBool(true);
     boxBattery.begin();
     boxEars.begin();
+    boxAccel.begin();
     
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
@@ -30,6 +31,7 @@ void Hackiebox::setup() {
     _server.begin();
     
     _threadController = ThreadController();
+    _threadController.add(&boxAccel);
     _threadController.add(&boxBattery);
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
@@ -38,6 +40,7 @@ void Hackiebox::setup() {
 
     Log.info("Config: %s", Config.getAsJson().c_str());
 
+    boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
     boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
     boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));

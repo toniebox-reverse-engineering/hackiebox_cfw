@@ -21,7 +21,7 @@ void BoxPower::loop() {
     uint32_t deltaMinutes = (millis_tmp - _lastFeed) / (1000 * 60);
     if (_sleepMinutes > 0 && deltaMinutes >= _sleepMinutes) {
         Log.verbose("millis_tmp=%l, _lastFeed=%l, deltaMinutes=%l", millis_tmp, _lastFeed, deltaMinutes);
-        Events.handlePowerEvent(PowerEvent::IDLE);
+        Events.handlePowerEvent(PowerEvent::BOX_IDLE);
     }
 }
 

@@ -10,7 +10,7 @@ class BoxPower : public EnhancedThread {
         enum class PowerEvent {
             PRE_HIBERNATE,
             PRE_RESET,
-            IDLE,
+            BOX_IDLE,
         };
         void
             initPins(),
