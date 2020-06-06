@@ -162,8 +162,7 @@ void WrapperWebServer::handleAjax(void) {
         //TODO
         return;
       } else if (sub.equals("stats")) {
-        StaticJsonDocument<194> doc; //Size from https://arduinojson.org/v6/assistant/
-        JsonObject jsonStats = doc.createNestedObject();
+        StaticJsonDocument<194> jsonStats; //Size from https://arduinojson.org/v6/assistant/
         BoxBattery::BatteryStats stats = Box.boxBattery.getBatteryStats();
 
         jsonStats["charging"] = stats.charging;
@@ -174,9 +173,9 @@ void WrapperWebServer::handleAjax(void) {
         jsonStats["testActive"] = stats.testActive;
         jsonStats["testActiveMinutes"] = stats.testActiveMinutes;
 
-        size_t len = measureJson(doc)+1;
+        size_t len = measureJson(jsonStats)+1;
         char json[len];
-        serializeJson(doc, json, len);
+        serializeJson(jsonStats, json, len);
         _server->send(200, "text/json", json);
         return;
       }
