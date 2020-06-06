@@ -3,6 +3,7 @@
 
 #include "BaseHeader.h"
 #include <FatFs.h>
+#include <WebServer.h>
 
 class BoxSD {
     public:
@@ -10,7 +11,7 @@ class BoxSD {
             begin(),
             loop();
 
-        String jsonListDir(char*);
+        void webJsonListDir(WebServer* webServer, char* directory);
     private:
 };
 

@@ -60,7 +60,12 @@ void WrapperWebServer::handleAjax(void) {
       String path = _server->arg("dir");
       if (!path)
         path = String();
-      _server->send(200, "text/json", Box.boxSD.jsonListDir((char*)path.c_str()));
+      _server->setContentLength(CONTENT_LENGTH_UNKNOWN);
+      _server->send(200, "text/json", "");
+      Box.boxSD.webJsonListDir(_server, (char*)path.c_str());
+      _server->sendContent("");
+      _server->client().stop();
+
       return;
     } else if (cmd.equals("get-file")) {
       String filename = _server->arg("filepath");
@@ -158,9 +163,9 @@ void WrapperWebServer::handleAjax(void) {
         return;
       } else if (sub.equals("stats")) {
         StaticJsonDocument<194> doc; //Size from https://arduinojson.org/v6/assistant/
-        String json;
         JsonObject jsonStats = doc.createNestedObject();
         BoxBattery::BatteryStats stats = Box.boxBattery.getBatteryStats();
+
         jsonStats["charging"] = stats.charging;
         jsonStats["low"] = stats.low;
         jsonStats["critical"] = stats.critical;
@@ -168,7 +173,10 @@ void WrapperWebServer::handleAjax(void) {
         jsonStats["voltage"] = stats.voltage;
         jsonStats["testActive"] = stats.testActive;
         jsonStats["testActiveMinutes"] = stats.testActiveMinutes;
-        serializeJson(doc, json);
+
+        size_t len = measureJson(doc)+1;
+        char json[len];
+        serializeJson(doc, json, len);
         _server->send(200, "text/json", json);
         return;
       }

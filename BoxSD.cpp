@@ -16,26 +16,38 @@ void BoxSD::loop() {
 
 }
 
-String BoxSD::jsonListDir(char* directory) {
-    DynamicJsonDocument doc(1024);
-    DirFs dir;
-    
-    String json;
+void BoxSD::webJsonListDir(WebServer* webServer, char* directory) {
+    DirFs dir; 
     if (dir.openDir(directory)) {
-        JsonArray files = doc.createNestedArray("files");
+        webServer->sendContent("{\"files\":[");
+        bool firstRound = true;
         while (dir.nextFile()) {
-            JsonObject file = files.createNestedObject();
-            file["name"] = dir.fileName();
+            StaticJsonDocument<361> file; //Maximum 256 chars filename length //https://arduinojson.org/v6/assistant/
+
+            file["name"] = dir.fileName(); 
             file["size"] = dir.fileSize();
             file["time"] = dir.fileModTime();
             file["date"] = dir.fileModDate();
             file["dir"] = dir.isDir();
+
+            size_t len = measureJson(file)+1;
+            char json[len];
+            serializeJson(file, json, len); //TODO directly stream to save mem
+            if (!firstRound)
+                webServer->sendContent(","); 
+            webServer->sendContent(json); 
+            firstRound = false;
         }
         dir.closeDir();
+        webServer->sendContent("]}");
     } else {
+        StaticJsonDocument<299> doc; //Maximum 256 chars path length //https://arduinojson.org/v6/assistant/
         doc["error"] = "Directory not found";
         Log.error("Directory %s not found", directory);
+
+        size_t len = measureJson(doc)+1;
+        char json[len];
+        serializeJson(doc, json, len); //TODO directly stream to save mem
+        webServer->sendContent(json); 
     }
-    serializeJson(doc, json);
-    return json;
 }
