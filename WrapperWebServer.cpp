@@ -258,28 +258,6 @@ void WrapperWebServer::sseHandler(uint8_t channel) {
   //s.keepAliveTimer.attach_scheduled(30.0, SSEKeepAlive);  // Refresh time every 30s for demo
   run();
 }
-void WrapperWebServer::sseKeepAlive() {
-  bool clientConnected = false;
-  for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
-    if (!(subscription[i].clientIP)) 
-      continue;
-    
-    if (subscription[i].client.connected()) {
-      clientConnected = true;
-      Log.verbose("SSEKeepAlive - client is still listening on channel %i", i);
-      subscription[i].client.println("data: { \"TYPE\":\"KEEP-ALIVE\" }\n\n");   // Extra newline required by SSE standard
-    } else {
-      Log.info("SSEKeepAlive - client not listening on channel %i, remove subscription", i);
-      //subscription[i].keepAliveTimer.detach();
-      subscription[i].client.flush();
-      subscription[i].client.stop();
-      subscription[i].clientIP = INADDR_NONE;
-      subscriptionCount--;
-    }
-  }
-  if (clientConnected) 
-    Box.boxPower.feedSleepTimer();
-}
 
 void WrapperWebServer::sendJsonSuccess() {
   _server->send(200, "text/json", "{ \"success\": true }");
@@ -403,4 +381,34 @@ void WrapperWebServer::handleUploadFile() {
 void WrapperWebServer::handleUploadFlashFile() {
   Box.boxPower.feedSleepTimer();
   handleNotFound(); //TBD
+}
+
+void WrapperWebServer::sendEvent(char* eventname, char* content) {
+  bool clientConnected = false;
+  for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
+    if (!(subscription[i].clientIP)) 
+      continue;
+    
+    if (subscription[i].client.connected()) {
+      clientConnected = true;
+      subscription[i].client.print("data: { \"type\":\"");
+      subscription[i].client.print(eventname);
+      subscription[i].client.print("\" \"data\":\"");
+      subscription[i].client.print(content);
+      subscription[i].client.print("\" }");
+      subscription[i].client.println("\n"); // Extra newline required by SSE standard
+    } else {
+      Log.info("Client not listening on channel %i, remove subscription", i);
+      //subscription[i].keepAliveTimer.detach();
+      subscription[i].client.flush();
+      subscription[i].client.stop();
+      subscription[i].clientIP = INADDR_NONE;
+      subscriptionCount--;
+    }
+  }
+  if (clientConnected) 
+    Box.boxPower.feedSleepTimer();
+}
+void WrapperWebServer::sseKeepAlive() {
+  sendEvent("keep-alive", "");
 }

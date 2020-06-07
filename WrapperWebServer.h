@@ -29,7 +29,9 @@ class WrapperWebServer : public EnhancedThread {
 
         void
             sseHandler(uint8_t channel),
-            sseKeepAlive();
+            sseKeepAlive(),
+            sendEvent(char* eventname, char* content);
+            //sendEventJSON(char* eventname, xyzjsondoc jsonContent);
 
 
         bool 
