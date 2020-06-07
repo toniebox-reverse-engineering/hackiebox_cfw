@@ -387,11 +387,29 @@
             return location.hostname+(location.port ? ':'+location.port: '');
           return this._server;
         }
-        _initSse() { /*
-          this._sseEventSource = new EventSource("http://"+this._getDomainPort()+"/api/sse");
-          this._sseEventSource.onmessage = function(event) {
-            alert(event);
-          };*/
+        _initSse() {
+          var that = this;
+          $.get("http://"+this.getDomainPort()+"/api/sse/sub", function(data) {
+            if (data == "MAX_CLIENTS") {
+              alert(data);
+            } else {
+              that._sseEventSource = new EventSource("http://"+that.getDomainPort()+data);
+              that._sseEventSource.addEventListener('message', function(e) {
+                var data = JSON.parse(e.data);
+                switch (data.TYPE) {
+                  case "KEEP-ALIVE":
+                    //IGNORE
+                    break;
+                
+                  default:
+                    break;
+                }
+              }, false);
+            }
+          })
+          .fail(function() {
+            alert( "sse sub error" );
+          });
         }
       }
       class ContentPage {

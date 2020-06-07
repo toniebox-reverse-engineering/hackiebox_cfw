@@ -30,9 +30,9 @@ class Hackiebox {
         BoxPower boxPower;
         BoxSD boxSD;
         WrapperWiFi boxWiFi;
+        WrapperWebServer webServer;
     private:
 
-        WrapperWebServer _server;
 
         ThreadController _threadController;
     void

@@ -3,23 +3,53 @@
 
 #include <SLFS.h>
 
-void WrapperWebServer::begin() {  
-  _server = new WebServer(80);
 
+void WrapperWebServer::begin() {  
+
+  _server = new WebServer(80);
   _server->enableCORS(true); //DEV ONLY!
 
   //first callback is called after the request has ended with all parsed arguments
   //second callback handles file uploads at that location
-  _server->onNotFound([&](){ WrapperWebServer::handleNotFound(); });
+  _server->onNotFound([&](){ WrapperWebServer::handleUnknown(); });
   _server->on("/", HTTP_GET, [&](){ WrapperWebServer::handleRoot(); });
-  _server->on("/api/sse", HTTP_GET, [&](){ WrapperWebServer::handleSse(); });
+  _server->on("/api/sse/sub", HTTP_GET, [&](){ WrapperWebServer::handleSseSub(); });
   _server->on("/api/ajax", HTTP_GET, [&](){ WrapperWebServer::handleAjax(); });
   _server->on("/api/upload/file", HTTP_POST, [&](){ }, [&](){ WrapperWebServer::handleUploadFile(); });
   _server->on("/api/upload/flash-file", HTTP_POST, [&](){ WrapperWebServer::handleUploadFlashFile(); });
   _server->begin();
+
+  setInterval(30*1000);
+}
+
+void WrapperWebServer::loop() {  
+  sseKeepAlive();
 }
 void WrapperWebServer::handle(void) {
   _server->handleClient();
+}
+
+void WrapperWebServer::handleUnknown(void) {
+  /*SSE START*/
+  String s_uri = _server->uri();
+  const char *uri = s_uri.c_str();
+  const char *sseEvents = "/api/sse/";
+  if (strncmp(uri, sseEvents, strlen(sseEvents)) != 0) {
+    Log.verbose("strncmp: %i on uri=%s", strncmp(uri, sseEvents, strlen(sseEvents)), uri);
+    return handleNotFound();
+  }
+
+  uri += strlen(sseEvents);
+  unsigned int channel = atoi(uri);
+  if (channel < SSE_MAX_CHANNELS) {
+    return sseHandler(channel);
+
+  } else {
+    _server->send(200, "text/plain", "MAX_CLIENTS");
+  }
+  /*SSE END*/
+
+  //handleNotFound();
 }
 
 void WrapperWebServer::handleNotFound(void) {
@@ -43,10 +73,34 @@ void WrapperWebServer::handleRoot(void) {
   String hackiebox = String("/revvox/web/hackiebox.html");
   commandGetFile(&hackiebox, 0, 0, false);
 }
-void WrapperWebServer::handleSse(void) {
+void WrapperWebServer::handleSseSub(void) {
   Box.boxPower.feedSleepTimer();
-  _server->send(200, "text/event-stream", "SSE");
-  //TODO: Keep alive connection without blocking others
+
+  if (subscriptionCount >= SSE_MAX_CHANNELS - 1) 
+    return handleNotFound();  // We ran out of channels
+  
+
+  uint8_t channel;
+  IPAddress clientIP = _server->client().remoteIP();   // get IP address of client
+  String SSEurl = "";
+  //String SSEurl = "http://";
+  //SSEurl += WiFi.localIP().toString();
+  //SSEurl += ":";
+  //SSEurl += port;
+  //size_t offset = SSEurl.length();
+  SSEurl += "/api/sse/";
+
+  ++subscriptionCount;
+  for (channel = 0; channel < SSE_MAX_CHANNELS; channel++) // Find first free slot
+    if (!subscription[channel].clientIP) {
+      break;
+    }
+  subscription[channel] = {clientIP, _server->client()};
+  SSEurl += channel;
+  Log.verbose("Allocated channel %i, on uri %s", channel, SSEurl.c_str());
+  //server.on(SSEurl.substring(offset), std::bind(SSEHandler, &(subscription[channel])));
+  Log.verbose("subscription for client IP %s: event bus location: %s", clientIP.toString().c_str(), SSEurl.c_str());
+  _server->send(200, "text/plain", SSEurl.c_str());
 }
 void WrapperWebServer::handleAjax(void) {
   Box.boxPower.feedSleepTimer();
@@ -182,6 +236,49 @@ void WrapperWebServer::handleAjax(void) {
     }
   }
   handleNotFound();
+}
+
+void WrapperWebServer::sseHandler(uint8_t channel) {
+  Box.boxPower.feedSleepTimer();
+
+  WiFiClient client = _server->client();
+  SSESubscription &sseSub = subscription[channel];
+  if (sseSub.clientIP != client.remoteIP()) { // IP addresses don't match, reject this client
+    Log.info("sseHandler - unregistered client with IP %s tries to listen", _server->client().remoteIP().toString().c_str());
+    return handleNotFound();
+  }
+  //client.setNoDelay(true); //ESP related
+  //client.setSync(true); //ESP related
+  Log.verbose("sseHandler - registered client with IP %s is listening", IPAddress(sseSub.clientIP).toString().c_str());
+  sseSub.client = client; // capture SSE _server client connection
+  _server->setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
+  _server->sendContent("HTTP/1.1 200 OK\nContent-Type: text/event-stream;\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n");
+  
+  //TODO
+  //s.keepAliveTimer.attach_scheduled(30.0, SSEKeepAlive);  // Refresh time every 30s for demo
+  run();
+}
+void WrapperWebServer::sseKeepAlive() {
+  bool clientConnected = false;
+  for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
+    if (!(subscription[i].clientIP)) 
+      continue;
+    
+    if (subscription[i].client.connected()) {
+      clientConnected = true;
+      Log.verbose("SSEKeepAlive - client is still listening on channel %i", i);
+      subscription[i].client.println("data: { \"TYPE\":\"KEEP-ALIVE\" }\n\n");   // Extra newline required by SSE standard
+    } else {
+      Log.info("SSEKeepAlive - client not listening on channel %i, remove subscription", i);
+      //subscription[i].keepAliveTimer.detach();
+      subscription[i].client.flush();
+      subscription[i].client.stop();
+      subscription[i].clientIP = INADDR_NONE;
+      subscriptionCount--;
+    }
+  }
+  if (clientConnected) 
+    Box.boxPower.feedSleepTimer();
 }
 
 void WrapperWebServer::sendJsonSuccess() {

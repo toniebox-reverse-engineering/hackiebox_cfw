@@ -3,24 +3,34 @@
 
 #include "BaseHeader.h"
 #include <WebServer.h>
+#include <EnhancedThread.h>
 
-class WrapperWebServer { 
+#define SSE_MAX_CHANNELS 5 
+
+class WrapperWebServer : public EnhancedThread { 
     public:
     void
         begin(),
+        loop(),
         handle(void);
 
     private:
         void
             handleNotFound(void),
+            handleUnknown(void),
             handleRoot(void),
-            handleSse(void),
+            handleSseSub(void),
             handleAjax(void),
             handleUploadFile(void),
             handleUploadFlashFile(void);
 
         void 
             sendJsonSuccess();
+
+        void
+            sseHandler(uint8_t channel),
+            sseKeepAlive();
+
 
         bool 
             commandGetFile(String* path, long read_start, long read_length, bool download),
@@ -29,6 +39,15 @@ class WrapperWebServer {
         WebServer* _server;
         FileFs _uploadFile;
         bool _uploadFileOpen = false;
+
+        
+        struct SSESubscription {
+            IPAddress clientIP;
+            WiFiClient client;
+        //Ticker keepAliveTimer;
+        } subscription[SSE_MAX_CHANNELS];
+        uint8_t subscriptionCount = 0;
+
 
 };
 
