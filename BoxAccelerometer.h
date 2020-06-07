@@ -20,6 +20,14 @@ class BoxAccelerometer : public EnhancedThread {
             EARS_UP2 = 0x6,
             EARS_DOWN2 = 0x4
         };
+        enum class TapFrom {
+            LEFT,
+            RIGHT, //17,34,68 - 34
+            FRONT, //16, 17
+            BACK,
+            TOP, //16,32,64,68,24 - 16
+            BOTTOM //17
+        };
 
         void
             begin(),
