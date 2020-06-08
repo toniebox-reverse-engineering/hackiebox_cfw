@@ -295,7 +295,7 @@
               </tr>
               <tr>
                 <td>Honeybee</td>
-                <td>Reversing Toniebox hardware, CFW Dev</td>
+                <td>Reversing Toniebox hardware, Hackiebox CFW Dev</td>
                 <td>summsisumm</td>
               </tr>
               <tr>
@@ -396,8 +396,8 @@
               that._sseEventSource = new EventSource("http://"+that.getDomainPort()+data);
               that._sseEventSource.addEventListener('message', function(e) {
                 var data = JSON.parse(e.data);
-                switch (data.TYPE) {
-                  case "KEEP-ALIVE":
+                switch (data.type) {
+                  case "keep-alive":
                     //IGNORE
                     break;
                 
