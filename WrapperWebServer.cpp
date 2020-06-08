@@ -43,7 +43,6 @@ void WrapperWebServer::handleUnknown(void) {
   unsigned int channel = atoi(uri);
   if (channel < SSE_MAX_CHANNELS) {
     return sseHandler(channel);
-
   } else {
     _server->send(200, "text/plain", "MAX_CLIENTS");
   }
@@ -95,11 +94,11 @@ void WrapperWebServer::handleSseSub(void) {
     if (!subscription[channel].clientIP) {
       break;
     }
-  subscription[channel] = {clientIP, _server->client()};
-  SSEurl += channel;
   Log.verbose("Allocated channel %i, on uri %s", channel, SSEurl.c_str());
   //server.on(SSEurl.substring(offset), std::bind(SSEHandler, &(subscription[channel])));
   Log.verbose("subscription for client IP %s: event bus location: %s", clientIP.toString().c_str(), SSEurl.c_str());
+  subscription[channel] = {clientIP, _server->client()};
+  SSEurl += channel;
   _server->send(200, "text/plain", SSEurl.c_str());
 }
 void WrapperWebServer::handleAjax(void) {
@@ -247,15 +246,13 @@ void WrapperWebServer::sseHandler(uint8_t channel) {
     Log.info("sseHandler - unregistered client with IP %s tries to listen", _server->client().remoteIP().toString().c_str());
     return handleNotFound();
   }
-  //client.setNoDelay(true); //ESP related
-  //client.setSync(true); //ESP related
-  Log.verbose("sseHandler - registered client with IP %s is listening", IPAddress(sseSub.clientIP).toString().c_str());
+
   sseSub.client = client; // capture SSE _server client connection
   _server->setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
   _server->sendContent("HTTP/1.1 200 OK\nContent-Type: text/event-stream;\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n");
-  
-  //TODO
-  //s.keepAliveTimer.attach_scheduled(30.0, SSEKeepAlive);  // Refresh time every 30s for demo
+  sseSub.client.isSse = true;
+
+  Log.verbose("sseHandler - registered client with IP %s is listening", IPAddress(sseSub.clientIP).toString().c_str());
   run();
 }
 
@@ -393,7 +390,7 @@ void WrapperWebServer::sendEvent(char* eventname, char* content) {
       clientConnected = true;
       subscription[i].client.print("data: { \"type\":\"");
       subscription[i].client.print(eventname);
-      subscription[i].client.print("\" \"data\":\"");
+      subscription[i].client.print("\", \"data\":\"");
       subscription[i].client.print(content);
       subscription[i].client.print("\" }");
       subscription[i].client.println("\n"); // Extra newline required by SSE standard
@@ -412,3 +409,4 @@ void WrapperWebServer::sendEvent(char* eventname, char* content) {
 void WrapperWebServer::sseKeepAlive() {
   sendEvent("keep-alive", "");
 }
+

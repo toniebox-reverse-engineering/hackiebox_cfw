@@ -9,11 +9,18 @@
 
 class WrapperWebServer : public EnhancedThread { 
     public:
+        struct SSESubscription {
+            IPAddress clientIP;
+            WiFiClient client;
+        //Ticker keepAliveTimer;
+        } subscription[SSE_MAX_CHANNELS];
+        uint8_t subscriptionCount = 0;
+        
     void
         begin(),
         loop(),
         handle(void);
-
+    
     private:
         void
             handleNotFound(void),
@@ -41,15 +48,6 @@ class WrapperWebServer : public EnhancedThread {
         WebServer* _server;
         FileFs _uploadFile;
         bool _uploadFileOpen = false;
-
-        
-        struct SSESubscription {
-            IPAddress clientIP;
-            WiFiClient client;
-        //Ticker keepAliveTimer;
-        } subscription[SSE_MAX_CHANNELS];
-        uint8_t subscriptionCount = 0;
-
 
 };
 
