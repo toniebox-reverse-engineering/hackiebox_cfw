@@ -6,7 +6,7 @@ Hackiebox Box;
 void Hackiebox::setup() {  
     //watchdog set 30s?
 
-    Log.init(LOG_LEVEL_VERBOSE, 115200);
+    Log.init(LOG_LEVEL_VERBOSE, 115200/*, &logStream*/);
     Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
     boxPower.initPins();

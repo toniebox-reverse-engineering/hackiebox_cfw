@@ -16,6 +16,7 @@
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
 
+#include "LogStream.h"
 
 class Hackiebox { 
     public:
@@ -31,13 +32,11 @@ class Hackiebox {
         BoxSD boxSD;
         WrapperWiFi boxWiFi;
         WrapperWebServer webServer;
+
+        LogStream logStream;
+
     private:
-
-
         ThreadController _threadController;
-    void
-        _buttonLoop();
-
 };
 
 extern Hackiebox Box;
