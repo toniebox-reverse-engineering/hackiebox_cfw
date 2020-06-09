@@ -12,16 +12,37 @@ void BoxLEDs::begin() {
 
     _rainbowStepState = 0;
 
-    setInterval(100);
+    setIdleType(IDLE_TYPE::RAINBOW);
 }
 
 void BoxLEDs::loop() {
-    setAll(_wheel(_rainbowStepState));
-    if (_rainbowStepState < 255) {
-        _rainbowStepState++;
-    } else {
-        _rainbowStepState = 0;
+    if (_idleType == IDLE_TYPE::RAINBOW) {
+        setAll(_wheel(_rainbowStepState));
+        if (_rainbowStepState < 255) {
+            _rainbowStepState++;
+        } else {
+            _rainbowStepState = 0;
+        }
+    } else if (_idleType == IDLE_TYPE::PARTY) {
+        setAll(_wheel(random(255)));
     }
+}
+
+void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
+    _idleType = idleType;
+
+    switch (idleType) {
+    case IDLE_TYPE::RAINBOW:
+        setInterval(100);
+        break;
+    case IDLE_TYPE::PARTY:
+        setInterval(250);
+        break;
+    
+    default:
+        break;
+    }
+
 }
 
 void BoxLEDs::setRed(uint8_t intensity) {

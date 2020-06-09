@@ -19,7 +19,8 @@ class BoxLEDs : public EnhancedThread {
         enum class IDLE_TYPE {
             SOLID,
             PULSE,
-            RAINBOW
+            RAINBOW,
+            PARTY,
         };
         
         void
@@ -47,6 +48,8 @@ class BoxLEDs : public EnhancedThread {
             getRed(),
             getGreen(),
             getBlue();
+
+        void setIdleType(IDLE_TYPE idleType);
 
     private:
         const uint8_t PIN_RED = 19;
