@@ -46,9 +46,9 @@ void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
 }
 
 void BoxLEDs::setRed(uint8_t intensity) {
-    if (intensity == 0x00) {
+    if (intensity < LED_PWM_MIN) {
         _stateRed = LED_PWM_MIN;
-    } else if (intensity == 0xFF) {
+    } else if (intensity > LED_PWM_MAX) {
         _stateRed = LED_PWM_MAX;
     } else {
         _stateRed = intensity;
@@ -56,9 +56,9 @@ void BoxLEDs::setRed(uint8_t intensity) {
     analogWrite(PIN_RED, _stateRed);
 }
 void BoxLEDs::setGreen(uint8_t intensity) {
-    if (intensity == 0x00) {
+    if (intensity < LED_PWM_MIN) {
         _stateGreen = LED_PWM_MIN;
-    } else if (intensity == 0xFF) {
+    } else if (intensity > LED_PWM_MAX) {
         _stateGreen = LED_PWM_MAX;
     } else {
         _stateGreen = intensity;
@@ -66,9 +66,9 @@ void BoxLEDs::setGreen(uint8_t intensity) {
     analogWrite(PIN_GREEN, _stateGreen);
 }
 void BoxLEDs::setBlue(uint8_t intensity) {
-    if (intensity == 0x00) {
+    if (intensity < LED_PWM_MIN) {
         _stateBlue = LED_PWM_MIN;
-    } else if (intensity == 0xFF) {
+    } else if (intensity > LED_PWM_MAX) {
         _stateBlue = LED_PWM_MAX;
     } else {
         _stateBlue = intensity;
