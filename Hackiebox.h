@@ -11,6 +11,7 @@
 #include "BoxEvents.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
+#include "BoxRFID.h"
 #include "BoxSD.h"
 
 #include "WrapperWiFi.h"
@@ -29,6 +30,7 @@ class Hackiebox {
         BoxButtonEars boxEars;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
+        BoxRFID boxRFID;
         BoxSD boxSD;
         WrapperWiFi boxWiFi;
         WrapperWebServer webServer;
