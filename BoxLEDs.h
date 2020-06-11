@@ -60,6 +60,8 @@ class BoxLEDs : public EnhancedThread {
 
         void setIdleType(IDLE_TYPE idleType);
 
+        void disableRedLED(bool disabled); //For SWD
+
     private:
         const uint8_t PIN_RED = 19;
         const uint8_t PIN_GREEN = 21;
@@ -82,6 +84,8 @@ class BoxLEDs : public EnhancedThread {
         ANIMATION_COLOR _animationColor;
 
         IDLE_TYPE _idleType;
+
+        bool _redLedDisabled;
 };
 
 #endif

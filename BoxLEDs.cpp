@@ -3,6 +3,8 @@
 
 void BoxLEDs::begin() {
     PWMPrepare(PIN_RED);
+    //disableRedLED(true);
+
     PWMPrepare(PIN_GREEN);
     PWMPrepare(PIN_BLUE);
 
@@ -67,6 +69,16 @@ void BoxLEDs::loop() {
     }
 }
 
+void BoxLEDs::disableRedLED(bool disabled) {
+    _redLedDisabled = disabled;
+    if (disabled) {
+        MAP_PinModeSet(PIN_19, PIN_MODE_1); //TCK
+        MAP_PinModeSet(PIN_20, PIN_MODE_1); //TMS
+    } else {
+        PWMPrepare(PIN_RED);
+    }
+}
+
 void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
     _idleType = idleType;
 
@@ -95,7 +107,8 @@ void BoxLEDs::setRed(uint8_t intensity) {
     } else {
         _stateRed = intensity;
     }
-    analogWrite(PIN_RED, _stateRed);
+    if (!_redLedDisabled)
+        analogWrite(PIN_RED, _stateRed);
 }
 void BoxLEDs::setGreen(uint8_t intensity) {
     if (intensity < LED_PWM_MIN) {
@@ -124,7 +137,8 @@ void BoxLEDs::setRedBool(bool enabled) {
     } else {
         _stateRed = LED_PWM_MIN;
     }
-    analogWrite(PIN_RED, _stateRed);
+    if (!_redLedDisabled)
+        analogWrite(PIN_RED, _stateRed);
 }
 void BoxLEDs::setGreenBool(bool enabled) {
     if (enabled) {
