@@ -25,3 +25,4 @@ Reinsert the sd card and run the cfw once. Then shutdown the box again (put the 
 To update the firmware ota you can just use the hackiebox website und the box' ip address. (Expert->File Upload).
 ## Additional information for developers
 Keep in mind that connecting the RX Pin of the box to a serial interface blocks the big ear. For reading the log messages it is enough to have the TX Pin only connected (beside GND).
+[Trello Hackiebox Dev Board](https://trello.com/b/NcoJ9crt/hackiebox-cfw)
