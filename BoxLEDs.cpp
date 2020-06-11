@@ -12,7 +12,12 @@ void BoxLEDs::begin() {
 
     _rainbowStepState = 0;
 
-    setIdleType(IDLE_TYPE::RAINBOW);
+    _active_animation = 0;
+    _animationDirection = ANIMATION_DIRECTION::UP;
+    _animationState = 0;
+    _animationStep = 5;
+    _animationColor = ANIMATION_COLOR::RED;
+
 }
 
 void BoxLEDs::loop() {

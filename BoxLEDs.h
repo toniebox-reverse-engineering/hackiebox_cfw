@@ -75,6 +75,12 @@ class BoxLEDs : public EnhancedThread {
         CRGB _wheel(uint8_t wheelPos);
         uint8_t _rainbowStepState;
 
+        uint8_t _active_animation;
+        uint8_t _animationState;
+        uint8_t _animationStep;
+        ANIMATION_DIRECTION _animationDirection;
+        ANIMATION_COLOR _animationColor;
+
         IDLE_TYPE _idleType;
 };
 
