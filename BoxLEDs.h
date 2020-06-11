@@ -22,6 +22,15 @@ class BoxLEDs : public EnhancedThread {
             RAINBOW,
             PARTY,
         };
+        enum class ANIMATION_DIRECTION {
+            UP,
+            DOWN,
+        };
+        enum class ANIMATION_COLOR {
+            RED,
+            GREEN,
+            BLUE,
+        };
         
         void
             begin(),
