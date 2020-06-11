@@ -79,6 +79,16 @@ void BoxLEDs::disableRedLED(bool disabled) {
     }
 }
 
+void BoxLEDs::disableRedLED(bool disabled) {
+    _redLedDisabled = disabled;
+    if (disabled) {
+        MAP_PinModeSet(PIN_19, PIN_MODE_1); //TCK
+        MAP_PinModeSet(PIN_20, PIN_MODE_1); //TMS
+    } else {
+        PWMPrepare(PIN_RED);
+    }
+}
+
 void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
     _idleType = idleType;
 
