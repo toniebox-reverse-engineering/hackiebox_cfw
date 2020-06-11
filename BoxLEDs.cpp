@@ -20,7 +20,6 @@ void BoxLEDs::begin() {
     _animationStep = 5;
     _animationColor = ANIMATION_COLOR::RED;
 
-    setIdleType(IDLE_TYPE::PULSE);
 }
 
 void BoxLEDs::loop() {
