@@ -18,9 +18,11 @@ void BoxLEDs::begin() {
     _animationStep = 5;
     _animationColor = ANIMATION_COLOR::RED;
 
+    setIdleType(IDLE_TYPE::PULSE);
 }
 
 void BoxLEDs::loop() {
+    if (_active_animation == 0) {
     if (_idleType == IDLE_TYPE::RAINBOW) {
         setAll(_wheel(_rainbowStepState));
         if (_rainbowStepState < 255) {
@@ -30,6 +32,38 @@ void BoxLEDs::loop() {
         }
     } else if (_idleType == IDLE_TYPE::PARTY) {
         setAll(_wheel(random(255)));
+        } else if (_idleType == IDLE_TYPE::PULSE) {
+            if (_animationDirection == ANIMATION_DIRECTION::UP) {
+                if (_animationState <= LED_PWM_MAX - _animationStep) {
+                    _animationState += _animationStep;
+                } else {
+                    _animationDirection = ANIMATION_DIRECTION::DOWN;
+                    _animationState = LED_PWM_MAX;
+                }
+            } else { 
+                if (_animationState >= LED_PWM_MIN + _animationStep) {
+                    _animationState -= _animationStep;
+                } else {
+                    _animationDirection = ANIMATION_DIRECTION::UP;
+                    _animationState = LED_PWM_MIN;
+    }
+}
+            //Log.info("LED: pulse: state: %i", _animationState);
+            switch (_animationColor) {
+            case ANIMATION_COLOR::RED:
+                setAll(_animationState, 0, 0);
+                break;
+            case ANIMATION_COLOR::GREEN:
+                setAll(0, _animationState, 0);
+                break;
+            case ANIMATION_COLOR::BLUE:
+                setAll(0,0,_animationState);
+                break;
+            
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -42,6 +76,9 @@ void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
         break;
     case IDLE_TYPE::PARTY:
         setInterval(250);
+        break;
+    case IDLE_TYPE::PULSE:
+        setInterval(30);
         break;
     
     default:
