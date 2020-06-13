@@ -77,7 +77,8 @@ void BoxButtonEars::reloadConfig() {
 
 void BoxButtonEars::waitForRelease() {
     while (true) {
-        delay(250);
+        delay(100);
+        Box.watchdog_feed();
         _earSmall.read();
         _earBig.read();
         if (!_earSmall.isPressed() && !_earBig.isPressed()) 
