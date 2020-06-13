@@ -83,37 +83,20 @@ void watchdog_handler() {
 }
 bool Hackiebox::watchdog_start() {
     watchdog_feed();
-    // Enable the peripherals used by this example.
+
     MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
-
-    // Unlock to be able to configure the registers
     MAP_WatchdogUnlock(WDT_BASE);
-    
-    //if (fpAppWDTCB != NULL) {
-        MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
-        MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
-    //}
-    
-
-    // Set the watchdog timer reload value
+    MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
+    MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
     MAP_WatchdogReloadSet(WDT_BASE, 80000000*15); //15s
-
-    // Start the timer. Once the timer is started, it cannot be disable.
     MAP_WatchdogEnable(WDT_BASE);
 
     return MAP_WatchdogRunning(WDT_BASE);
 }
 void Hackiebox::watchdog_stop() {  
-    // Unlock to be able to configure the registers
     MAP_WatchdogUnlock(WDT_BASE);
-
-    // Disable stalling of the watchdog timer during debug events
     MAP_WatchdogStallDisable(WDT_BASE);
-
-    // Clear the interrupt
     MAP_WatchdogIntClear(WDT_BASE);
-
-    // Unregister the interrupt
     MAP_WatchdogIntUnregister(WDT_BASE);
 }
 
