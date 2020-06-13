@@ -87,7 +87,7 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
                     //Prepare Hibernation
                     Box.boxLEDs.setAllBool(false);
                     Box.boxEars.waitForRelease();
-                    delay(1000);
+                    delay(500);
                     Box.boxPower.hibernate();
                 }
             }
