@@ -5,6 +5,11 @@
 
 #include <ThreadController.h>
 
+#include <hw_ints.h>
+#include <driverlib/wdt.h>
+#include <driverlib/rom_map.h>
+#include <driverlib/prcm.h>
+
 #include "BoxAccelerometer.h"
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
@@ -21,9 +26,19 @@
 
 class Hackiebox { 
     public:
+
         void
             setup(),
             loop();
+        
+        bool
+            watchdog_start(),
+            watchdog_isFed();
+        void
+            watchdog_stop(),
+            watchdog_feed(),
+            watchdog_unfeed();
+
 
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
@@ -37,10 +52,14 @@ class Hackiebox {
 
         LogStream logStream;
 
-    private:
+    private:/*
+        typedef void (*fAPPWDTDevCallbk)();
+        void 
+            watchdog_handler();*/
+        
+        bool _watchdog_fed;
         ThreadController _threadController;
 };
-
 extern Hackiebox Box;
 
 #endif
