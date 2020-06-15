@@ -51,11 +51,13 @@ class BoxDAC : public EnhancedThread  {
             TIMER_CLK_MCLK_DIV = 0x10,
         };
 
-        void send(uint8_t target_register, uint8_t data);
-        void send(ADDR target_register, PAGE data);
-        void send(ADDR_P0_SERIAL target_register, uint8_t data);
-        void send(ADDR_P1_DAC_OUT target_register, uint8_t data);
-        void send(ADDR_P3_MCLK target_register, uint8_t data);
+        bool
+            send_raw(uint8_t data),
+            send(uint8_t target_register, uint8_t data),
+            send(ADDR target_register, PAGE data),
+            send(ADDR_P0_SERIAL target_register, uint8_t data),
+            send(ADDR_P1_DAC_OUT target_register, uint8_t data),
+            send(ADDR_P3_MCLK target_register, uint8_t data);
 };
 
 #endif
