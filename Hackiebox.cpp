@@ -27,6 +27,7 @@ void Hackiebox::setup() {
     boxEars.begin();
     boxAccel.begin();
     boxRFID.begin();
+    boxDAC.begin();
     
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
@@ -46,6 +47,7 @@ void Hackiebox::setup() {
     Log.info("Config: %s", Config.getAsJson().c_str());
 
     boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
+    boxDAC.onRun(ThreadCallbackHandler([&]() { boxDAC.loop(); }));
     boxRFID.onRun(ThreadCallbackHandler([&]() { boxRFID.loop(); }));
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
     boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));

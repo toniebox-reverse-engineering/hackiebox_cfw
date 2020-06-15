@@ -13,6 +13,7 @@
 #include "BoxAccelerometer.h"
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
+#include "BoxDAC.h"
 #include "BoxEvents.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
@@ -42,7 +43,8 @@ class Hackiebox {
 
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
-        BoxButtonEars boxEars;
+        BoxButtonEars boxEars; 
+        BoxDAC boxDAC;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
         BoxRFID boxRFID;
