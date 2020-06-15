@@ -2,13 +2,19 @@
 #define BoxDAC_h
 
 #include "BaseHeader.h"
+<<<<<<< HEAD
 #include <EnhancedThread.h>
 
 class BoxDAC : public EnhancedThread  { 
+=======
+
+class BoxDAC { 
+>>>>>>> c54e8152d4ae4286ec45087a1fdc1b9715faffa6
     public:
         void
             begin(),
             loop();
+<<<<<<< HEAD
     
     private:
         enum class PAGE {
@@ -57,5 +63,10 @@ class BoxDAC : public EnhancedThread  {
         void send(ADDR_P1_DAC_OUT target_register, uint8_t data);
         void send(ADDR_P3_MCLK target_register, uint8_t data);
 };
+=======
+    //private:
+
+}
+>>>>>>> c54e8152d4ae4286ec45087a1fdc1b9715faffa6
 
 #endif

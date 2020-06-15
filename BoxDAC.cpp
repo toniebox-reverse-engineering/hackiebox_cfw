@@ -1,5 +1,6 @@
 #include "BoxDAC.h"
 
+<<<<<<< HEAD
 #include <Wire.h>
 
 void BoxDAC::begin() { 
@@ -58,10 +59,15 @@ void BoxDAC::begin() {
 
 
     Log.info("...initialized");
+=======
+void BoxDAC::begin() { 
+
+>>>>>>> c54e8152d4ae4286ec45087a1fdc1b9715faffa6
 }
 
 void BoxDAC::loop() { 
 
+<<<<<<< HEAD
 }
 
 void BoxDAC::send(uint8_t target_register, uint8_t data) {
@@ -83,3 +89,6 @@ void BoxDAC::send(ADDR_P3_MCLK target_register, uint8_t data) {
     send((uint8_t)target_register, data);
 }
 
+=======
+}
+>>>>>>> c54e8152d4ae4286ec45087a1fdc1b9715faffa6
