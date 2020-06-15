@@ -1,5 +1,4 @@
 #include "BoxDAC.h"
-
 #include <Wire.h>
 
 void BoxDAC::begin() { 
@@ -61,7 +60,6 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::loop() { 
-
 }
 
 void BoxDAC::send(uint8_t target_register, uint8_t data) {
@@ -82,4 +80,3 @@ void BoxDAC::send(ADDR_P1_DAC_OUT target_register, uint8_t data) {
 void BoxDAC::send(ADDR_P3_MCLK target_register, uint8_t data) {
     send((uint8_t)target_register, data);
 }
-
