@@ -42,12 +42,29 @@ void BoxDAC::begin() {
     send(0x33, 0x14);
 
     //send(0x2E);
-    //read 0x31 addr
+    //read 0x31 addr*/
 
     //Testing custom code
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    send(0x28,0x06);
+    send(0x29,0x06);
+    send(0x2A,0x1C);
+
+    send(0x20, 0x86);
+    send(0x24, 0x92);
+    send(0x25, 0x92);
+    send(0x26, 0x92);
+
+    send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
+    send(0x3F, 0xD4);
+    send(0x41, 0xD4);
+    send(0x42, 0xD4);
+
+
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
+    delay(1000);
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
     for (uint32_t i = 0; i<10; i++) {
         send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
@@ -67,7 +84,6 @@ void BoxDAC::loop() {
 }
 
 bool BoxDAC::send_raw(uint8_t data) {
-    delay(1);
     if (!Wire.write(data)) {
         Log.error("Could not write into I2C Buffer");
         return false;
