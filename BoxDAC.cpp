@@ -1,8 +1,25 @@
 #include "BoxDAC.h"
 #include <Wire.h>
 
+#include "driverlib/prcm.h"
+#include "driverlib/i2s.h"
+
 void BoxDAC::begin() { 
     Log.info("Initialize DAC...");
+
+    MAP_PinTypeI2S(PIN_50, PIN_MODE_4); //I2S Data0 (DIN)
+    MAP_PinTypeI2S(PIN_53, PIN_MODE_2); //I2S ClockO (BCLK)
+    MAP_PinTypeI2S(PIN_63, PIN_MODE_7); //I2S Frame Sync (WCLK)
+
+    MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
+    MAP_PRCMPeripheralReset(PRCM_I2S);
+    MAP_PRCMI2SClockFreqSet(512000); //512000 = 16*2*16000Khz(Num of bytes * STEREO * 16000 sampling)
+    MAP_I2SConfigSetExpClk(I2S_BASE,512000,512000,I2S_SLOT_SIZE_16|I2S_PORT_DMA);
+    //MAP_I2SConfigSetExpClk(I2S_BASE,512000,512000,I2S_SLOT_SIZE_16|I2S_PORT_CPU);
+    MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_1,I2S_SER_MODE_RX, I2S_INACT_LOW_LEVEL);
+    MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_0,I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
+    MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
+
     //RESET
     pinMode(62, OUTPUT);
     digitalWrite(62, HIGH);
@@ -107,7 +124,7 @@ void BoxDAC::begin() {
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
 
-    /*
+    
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
     send(ADDR_P1_DAC_OUT::HPL_DRIVER, 0x06);
     send(ADDR_P1_DAC_OUT::HPR_DRIVER, 0x06);
@@ -121,14 +138,22 @@ void BoxDAC::begin() {
     send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD4);
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xD4);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xD4);
-    */
+    
+    beep();
 
+    Log.info("...initialized");
+}
+
+void BoxDAC::beep() {
     //recommened cdoe for beep by chip doc
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
+    //send(ADDR_P0_SERIAL::DAC_PROC_BLOCK_SEL, 0x19);
+    //send(ADDR_P0_SERIAL::BEEP_LEN_MSB, 0x04);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
-    delay(500);
+    delay(100);
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
+    delay(100);
     for (uint32_t i = 0; i<10; i++) {
         send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
         send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
@@ -139,10 +164,6 @@ void BoxDAC::begin() {
     }
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs
-
-
-
-    Log.info("...initialized");
 }
 
 void BoxDAC::loop() { 

@@ -9,6 +9,8 @@ class BoxDAC : public EnhancedThread  {
         void
             begin(),
             loop();
+
+        void beep();
     
     private:
         enum class PAGE {
@@ -45,6 +47,9 @@ class BoxDAC : public EnhancedThread  {
             HEADSET_DETECT = 0x43,
             BEEP_L_GEN = 0x47,
             BEEP_R_GEN = 0x48,
+            BEEP_LEN_MSB = 0x49,
+            BEEP_LEN_MID = 0x4A,
+            BEEP_LEN_LSB = 0x4B,
             VOL_MICDET_SAR_ADC = 0x74,
         };
         enum class ADDR_P1_DAC_OUT {
@@ -73,6 +78,7 @@ class BoxDAC : public EnhancedThread  {
             send(ADDR_P0_SERIAL target_register, uint8_t data),
             send(ADDR_P1_DAC_OUT target_register, uint8_t data),
             send(ADDR_P3_MCLK target_register, uint8_t data);
+
 };
 
 #endif
