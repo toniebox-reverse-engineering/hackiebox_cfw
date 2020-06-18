@@ -12,21 +12,59 @@ void BoxLEDs::begin() {
     _stateGreen = LED_PWM_MIN;
     _stateBlue = LED_PWM_MIN;
 
-    _rainbowStepState = 0;
-
-    setIdleType(IDLE_TYPE::RAINBOW);
+    _activeAnimationRunning = false;
+    setIdleAnimation(ANIMATION_TYPE::PULSE, ANIMATION_COLOR::TEAL);
+    //setActiveAnimation(ANIMATION_TYPE::BLINK, ANIMATION_COLOR::YELLOW, 10000);
 }
 
 void BoxLEDs::loop() {
-    if (_idleType == IDLE_TYPE::RAINBOW) {
-        setAll(_wheel(_rainbowStepState));
-        if (_rainbowStepState < 255) {
-            _rainbowStepState++;
+    if (_activeAnimationRunning == true && _timer.isRunning()) {
+        _handleAnimation(&_activeAnimation);
+    } else {
+        _idleAnimation.state++;
+        _handleAnimation(&_idleAnimation);
+    }
+
+}
+
+void BoxLEDs::_handleAnimation(ANIMATION* animation) {
+    setIntervalForAnimationType(animation->type);
+    if (animation->type == ANIMATION_TYPE::RAINBOW) {
+        setAll(_wheel(animation->state));
+        if (animation->state < 255) {
+            animation->state = animation->state++;
         } else {
-            _rainbowStepState = 0;
+            animation->state = 0;
         }
-    } else if (_idleType == IDLE_TYPE::PARTY) {
+    } else if (animation->type == ANIMATION_TYPE::PARTY) {
         setAll(_wheel(random(255)));
+    } else if (animation->type == ANIMATION_TYPE::PULSE) {
+        if (animation->direction == ANIMATION_DIRECTION::UP) {
+            if (animation->state <= LED_PWM_MAX - animation->step) {
+                animation->state = animation->state+animation->step;
+            } else {
+                animation->direction = ANIMATION_DIRECTION::DOWN;
+                animation->state = LED_PWM_MAX;
+            }
+        } else { 
+            if (animation->state >= LED_PWM_MIN + animation->step) {
+                animation->state -= animation->step;
+            } else {
+                animation->direction = ANIMATION_DIRECTION::UP;
+                animation->state = LED_PWM_MIN;
+            }
+        }
+        setAll(_transformPulse(animation->state, animation->color));
+    } else if (animation->type == ANIMATION_TYPE::SOLID) {
+        setAll(animation->color);
+    } else if (animation->type == ANIMATION_TYPE::BLINK) {
+        if (animation->direction == ANIMATION_DIRECTION::UP) {
+            setAll(animation->color);
+            animation->direction = ANIMATION_DIRECTION::DOWN;
+        } else {
+            setAll(0,0,0);
+            animation->direction = ANIMATION_DIRECTION::UP;
+        }
     }
 }
 
@@ -40,15 +78,140 @@ void BoxLEDs::disableRedLED(bool disabled) {
     }
 }
 
-void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
-    _idleType = idleType;
+void BoxLEDs::setIdleAnimation(ANIMATION_TYPE animationType,ANIMATION_COLOR animationColor) {
+    _idleAnimation.type = animationType;
+    _idleAnimation.color = _transformCRGBToAnimationColor(animationColor);
+    _idleAnimation.state = 0;
+    _idleAnimation.step = 0;
+    _idleAnimation.direction = ANIMATION_DIRECTION::UP;
+    setIntervalForAnimationType(animationType);
 
+    switch (animationType) {
+    case ANIMATION_TYPE::RAINBOW:
+        break;
+    case ANIMATION_TYPE::BLINK:
+        break;
+    case ANIMATION_TYPE::PARTY:
+        break;
+    case ANIMATION_TYPE::PULSE:
+        _idleAnimation.step = 5;
+        _idleAnimation.direction = ANIMATION_DIRECTION::UP;
+        break;
+    case ANIMATION_TYPE::SOLID:
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void BoxLEDs::setActiveAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor, unsigned long duration) {
+    _activeAnimation.type = animationType;
+    _activeAnimation.color = _transformCRGBToAnimationColor(animationColor);
+    _activeAnimation.state = 0;
+    _activeAnimation.step = 0;
+    _activeAnimation.direction = ANIMATION_DIRECTION::UP;
+    setIntervalForAnimationType(animationType);
+
+    switch (animationType) {
+    case ANIMATION_TYPE::RAINBOW:
+        break;
+    case ANIMATION_TYPE::BLINK:
+        break;
+    case ANIMATION_TYPE::PARTY:
+        break;
+    case ANIMATION_TYPE::PULSE:
+        _activeAnimation.step = 5;
+        _activeAnimation.direction = ANIMATION_DIRECTION::UP;
+        break;
+    case ANIMATION_TYPE::SOLID:
+        break;
+    
+    default:
+        break;
+    }
+
+    _timer.setTimer(duration);
+    _activeAnimationRunning = true;
+}
+
+BoxLEDs::CRGB BoxLEDs::_transformCRGBToAnimationColor(ANIMATION_COLOR animationColor) {
+    CRGB color;
+    switch (animationColor) {
+    case ANIMATION_COLOR::WHITE:
+        color.setRGB(0xFF,0xFF,0xFF);
+        break;
+    case ANIMATION_COLOR::BLACK:
+        color.setRGB(0,0,0);
+        break;
+    case ANIMATION_COLOR::RED:
+        color.setRGB(0xFF,0,0);
+        break;
+    case ANIMATION_COLOR::MAROON:
+        color.setRGB(0x80,0,0);
+        break;
+    case ANIMATION_COLOR::LIME:
+        color.setRGB(0,0x80,0x00);
+        break;
+    case ANIMATION_COLOR::GREEN:
+        color.setRGB(0,0xFF,0);
+        break;
+    case ANIMATION_COLOR::BLUE:
+        color.setRGB(0,0,0xFF);
+        break;
+    case ANIMATION_COLOR::NAVY:
+        color.setRGB(0,0,0x80);
+        break;
+    case ANIMATION_COLOR::GRAY:
+        color.setRGB(0x80,0x80,0x80);
+        break;
+    case ANIMATION_COLOR::SILVER:
+        color.setRGB(0xC0,0xC0,0xC0);
+        break;
+    case ANIMATION_COLOR::YELLOW:
+        color.setRGB(0xFF,0xFF,0);
+        break;
+    case ANIMATION_COLOR::ORANGE:
+        color.setRGB(0xFF,0xA5,0);
+        break;
+    case ANIMATION_COLOR::OLIVE:
+        color.setRGB(0x80,0x80,0);
+        break;
+    case ANIMATION_COLOR::PURPLE:
+        color.setRGB(0x80,0,0x80);
+        break;
+    case ANIMATION_COLOR::FUCHSIA:
+        color.setRGB(0xFF,0,0xFF);
+        break;
+    case ANIMATION_COLOR::AQUA:
+        color.setRGB(0,0xFF,0xFF);
+        break;
+    case ANIMATION_COLOR::TEAL:
+        color.setRGB(0,0x80,0x80);
+        break;
+    
+    default:
+        break;
+    }
+    return color;
+}
+
+void BoxLEDs::setIntervalForAnimationType(ANIMATION_TYPE idleType) {
     switch (idleType) {
-    case IDLE_TYPE::RAINBOW:
+    case ANIMATION_TYPE::RAINBOW:
         setInterval(100);
         break;
-    case IDLE_TYPE::PARTY:
+    case ANIMATION_TYPE::PARTY:
         setInterval(250);
+        break;
+    case ANIMATION_TYPE::PULSE:
+        setInterval(30);
+        break;
+    case ANIMATION_TYPE::SOLID:
+        setInterval(250);
+        break;
+    case ANIMATION_TYPE::BLINK:
+        setInterval(350);
         break;
     
     default:
@@ -58,6 +221,7 @@ void BoxLEDs:: setIdleType(IDLE_TYPE idleType) {
 }
 
 void BoxLEDs::setRed(uint8_t intensity) {
+    uint8_t currentState = _stateRed;
     if (intensity < LED_PWM_MIN) {
         _stateRed = LED_PWM_MIN;
     } else if (intensity > LED_PWM_MAX) {
@@ -65,10 +229,14 @@ void BoxLEDs::setRed(uint8_t intensity) {
     } else {
         _stateRed = intensity;
     }
-    if (!_redLedDisabled)
+
+    if ((currentState != _stateRed) && !_redLedDisabled) {
         analogWrite(PIN_RED, _stateRed);
+    }
 }
+
 void BoxLEDs::setGreen(uint8_t intensity) {
+    uint8_t currentState = _stateGreen;
     if (intensity < LED_PWM_MIN) {
         _stateGreen = LED_PWM_MIN;
     } else if (intensity > LED_PWM_MAX) {
@@ -76,9 +244,14 @@ void BoxLEDs::setGreen(uint8_t intensity) {
     } else {
         _stateGreen = intensity;
     }
-    analogWrite(PIN_GREEN, _stateGreen);
+
+    if (currentState != _stateGreen) {
+        analogWrite(PIN_GREEN, _stateGreen);
+    }
 }
+
 void BoxLEDs::setBlue(uint8_t intensity) {
+    uint8_t currentState = _stateBlue;
     if (intensity < LED_PWM_MIN) {
         _stateBlue = LED_PWM_MIN;
     } else if (intensity > LED_PWM_MAX) {
@@ -86,41 +259,58 @@ void BoxLEDs::setBlue(uint8_t intensity) {
     } else {
         _stateBlue = intensity;
     }
-    analogWrite(PIN_BLUE, _stateBlue);
+
+    if (currentState != _stateBlue) {
+        analogWrite(PIN_BLUE, _stateBlue);
+    }
 }
 
 void BoxLEDs::setRedBool(bool enabled) {
+    uint8_t currentState = _stateRed;
     if (enabled) {
         _stateRed = LED_PWM_MAX;
     } else {
         _stateRed = LED_PWM_MIN;
     }
-    if (!_redLedDisabled)
+    if ((currentState != _stateRed) && !_redLedDisabled) {
         analogWrite(PIN_RED, _stateRed);
+    }
 }
+
 void BoxLEDs::setGreenBool(bool enabled) {
+    uint8_t currentState = _stateGreen;
     if (enabled) {
         _stateGreen = LED_PWM_MAX;
     } else {
         _stateGreen = LED_PWM_MIN;
     }
-    analogWrite(PIN_GREEN, _stateGreen);
+
+    if (currentState != _stateGreen) {
+        analogWrite(PIN_GREEN, _stateGreen);
+    }
 }
+
 void BoxLEDs::setBlueBool(bool enabled) {
+    uint8_t currentState = _stateBlue;
     if (enabled) {
         _stateBlue = LED_PWM_MAX;
     } else {
         _stateBlue = LED_PWM_MIN;
     }
-    analogWrite(PIN_BLUE, _stateBlue);
+
+    if (currentState != _stateBlue) {
+        analogWrite(PIN_BLUE, _stateBlue);
+    }
 }
 
 uint8_t BoxLEDs::getRed() {
     return _stateRed;
 }
+
 uint8_t BoxLEDs::getGreen() {
     return _stateGreen;
 }
+
 uint8_t BoxLEDs::getBlue() {
     return _stateBlue;
 }
@@ -128,19 +318,23 @@ uint8_t BoxLEDs::getBlue() {
 void BoxLEDs::setAllBool(bool enabled) {
     setAllBool(enabled, enabled, enabled);
 }
+
 void BoxLEDs::setAllBool(bool red, bool green, bool blue) {
     setRedBool(red);
     setGreenBool(green);
     setBlueBool(blue);
 }
+
 void BoxLEDs::setAll(uint8_t intensity) {
     setAll(intensity, intensity, intensity);
 }
+
 void BoxLEDs::setAll(uint8_t red, uint8_t green, uint8_t blue) {
     setRed(red);
     setGreen(green);
     setBlue(blue);
 }
+
 void BoxLEDs::setAll(CRGB crgb) {
     setAll(crgb.red, crgb.green, crgb.blue);
 }
@@ -195,4 +389,10 @@ BoxLEDs::CRGB BoxLEDs::_wheel(uint8_t wheelPos) {
    color.setRGB(0, wheelPos * 3, 255 - wheelPos * 3);
   }
   return color;
+}
+
+BoxLEDs::CRGB BoxLEDs::_transformPulse(uint8_t state, CRGB originalColor) {
+    CRGB color;
+    color.setRGB(originalColor.red*state/255, originalColor.blue*state/255, originalColor.green*state/255);
+    return color;
 }
