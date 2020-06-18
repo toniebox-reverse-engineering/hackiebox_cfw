@@ -23,7 +23,11 @@ void BoxDAC::begin() {
     //RESET
     pinMode(62, OUTPUT);
     digitalWrite(62, HIGH);
-    delayMicroseconds(1); //Be sure 
+    delay(10);
+    digitalWrite(62, LOW);
+    delay(10);
+    digitalWrite(62, HIGH);
+    delay(10);
 
     Wire.begin();
 
@@ -31,6 +35,7 @@ void BoxDAC::begin() {
     //Extracted from logic analyzer capture of box
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::SOFTWARE_RESET, 0x01); //Self-clearing software reset for control register
+    delay(20);
     send(ADDR_P0_SERIAL::CLOCKGEN_MUX, 0x07);
     send(ADDR_P0_SERIAL::PLL_J_VAL, 0x20);
     send(ADDR_P0_SERIAL::PLL_D_VAL_MSB, 0x00);
@@ -139,7 +144,13 @@ void BoxDAC::begin() {
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xD4);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xD4);
     
-    beep();
+
+    for (uint32_t i = 0; i<5; i++) {
+        beep();
+        delay(200);
+        beep();
+        delay(100);
+    }
 
     Log.info("...initialized");
 }
@@ -147,23 +158,15 @@ void BoxDAC::begin() {
 void BoxDAC::beep() {
     //recommened cdoe for beep by chip doc
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
-    //send(ADDR_P0_SERIAL::DAC_PROC_BLOCK_SEL, 0x19);
+    send(ADDR_P0_SERIAL::DAC_PROC_BLOCK_SEL, 0x19);
     //send(ADDR_P0_SERIAL::BEEP_LEN_MSB, 0x04);
-    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optinal
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
-    delay(100);
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
-    delay(100);
-    for (uint32_t i = 0; i<10; i++) {
-        send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
-        send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
-        delay(50);
-        send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
-        send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
-        delay(100);
-    }
+    send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
+    send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider
-    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optinal
 }
 
 void BoxDAC::loop() { 
