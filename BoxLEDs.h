@@ -2,7 +2,7 @@
 #define BoxLEDs_h
 
 #include "BaseHeader.h"
-
+#include "BoxTimer.h"
 #include <EnhancedThread.h>
 
 class BoxLEDs : public EnhancedThread {
@@ -16,9 +16,10 @@ class BoxLEDs : public EnhancedThread {
                 blue = b;
             }
         };
-        enum class IDLE_TYPE {
+        enum class ANIMATION_TYPE {
             SOLID,
             PULSE,
+            BLINK,
             RAINBOW,
             PARTY,
         };
@@ -27,9 +28,30 @@ class BoxLEDs : public EnhancedThread {
             DOWN,
         };
         enum class ANIMATION_COLOR {
-            RED,
+            BLACK,
+            MAROON,
             GREEN,
+            OLIVE,
+            NAVY,
+            PURPLE,
+            TEAL,
+            GRAY,
+            SILVER,
+            RED,
+            LIME,
+            YELLOW,
             BLUE,
+            FUCHSIA,
+            AQUA,
+            WHITE,
+            ORANGE
+        };
+        struct ANIMATION {
+            ANIMATION_TYPE type;
+            uint8_t state;
+            uint8_t step;
+            ANIMATION_DIRECTION direction;
+            CRGB color;
         };
         
         void
@@ -58,7 +80,9 @@ class BoxLEDs : public EnhancedThread {
             getGreen(),
             getBlue();
 
-        void setIdleType(IDLE_TYPE idleType);
+        void setIntervalForAnimationType(ANIMATION_TYPE idleType);
+        void setIdleAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor);
+        void setActiveAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor, unsigned long duration);
 
         void disableRedLED(bool disabled); //For SWD
 
@@ -74,16 +98,15 @@ class BoxLEDs : public EnhancedThread {
         uint8_t _stateGreen;
         uint8_t _stateBlue;
 
+        //Animation
+        BoxTimer _timer;
+        bool _activeAnimationRunning;
+        ANIMATION _idleAnimation;
+        ANIMATION _activeAnimation;
+        CRGB _transformPulse(uint8_t state, CRGB originalColor);
         CRGB _wheel(uint8_t wheelPos);
-        uint8_t _rainbowStepState;
-
-        uint8_t _active_animation;
-        uint8_t _animationState;
-        uint8_t _animationStep;
-        ANIMATION_DIRECTION _animationDirection;
-        ANIMATION_COLOR _animationColor;
-
-        IDLE_TYPE _idleType;
+        void _handleAnimation(ANIMATION* animation);
+        CRGB _transformCRGBToAnimationColor(ANIMATION_COLOR animationColor);
 
         bool _redLedDisabled;
 };
