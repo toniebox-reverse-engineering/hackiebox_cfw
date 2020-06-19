@@ -21,7 +21,6 @@ void BoxLEDs::loop() {
     if (_activeAnimationRunning == true && _timer.isRunning()) {
         _handleAnimation(&_activeAnimation);
     } else {
-        _idleAnimation.state++;
         _handleAnimation(&_idleAnimation);
     }
 
@@ -44,7 +43,7 @@ void BoxLEDs::_handleAnimation(ANIMATION* animation) {
                 animation->state = animation->state+animation->step;
             } else {
                 animation->direction = ANIMATION_DIRECTION::DOWN;
-                animation->state = 0xFE;
+                animation->state = 0xFF;
             }
         } else { 
             if (animation->state >= 0x00 + animation->step) {
