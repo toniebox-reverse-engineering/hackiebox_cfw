@@ -1,6 +1,5 @@
 #ifndef BoxTimer_h
 #define BoxTimer_h
-#include <EnhancedThread.h>
 
 #include "BaseHeader.h"
 
