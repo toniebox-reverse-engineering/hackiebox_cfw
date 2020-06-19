@@ -6,17 +6,14 @@ void BoxTimer::setTimer(unsigned long milliseconds) {
 }
 
 bool BoxTimer::isRunning() { 
-    if (! _isRunning) {
+    if (!_isRunning)
         return false;
-    }
 
     unsigned long currentMillis = millis();
-    if (_endMillis <= currentMillis) {
+    if (_endMillis <= currentMillis)
         _isRunning = false;
-        return false;
-    }
 
-    return true;
+    return _isRunning;
 }
 
 void BoxTimer::stopTimer() {
