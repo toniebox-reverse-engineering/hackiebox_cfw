@@ -40,18 +40,18 @@ void BoxLEDs::_handleAnimation(ANIMATION* animation) {
         setAll(_wheel(random(255)));
     } else if (animation->type == ANIMATION_TYPE::PULSE) {
         if (animation->direction == ANIMATION_DIRECTION::UP) {
-            if (animation->state <= LED_PWM_MAX - animation->step) {
+            if (animation->state <= 0xFF - animation->step) {
                 animation->state = animation->state+animation->step;
             } else {
                 animation->direction = ANIMATION_DIRECTION::DOWN;
-                animation->state = LED_PWM_MAX;
+                animation->state = 0xFE;
             }
         } else { 
-            if (animation->state >= LED_PWM_MIN + animation->step) {
+            if (animation->state >= 0x00 + animation->step) {
                 animation->state -= animation->step;
             } else {
                 animation->direction = ANIMATION_DIRECTION::UP;
-                animation->state = LED_PWM_MIN;
+                animation->state = 0x00;
             }
         }
         setAll(_transformPulse(animation->state, animation->color));
