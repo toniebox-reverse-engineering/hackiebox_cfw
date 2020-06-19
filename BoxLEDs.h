@@ -103,6 +103,7 @@ class BoxLEDs : public EnhancedThread {
         bool _activeAnimationRunning;
         ANIMATION _idleAnimation;
         ANIMATION _activeAnimation;
+        void setAnimation(ANIMATION* animation, ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor);
         CRGB _transformPulse(uint8_t state, CRGB originalColor);
         CRGB _wheel(uint8_t wheelPos);
         void _handleAnimation(ANIMATION* animation);

@@ -14,7 +14,7 @@ void BoxLEDs::begin() {
 
     _activeAnimationRunning = false;
     setIdleAnimation(ANIMATION_TYPE::PULSE, ANIMATION_COLOR::TEAL);
-    //setActiveAnimation(ANIMATION_TYPE::BLINK, ANIMATION_COLOR::YELLOW, 10000);
+    setActiveAnimation(ANIMATION_TYPE::BLINK, ANIMATION_COLOR::YELLOW, 10000);
 }
 
 void BoxLEDs::loop() {
@@ -79,39 +79,22 @@ void BoxLEDs::disableRedLED(bool disabled) {
 }
 
 void BoxLEDs::setIdleAnimation(ANIMATION_TYPE animationType,ANIMATION_COLOR animationColor) {
-    _idleAnimation.type = animationType;
-    _idleAnimation.color = _transformCRGBToAnimationColor(animationColor);
-    _idleAnimation.state = 0;
-    _idleAnimation.step = 0;
-    _idleAnimation.direction = ANIMATION_DIRECTION::UP;
-    setIntervalForAnimationType(animationType);
-
-    switch (animationType) {
-    case ANIMATION_TYPE::RAINBOW:
-        break;
-    case ANIMATION_TYPE::BLINK:
-        break;
-    case ANIMATION_TYPE::PARTY:
-        break;
-    case ANIMATION_TYPE::PULSE:
-        _idleAnimation.step = 5;
-        _idleAnimation.direction = ANIMATION_DIRECTION::UP;
-        break;
-    case ANIMATION_TYPE::SOLID:
-        break;
-    
-    default:
-        break;
-    }
+    setAnimation(&_idleAnimation, animationType, animationColor);
 }
 
 void BoxLEDs::setActiveAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor, unsigned long duration) {
-    _activeAnimation.type = animationType;
-    _activeAnimation.color = _transformCRGBToAnimationColor(animationColor);
-    _activeAnimation.state = 0;
-    _activeAnimation.step = 0;
-    _activeAnimation.direction = ANIMATION_DIRECTION::UP;
-    setIntervalForAnimationType(animationType);
+    setAnimation(&_activeAnimation, animationType, animationColor);
+    _timer.setTimer(duration);
+    _activeAnimationRunning = true;
+}
+
+void BoxLEDs::setAnimation(ANIMATION* animation, ANIMATION_TYPE animationType, ANIMATION_COLOR animationColor) {
+    animation->type = animationType;
+    animation->color = _transformCRGBToAnimationColor(animationColor);
+    animation->state = 0;
+    animation->step = 0;
+    animation->direction = ANIMATION_DIRECTION::UP;
+    setIntervalForAnimationType(animation->type);
 
     switch (animationType) {
     case ANIMATION_TYPE::RAINBOW:
@@ -121,8 +104,8 @@ void BoxLEDs::setActiveAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR a
     case ANIMATION_TYPE::PARTY:
         break;
     case ANIMATION_TYPE::PULSE:
-        _activeAnimation.step = 5;
-        _activeAnimation.direction = ANIMATION_DIRECTION::UP;
+        animation->step = 5;
+        animation->direction = ANIMATION_DIRECTION::UP;
         break;
     case ANIMATION_TYPE::SOLID:
         break;
@@ -130,9 +113,6 @@ void BoxLEDs::setActiveAnimation(ANIMATION_TYPE animationType, ANIMATION_COLOR a
     default:
         break;
     }
-
-    _timer.setTimer(duration);
-    _activeAnimationRunning = true;
 }
 
 BoxLEDs::CRGB BoxLEDs::_transformCRGBToAnimationColor(ANIMATION_COLOR animationColor) {
