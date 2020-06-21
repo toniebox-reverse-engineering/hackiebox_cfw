@@ -128,10 +128,8 @@ void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
         Log.info("Battery is critical, please connect the charger, hibernating!");
         Box.boxBattery.stopBatteryTest();
         Box.boxBattery.logBatteryStatus();
-        
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Orange, 3);
         Box.boxLEDs.waitForAnimationToFinish();
-        
         Box.boxPower.hibernate();
         break;
     case BoxBattery::BatteryEvent::BAT_LOW:
@@ -189,8 +187,9 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
             Box.boxPower.feedSleepTimer();
             return;
         }
-        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
         Log.info("Box not used, powering off.");  
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
+        Box.boxLEDs.waitForAnimationToFinish();
         Box.boxPower.hibernate();
         break;
     
