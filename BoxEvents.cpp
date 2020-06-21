@@ -128,19 +128,26 @@ void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
         Log.info("Battery is critical, please connect the charger, hibernating!");
         Box.boxBattery.stopBatteryTest();
         Box.boxBattery.logBatteryStatus();
+        
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Orange, 3);
+        Box.boxLEDs.waitForAnimationToFinish();
+        
         Box.boxPower.hibernate();
         break;
     case BoxBattery::BatteryEvent::BAT_LOW:
         Log.info("Battery is low, please connect the charger!");
         Box.boxBattery.logBatteryStatus();
+        Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PULSE, BoxLEDs::CRGB::Orange);
         break;
     case BoxBattery::BatteryEvent::CHR_CONNECT:
         Log.info("Charger was connected");
         Box.boxBattery.logBatteryStatus();
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::White, 3);
         break;
     case BoxBattery::BatteryEvent::CHR_DISCONNECT:
         Log.info("Charger was disconnected");
         Box.boxBattery.logBatteryStatus();
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::DarkSlateGray, 3);
         break;
     }
 }
@@ -151,11 +158,14 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
         break;
     case WrapperWiFi::ConnectionState::WAIT_IP:
         Log.info("WiFi connected successfully, waiting for ip...");
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
         break;
     case WrapperWiFi::ConnectionState::CONNECTED:
         Log.info("IP address: %s", WiFi.localIP().toString().c_str());
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
+        //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
         Log.info("WiFi connection lost");
         break;
     
@@ -179,7 +189,7 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
             Box.boxPower.feedSleepTimer();
             return;
         }
-        
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
         Log.info("Box not used, powering off.");  
         Box.boxPower.hibernate();
         break;

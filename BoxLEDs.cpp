@@ -1,5 +1,6 @@
 #include "BoxLEDs.h"
 #include "wiring_private.h"
+#include "Hackiebox.h"
 
 void BoxLEDs::begin() {
     PWMPrepare(PIN_RED);
@@ -11,27 +12,25 @@ void BoxLEDs::begin() {
     _stateRed = LED_PWM_MIN;
     _stateGreen = LED_PWM_MIN;
     _stateBlue = LED_PWM_MIN;
-
-    _activeAnimationRunning = false;
-    setIdleAnimation(ANIMATION_TYPE::PULSE, CRGB::Teal);
-    setActiveAnimation(ANIMATION_TYPE::BLINK, CRGB::Gold, 10000);
 }
 
 void BoxLEDs::loop() {
-    if (_activeAnimationRunning == true && _timer.isRunning()) {
+    _timer.tick();
+    if (_timer.isRunning()) {
         _handleAnimation(&_activeAnimation);
     } else {
         _handleAnimation(&_idleAnimation);
     }
-
 }
 
 void BoxLEDs::_handleAnimation(ANIMATION* animation) {
-    setIntervalForAnimationType(animation->type);
+    if (_timer.wasRunning())
+        setIntervalForAnimationType(animation->type);
+
     if (animation->type == ANIMATION_TYPE::RAINBOW) {
         setAll(_wheel(animation->state));
         if (animation->state < 255) {
-            animation->state = animation->state++;
+            animation->state++;
         } else {
             animation->state = 0;
         }
@@ -40,7 +39,7 @@ void BoxLEDs::_handleAnimation(ANIMATION* animation) {
     } else if (animation->type == ANIMATION_TYPE::PULSE) {
         if (animation->direction == ANIMATION_DIRECTION::UP) {
             if (animation->state <= 0xFF - animation->step) {
-                animation->state = animation->state+animation->step;
+                animation->state += animation->step;
             } else {
                 animation->direction = ANIMATION_DIRECTION::DOWN;
                 animation->state = 0xFF;
@@ -77,21 +76,43 @@ void BoxLEDs::disableRedLED(bool disabled) {
     }
 }
 
+unsigned long BoxLEDs::getDurationByIterations(uint8_t iterations, ANIMATION_TYPE animationType) {
+    unsigned long animationInterval = getIntervalForAnimationType(animationType);
+    switch (animationType) {
+    case ANIMATION_TYPE::RAINBOW:
+        return iterations * animationInterval * 255;
+        break;
+    case ANIMATION_TYPE::PARTY:
+        return iterations * animationInterval * 1;
+        break;
+    case ANIMATION_TYPE::PULSE:
+        return iterations * animationInterval * 255 * 2 / 5; //generalize steps
+        break;
+    case ANIMATION_TYPE::BLINK:
+        return iterations * animationInterval * 2;
+        break;    
+    default:
+        break;
+    }
+    return 0;
+}
 void BoxLEDs::setIdleAnimation(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor) {
     setAnimation(&_idleAnimation, animationType, animationColor);
 }
 
-void BoxLEDs::setActiveAnimation(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, unsigned long duration) {
+void BoxLEDs::setActiveAnimationByDuration(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, unsigned long duration) {
     setAnimation(&_activeAnimation, animationType, animationColor);
     _timer.setTimer(duration);
-    _activeAnimationRunning = true;
+}
+void BoxLEDs::setActiveAnimationByIteration(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, uint8_t iterations) {
+    setActiveAnimationByDuration(animationType, animationColor, getDurationByIterations(iterations, animationType));
 }
 
 void BoxLEDs::setAnimation(ANIMATION* animation, ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor) {
     animation->type = animationType;
     animation->color = animationColor;
     animation->state = 0;
-    animation->step = 0;
+    animation->step = 1;
     animation->direction = ANIMATION_DIRECTION::UP;
     setIntervalForAnimationType(animation->type);
 
@@ -115,28 +136,38 @@ void BoxLEDs::setAnimation(ANIMATION* animation, ANIMATION_TYPE animationType, C
     }
 }
 
-void BoxLEDs::setIntervalForAnimationType(ANIMATION_TYPE idleType) {
+unsigned long BoxLEDs::getIntervalForAnimationType(ANIMATION_TYPE idleType) {
     switch (idleType) {
     case ANIMATION_TYPE::RAINBOW:
-        setInterval(100);
+        return 100;
         break;
     case ANIMATION_TYPE::PARTY:
-        setInterval(250);
+        return 250;
         break;
     case ANIMATION_TYPE::PULSE:
-        setInterval(30);
+        return 30;
         break;
     case ANIMATION_TYPE::SOLID:
-        setInterval(250);
+        return 250;
         break;
     case ANIMATION_TYPE::BLINK:
-        setInterval(350);
-        break;
-    
-    default:
+        return 350;
         break;
     }
-
+    return 0;
+}
+void BoxLEDs::setIntervalForAnimationType(ANIMATION_TYPE idleType) {
+    setInterval(getIntervalForAnimationType(idleType));
+}
+bool BoxLEDs::hasActiveAnimation() {
+    return _timer.isRunning();
+}
+void BoxLEDs::waitForAnimationToFinish() {
+    Box.watchdog_feed();
+    while (hasActiveAnimation()) {
+        loop();
+        delay(1);
+    }
 }
 
 void BoxLEDs::setRed(uint8_t intensity) {
@@ -267,28 +298,28 @@ void BoxLEDs::testLEDs() {
     delay(250);
 
     Log.info(" Red");
-    setAll(0xFF, 0x00, 0x00);
+    setAll(CRGB::Red);
     delay(250);
     setAll(0x7F, 0x00, 0x00);
     delay(250);
     Log.info(" Green");
-    setAll(0x00, 0xFF, 0x00);
+    setAll(CRGB::Green);
     delay(250);
     setAll(0x00, 0x7F, 0x00);
     delay(250);
     Log.info(" Blue");
-    setAll(0x00, 0x00, 0xFF);
+    setAll(CRGB::Blue);
     delay(250);
     setAll(0x00, 0x00, 0x7F);
     delay(250);
     Log.info(" RGB");
-    setAll(0xFF, 0xFF, 0xFF);
+    setAll(CRGB::White);
     delay(250);
     setAll(0x7F, 0x7F, 0x7F);
     delay(250);
 
     Log.info(" Off");
-    setAll(0x00);
+    setAll(CRGB::Black);
 
     delay(500);
     Log.info(" Reset");

@@ -22,12 +22,17 @@ void Hackiebox::setup() {
     
     boxPower.begin();
     boxLEDs.begin();
-    boxLEDs.setAllBool(true);
+    boxLEDs.setAll(BoxLEDs::CRGB::White);
     boxBattery.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Orange);
     boxEars.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Yellow);
     boxAccel.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Pink);
     boxRFID.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Teal);
     boxDAC.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Fuchsia);
     
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
@@ -59,6 +64,7 @@ void Hackiebox::setup() {
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
  
+    boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
 }
 

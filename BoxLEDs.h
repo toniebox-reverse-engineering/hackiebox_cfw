@@ -219,8 +219,13 @@ class BoxLEDs : public EnhancedThread {
             getBlue();
 
         void setIntervalForAnimationType(ANIMATION_TYPE idleType);
+        unsigned long getIntervalForAnimationType(ANIMATION_TYPE idleType);
         void setIdleAnimation(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor);
-        void setActiveAnimation(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, unsigned long duration);
+        void setActiveAnimationByDuration(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, unsigned long duration);
+        void setActiveAnimationByIteration(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor, uint8_t iterations);
+        unsigned long getDurationByIterations(uint8_t iterations, ANIMATION_TYPE animationType);
+        bool hasActiveAnimation();
+        void waitForAnimationToFinish();
 
         void disableRedLED(bool disabled); //For SWD
 
@@ -238,7 +243,6 @@ class BoxLEDs : public EnhancedThread {
 
         //Animation
         BoxTimer _timer;
-        bool _activeAnimationRunning;
         ANIMATION _idleAnimation;
         ANIMATION _activeAnimation;
         void setAnimation(ANIMATION* animation, ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor);
