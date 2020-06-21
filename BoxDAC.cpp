@@ -4,8 +4,14 @@
 #include "driverlib/prcm.h"
 #include "driverlib/i2s.h"
 
-void BoxDAC::begin() { 
+#include "AudioOutputCC3200I2S.h"
+#include <ESP8266SAM.h>
+
+void BoxDAC::begin() {
     Log.info("Initialize DAC...");
+    
+    uint32_t clock; //(Num of bytes * STEREO * sampling)
+    clock = 16*2*16000;
 
     MAP_PinTypeI2S(PIN_50, PIN_MODE_4); //I2S Data0 (DIN)
     MAP_PinTypeI2S(PIN_53, PIN_MODE_2); //I2S ClockO (BCLK)
@@ -13,21 +19,12 @@ void BoxDAC::begin() {
 
     MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralReset(PRCM_I2S);
-    MAP_PRCMI2SClockFreqSet(512000); //512000 = 16*2*16000Khz(Num of bytes * STEREO * 16000 sampling)
-    MAP_I2SConfigSetExpClk(I2S_BASE,512000,512000,I2S_SLOT_SIZE_16|I2S_PORT_DMA);
-    //MAP_I2SConfigSetExpClk(I2S_BASE,512000,512000,I2S_SLOT_SIZE_16|I2S_PORT_CPU);
+    MAP_PRCMI2SClockFreqSet(clock);
+    MAP_I2SConfigSetExpClk(I2S_BASE,clock,clock,I2S_SLOT_SIZE_16|I2S_PORT_DMA);
+    //MAP_I2SConfigSetExpClk(I2S_BASE,clock,clock,I2S_SLOT_SIZE_16|I2S_PORT_CPU);
     MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_1,I2S_SER_MODE_RX, I2S_INACT_LOW_LEVEL);
     MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_0,I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
-
-    //RESET
-    pinMode(62, OUTPUT);
-    digitalWrite(62, HIGH);
-    delay(10);
-    digitalWrite(62, LOW);
-    delay(10);
-    digitalWrite(62, HIGH);
-    delay(10);
 
     Wire.begin();
 
@@ -96,7 +93,7 @@ void BoxDAC::begin() {
     send(ADDR_P0_SERIAL::PLL_D_VAL_MSB, 0x00); //30 07 00 00
     send(ADDR_P0_SERIAL::PLL_D_VAL_LSB, 0x00);
     send(ADDR_P0_SERIAL::PLL_P_R_VAL, 0x91);
-    send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x88);
+    //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x88);
     send(ADDR_P0_SERIAL::DAC_MDAC_VAL, 0x82);
     send(ADDR_P0_SERIAL::DAC_DOSR_VAL_MSB, 0x00); //30 0D 00 80
     send(ADDR_P0_SERIAL::DAC_DOSR_VAL_LSB, 0x80); 
@@ -124,12 +121,12 @@ void BoxDAC::begin() {
 
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD4);
-    send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xD4);
-    send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xD4);
+    send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0x80);
+    send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0x80);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
 
-    
+    /*
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
     send(ADDR_P1_DAC_OUT::HPL_DRIVER, 0x06);
     send(ADDR_P1_DAC_OUT::HPR_DRIVER, 0x06);
@@ -142,15 +139,26 @@ void BoxDAC::begin() {
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD4);
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xD4);
-    send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xD4);
-    
+    send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xD4);*
+    */
 
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128+64+32+16);
     for (uint32_t i = 0; i<5; i++) {
         beep();
         delay(200);
         beep();
         delay(100);
     }
+
+    AudioOutputCC3200I2S *out = NULL;
+    out = new AudioOutputCC3200I2S();
+    out->begin();
+    ESP8266SAM *sam = new ESP8266SAM;
+    sam->Say(out, "Can you hear me now?");
+    delay(500);
+    sam->Say(out, "I can't hear you!");
+    delete sam;
 
     Log.info("...initialized");
 }
