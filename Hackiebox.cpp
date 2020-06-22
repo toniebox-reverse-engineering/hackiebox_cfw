@@ -12,6 +12,8 @@ void Hackiebox::setup() {
     Log.init(LOG_LEVEL_VERBOSE, 115200/*, &logStream*/);
     Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
+    Wire.begin();
+    
     boxPower.initPins();
     boxPower.setSdPower(true);
     boxPower.setOtherPower(true);

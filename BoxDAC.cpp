@@ -26,9 +26,6 @@ void BoxDAC::begin() {
     MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_0,I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
 
-    Wire.begin();
-
-
     //Extracted from logic analyzer capture of box
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::SOFTWARE_RESET, 0x01); //Self-clearing software reset for control register
