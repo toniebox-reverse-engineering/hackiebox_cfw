@@ -163,9 +163,9 @@ bool BoxLEDs::hasActiveAnimation() {
     return _timer.isRunning();
 }
 void BoxLEDs::waitForAnimationToFinish() {
-    Box.watchdog_feed();
     while (hasActiveAnimation()) {
-        loop();
+        runIfNeeded();
+        Box.watchdog_feed();
         delay(1);
     }
 }
