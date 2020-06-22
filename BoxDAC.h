@@ -36,7 +36,7 @@ class BoxDAC : public EnhancedThread  {
             DAC_MDAC_VAL = 0x0C,
             DAC_DOSR_VAL_MSB = 0x0D,
             DAC_DOSR_VAL_LSB = 0x0E,
-            CODEC_INT_CTRL1 = 0x1B,
+            CODEC_IF_CTRL1 = 0x1B,
             INT1_CTRL_REG = 0x30,
             GPIO1_INOUT_CTRL = 0x33,
             DAC_PROC_BLOCK_SEL = 0x3C,
@@ -50,6 +50,10 @@ class BoxDAC : public EnhancedThread  {
             BEEP_LEN_MSB = 0x49,
             BEEP_LEN_MID = 0x4A,
             BEEP_LEN_LSB = 0x4B,
+            BEEP_SIN_MSB = 0x4C,
+            BEEP_SIN_LSB = 0x4D,
+            BEEP_COS_MSB = 0x4E,
+            BEEP_COS_LSB = 0x4F,
             VOL_MICDET_SAR_ADC = 0x74,
         };
         enum class ADDR_P1_DAC_OUT {
