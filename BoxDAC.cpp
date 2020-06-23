@@ -7,6 +7,8 @@
 #include "AudioOutputCC3200I2S.h"
 #include <ESP8266SAM.h>
 
+#include "Hackiebox.h"
+
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
     
@@ -125,14 +127,18 @@ void BoxDAC::begin() {
     //Excel 219
     // Extract END
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
-    send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128+64+32+16);
+    send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128+32+16);
+    /*
     for (uint32_t i = 0; i<5; i++) {
         beep();
         delay(200);
         beep();
         delay(100);
-    }
+    }*/
 
+    beepTest();
+
+    /*
     AudioOutputCC3200I2S *out = NULL;
     out = new AudioOutputCC3200I2S();
     out->begin();
@@ -140,32 +146,114 @@ void BoxDAC::begin() {
     sam->Say(out, "Can you hear me now?");
     delay(500);
     sam->Say(out, "I can't hear you!");
-    delete sam;
+    delete sam;*/
 
     Log.info("...initialized");
 }
 
-void BoxDAC::beep() {
+void BoxDAC::beepTest() {
+    uint16_t pauseLen = 250;
+    beepMidi(48, pauseLen);
+    delay(pauseLen);
+    beepMidi(50, pauseLen);
+    delay(pauseLen);
+    beepMidi(52, pauseLen);
+    delay(pauseLen);
+    beepMidi(53, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, 2*pauseLen);
+    delay(pauseLen);
+    beepMidi(55, 2*pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, 4*pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(57, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, 4*pauseLen);
+    delay(pauseLen);
+    beepMidi(53, pauseLen);
+    delay(pauseLen);
+    beepMidi(53, pauseLen);
+    delay(pauseLen);
+    beepMidi(53, pauseLen);
+    delay(pauseLen);
+    beepMidi(53, pauseLen);
+    delay(pauseLen);
+    beepMidi(52, 2*pauseLen);
+    delay(pauseLen);
+    beepMidi(52, 2*pauseLen);
+    delay(pauseLen);
+    beepMidi(55, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, pauseLen);
+    delay(pauseLen);
+    beepMidi(55, pauseLen);
+    delay(pauseLen);
+    beepMidi(48, 4*pauseLen);
+}
+
+void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length) {
+    Log.info("beep sin=%i, cos=%i, len=%l", sin, cos, length);
+
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
 
-    //send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optinal
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optinal
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
 
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
 
-    send(ADDR_P0_SERIAL::BEEP_LEN_MID, 0x06);
-    send(ADDR_P0_SERIAL::BEEP_LEN_LSB, 0x40);
-    send(ADDR_P0_SERIAL::BEEP_SIN_MSB, 0x30);
-    send(ADDR_P0_SERIAL::BEEP_SIN_LSB, 0xFC);
-    send(ADDR_P0_SERIAL::BEEP_COS_MSB, 0x76);
-    send(ADDR_P0_SERIAL::BEEP_COS_LSB, 0x42);
+    send(ADDR_P0_SERIAL::BEEP_LEN_MSB, (length>>16)&0xFF);
+    send(ADDR_P0_SERIAL::BEEP_LEN_MID, (length>>8)&0xFF);
+    send(ADDR_P0_SERIAL::BEEP_LEN_LSB, length);
+
+    send(ADDR_P0_SERIAL::BEEP_SIN_MSB, (sin>>8)&0xFF);
+    send(ADDR_P0_SERIAL::BEEP_SIN_LSB, sin);
+
+    send(ADDR_P0_SERIAL::BEEP_COS_MSB, (cos>>8)&0xFF);
+    send(ADDR_P0_SERIAL::BEEP_COS_LSB, cos);
 
     send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
     send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
     
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider
 
-    //send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optinal
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optinal
+    
+}
+void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
+    //TODO Check boundaries!
+    uint16_t samplerate = 16000;
+    int32_t freq = frequencyTable[midiId]; //fixed point /100
+    int16_t sin = beepTable16000[midiId][0];
+    int16_t cos = beepTable16000[midiId][1];
+
+    int32_t cycles = lengthMs * samplerate / 1000; //check length
+
+    beepRaw(sin, cos, cycles);
+    if (!async) {
+        Box.watchdog_feed();
+        delay(lengthMs);
+    }
+}
+void BoxDAC::beep() {
+    //beepRaw(0x30FC, 0x7642, 0x640);
+    beepMidi(84, 1000, false);
 }
 
 void BoxDAC::loop() { 
