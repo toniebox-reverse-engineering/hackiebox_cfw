@@ -1,6 +1,7 @@
 #include "BoxSD.h"
 
 void BoxSD::begin() { 
+    _initialized = false;
     Log.info("Initialize SD card");
     int result = FatFs.begin();
     if (!result) {
@@ -10,10 +11,15 @@ void BoxSD::begin() {
 
     Log.info(" Capacity: %iMB", FatFs.capacity()/1024);
     Log.info(" Free: %iMB", FatFs.free()/1024);
+    _initialized = true;
 }
 
 void BoxSD::loop() { 
 
+}
+
+bool BoxSD::isInitialized() {
+    return _initialized;
 }
 
 void BoxSD::webJsonListDir(WebServer* webServer, char* directory) {

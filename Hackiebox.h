@@ -23,7 +23,8 @@
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
 
-#include "LogStream.h"
+#include "LogStreamSd.h"
+#include "LogStreamSse.h"
 
 class Hackiebox { 
     public:
@@ -52,7 +53,8 @@ class Hackiebox {
         WrapperWiFi boxWiFi;
         WrapperWebServer webServer;
 
-        LogStream logStream;
+        LogStreamSd logStreamSd;
+        LogStreamSse logStreamSse;
 
     private:/*
         typedef void (*fAPPWDTDevCallbk)();

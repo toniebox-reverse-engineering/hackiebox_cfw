@@ -9,7 +9,7 @@ void Hackiebox::setup() {
         //reset box?!
     }
 
-    Log.init(LOG_LEVEL_VERBOSE, 115200/*, &logStream*/);
+    Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamSd);
     Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
     Wire.begin();

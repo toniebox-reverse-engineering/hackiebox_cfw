@@ -11,8 +11,11 @@ class BoxSD {
             begin(),
             loop();
 
+        bool isInitialized();
+
         void webJsonListDir(WebServer* webServer, char* directory);
     private:
+        bool _initialized = false;
 };
 
 #endif

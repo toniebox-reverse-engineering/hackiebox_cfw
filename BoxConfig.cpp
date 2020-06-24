@@ -70,6 +70,10 @@ String BoxConfig::getAsJson() {
     wifiDoc["ssid"] = wifiCfg->ssid;
     wifiDoc["password"] = wifiCfg->password;
 
+    JsonObject logDoc = doc.createNestedObject("log");
+    ConfigLog* logCfg = &_config.log;
+    logDoc["sdLog"] = logCfg->sdLog;
+
     serializeJson(doc, json);
     return json;
 }
@@ -101,6 +105,10 @@ bool BoxConfig::setFromJson(String json) {
     ConfigWifi* wifiCfg = &_config.wifi;
     strncpy(&wifiCfg->ssid[0], wifiDoc["ssid"].as<char*>(), sizeof(wifiCfg->ssid));
     strncpy(&wifiCfg->password[0], wifiDoc["password"].as<char*>(), sizeof(wifiCfg->password));
+
+    JsonObject logDoc = doc["log"];
+    ConfigLog* logCfg = &_config.log;
+    logCfg->sdLog = logDoc["sdLog"].as<bool>();
 
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
@@ -142,4 +150,7 @@ void BoxConfig::_initializeConfig() {
     #ifdef WIFI_PASS
         strcpy(wifi->password, WIFI_PASS); 
     #endif
+
+    ConfigLog* log = &_config.log;
+    log->sdLog = false;
 }
