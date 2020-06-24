@@ -1,9 +1,9 @@
-#include "LogStream.h"
+#include "LogStreamSse.h"
 
 #include "Hackiebox.h"
 #include "WrapperWebServer.h"
 
-size_t LogStream::write(uint8_t character)  {
+size_t LogStreamSse::write(uint8_t character)  {
     if (Box.webServer.subscriptionCount == 0 || _ssePaused)
         return 0;
         
@@ -21,18 +21,20 @@ size_t LogStream::write(uint8_t character)  {
         }
         client->print(character); //TODO escape ";
     }
+    return 1;
 }
 
-size_t LogStream::println() {
+size_t LogStreamSse::println() {
     if (Box.webServer.subscriptionCount == 0 || _ssePaused)
         return 0;
 
-    print("\" }\n\n"); // Extra newline required by SSE standard
+    size_t result = print("\" }\n\n"); // Extra newline required by SSE standard
     _lineFinished = true;
+    return result;
 }
-bool LogStream::isLineFinished() {
+bool LogStreamSse::isLineFinished() {
     return _lineFinished;
 }
-void LogStream::setSsePaused(bool paused) {
+void LogStreamSse::setSsePaused(bool paused) {
     _ssePaused = paused;
 }

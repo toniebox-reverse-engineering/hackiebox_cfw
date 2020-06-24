@@ -1,9 +1,9 @@
-#ifndef LogStream_h
-#define LogStream_h
+#ifndef LogStreamSse_h
+#define LogStreamSse_h
 
 #include <Stream.h>
 
-class LogStream : public Stream {
+class LogStreamSse : public Stream {
     public:
         size_t println();
 
