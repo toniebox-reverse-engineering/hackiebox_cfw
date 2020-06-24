@@ -152,7 +152,7 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::beepTest() {
-    uint16_t pauseLen = 250;
+    uint16_t pauseLen = 50;
     beepMidi(48, pauseLen);
     delay(pauseLen);
     beepMidi(50, pauseLen);
