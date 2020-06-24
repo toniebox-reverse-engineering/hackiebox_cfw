@@ -213,9 +213,10 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length) {
 
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
 
-    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optinal
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optional
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
-
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+    
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
 
     send(ADDR_P0_SERIAL::BEEP_LEN_MSB, (length>>16)&0xFF);
@@ -228,8 +229,8 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length) {
     send(ADDR_P0_SERIAL::BEEP_COS_MSB, (cos>>8)&0xFF);
     send(ADDR_P0_SERIAL::BEEP_COS_LSB, cos);
 
-    send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
     send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x00);
+    send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80); //enable beep generator with left channel volume = 0dB,
     
     send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider
 
@@ -247,8 +248,9 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
 
     beepRaw(sin, cos, cycles);
     if (!async) {
-        Box.watchdog_feed();
-        delay(lengthMs);
+        while ((readByte(ADDR_P0_SERIAL::BEEP_L_GEN) & 0b10000000) == 0b10000000) {
+            Box.watchdog_feed();
+        }
     }
 }
 void BoxDAC::beep() {
@@ -287,4 +289,28 @@ bool BoxDAC::send(ADDR_P1_DAC_OUT target_register, uint8_t data) {
 }
 bool BoxDAC::send(ADDR_P3_MCLK target_register, uint8_t data) {
     return send((uint8_t)target_register, data);
+}
+
+uint8_t BoxDAC::readByte(uint8_t source_register) {
+    //0x30 - 8bit / 0x18 - 7bit
+    Wire.beginTransmission(0x18);
+    if (!send_raw(source_register)) return false;
+    Wire.endTransmission(false);
+    if (!Wire.requestFrom(0x18 ,1)) return false;
+    int result = Wire.read();
+    //Log.info("readI2C-DAC reg=%i result=%i", source_register, result);
+    if (result == -1) return false;
+    return (uint8_t)result;
+}
+uint8_t BoxDAC::readByte(ADDR source_register) {
+    return readByte((uint8_t)source_register);
+}
+uint8_t BoxDAC::readByte(ADDR_P0_SERIAL source_register) {
+    return readByte((uint8_t)source_register);
+}
+uint8_t BoxDAC::readByte(ADDR_P1_DAC_OUT source_register) {
+    return readByte((uint8_t)source_register);
+}
+uint8_t BoxDAC::readByte(ADDR_P3_MCLK source_register) {
+    return readByte((uint8_t)source_register);
 }

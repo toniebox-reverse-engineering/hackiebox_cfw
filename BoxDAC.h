@@ -40,6 +40,7 @@ class BoxDAC : public EnhancedThread  {
             DAC_DOSR_VAL_MSB = 0x0D,
             DAC_DOSR_VAL_LSB = 0x0E,
             CODEC_IF_CTRL1 = 0x1B,
+            DAC_FLAG_REG = 0x26,
             INT1_CTRL_REG = 0x30,
             GPIO1_INOUT_CTRL = 0x33,
             DAC_PROC_BLOCK_SEL = 0x3C,
@@ -85,6 +86,13 @@ class BoxDAC : public EnhancedThread  {
             send(ADDR_P0_SERIAL target_register, uint8_t data),
             send(ADDR_P1_DAC_OUT target_register, uint8_t data),
             send(ADDR_P3_MCLK target_register, uint8_t data);
+        
+        uint8_t 
+            readByte(uint8_t source_register),
+            readByte(ADDR source_register),
+            readByte(ADDR_P0_SERIAL source_register),
+            readByte(ADDR_P1_DAC_OUT source_register),
+            readByte(ADDR_P3_MCLK source_register);
 
         uint32_t frequencyTable[128] = {
             818, 
