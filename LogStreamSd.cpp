@@ -9,9 +9,9 @@ size_t LogStreamSd::write(uint8_t character) {
     write(&character, 1);
 }
 size_t LogStreamSd::write(const uint8_t *buffer, size_t size) {
-    if (!Config.get()->log.sdLog)
-        return 0;
     if (!Box.boxSD.isInitialized())
+        return 0;
+    if (!Config.get()->log.sdLog)
         return 0;/*
     if (!_isOpen) {
         Log.enableAdditionalLogger(false);
