@@ -13,6 +13,7 @@
 #include "BoxAccelerometer.h"
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
+#include "BoxCLI.h"
 #include "BoxDAC.h"
 #include "BoxEvents.h"
 #include "BoxLEDs.h"
@@ -45,6 +46,7 @@ class Hackiebox {
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
         BoxButtonEars boxEars; 
+        BoxCLI boxCLI; 
         BoxDAC boxDAC;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
@@ -53,6 +55,7 @@ class Hackiebox {
         WrapperWiFi boxWiFi;
         WrapperWebServer webServer;
 
+        LogStreamMulti logStreamMulti;
         LogStreamSd logStreamSd;
         LogStreamSse logStreamSse;
 

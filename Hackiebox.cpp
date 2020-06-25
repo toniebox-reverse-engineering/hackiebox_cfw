@@ -9,7 +9,9 @@ void Hackiebox::setup() {
         //reset box?!
     }
 
-    Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamSd);
+    logStreamMulti.setSlot(&logStreamSd, 0);
+    logStreamMulti.setSlot(&logStreamSse, 1);
+    Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamMulti);
     Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
     Wire.begin();
@@ -36,6 +38,8 @@ void Hackiebox::setup() {
     boxDAC.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::Fuchsia);
     
+    boxCLI.begin();
+
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
 
@@ -74,6 +78,7 @@ void Hackiebox::loop() {
     watchdog_feed();
     _threadController.run();
     webServer.handle();
+    boxCLI.loop();
 }
 
 bool Hackiebox::watchdog_isFed() {
