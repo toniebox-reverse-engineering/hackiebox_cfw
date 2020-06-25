@@ -18,7 +18,7 @@ size_t LogStreamMulti::write(const uint8_t *buffer, size_t size) {
         size_t part_size;
         while (size - position > LOG_STREAM_MULTI_BUFFER_SIZE - 1) {
             part_size = LOG_STREAM_MULTI_BUFFER_SIZE - 1;
-            //memcpy(&_buffer[0], buffer+position, part_size);
+            memcpy(&_buffer[0], buffer+position, part_size);
             position += part_size;
             flush();
         }
