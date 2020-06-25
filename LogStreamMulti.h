@@ -3,6 +3,9 @@
 
 #include <Stream.h>
 
+#define LOG_STREAM_MULTI_MAX_SIZE 2
+#define LOG_STREAM_MULTI_BUFFER_SIZE 256
+
 class LogStreamMulti : public Stream {
     public:
         //LogStreamMulti();
@@ -12,12 +15,16 @@ class LogStreamMulti : public Stream {
 
         size_t write(uint8_t character);
         size_t write(const uint8_t *buffer, size_t size);
-        int available() {};
+        int available(){};
         int read(){};
-        void flush(){};
         int peek(){};
+        void flush();
 
     private:
-        Stream* _streams[2];
+        Stream* _streams[LOG_STREAM_MULTI_MAX_SIZE] = { };
+        uint8_t _buffer[LOG_STREAM_MULTI_BUFFER_SIZE] = { };
+
+        size_t _getBufferPosition();
+
 };
 #endif
