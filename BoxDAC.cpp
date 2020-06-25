@@ -244,9 +244,15 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     int16_t sin = beepTable16000[midiId][0];
     int16_t cos = beepTable16000[midiId][1];
 
-    int32_t cycles = lengthMs * samplerate / 1000; //check length
 
-    beepRaw(sin, cos, cycles);
+    int32_t cycles = 2*freq*lengthMs/1000/100;
+    int32_t samples_opt = samplerate*(cycles)*100/freq/2;
+
+    //int32_t samples = lengthMs * samplerate / 1000; //check length
+    //Log.info("samplerate=%i, lengthMs=%i, freq=%i, sin=%i, cos=%i", samplerate, lengthMs, freq, sin, cos);
+    //Log.info("samples=%i, cycles=%i, samples_opt=%i", samples, cycles, samples_opt);
+
+    beepRaw(sin, cos, samples_opt);
     if (!async) {
         while ((readByte(ADDR_P0_SERIAL::BEEP_L_GEN) & 0b10000000) == 0b10000000) {
             Box.watchdog_feed();
