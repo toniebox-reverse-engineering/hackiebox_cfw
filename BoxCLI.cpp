@@ -15,14 +15,14 @@ void BoxCLI::loop() {
         int argNum = c.countArgs();
 
         Log.print("> ");
-        Log.print(c.getName());
-        Log.print(' ');
+        Log.print(c.getName().c_str());
+        Log.print(" ");
 
         for (int i = 0; i<argNum; ++i) {
             Argument arg = c.getArgument(i);
             // if(arg.isSet()) {
-            Log.print(arg.toString());
-            Log.print(' ');
+            Log.print(arg.toString().c_str());
+            Log.print(" ");
             // }
         }
 
@@ -30,7 +30,7 @@ void BoxCLI::loop() {
 
         if (c == cmdHelp) {
             Log.println("Help:");
-            Log.println(cli.toString());
+            Log.println(cli.toString().c_str());
         }
     }
 
@@ -38,11 +38,11 @@ void BoxCLI::loop() {
         CommandError cmdError = cli.getError();
 
         Log.print("ERROR: ");
-        Log.println(cmdError.toString());
+        Log.println(cmdError.toString().c_str());
 
         if (cmdError.hasCommand()) {
             Log.print("Did you mean \"");
-            Log.print(cmdError.getCommand().toString());
+            Log.print(cmdError.getCommand().toString().c_str());
             Log.println("\"?");
         }
     }
