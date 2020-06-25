@@ -136,7 +136,7 @@ void BoxDAC::begin() {
         delay(100);
     }*/
 
-    beepTest();
+    //beepTest();
 
     /*
     AudioOutputCC3200I2S *out = NULL;
