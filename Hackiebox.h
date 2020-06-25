@@ -24,6 +24,7 @@
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
 
+#include "LogStreamMulti.h"
 #include "LogStreamSd.h"
 #include "LogStreamSse.h"
 

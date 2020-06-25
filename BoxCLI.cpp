@@ -1,6 +1,8 @@
 #include "BoxCLI.h"
 
 void BoxCLI::begin() {
+    setInterval(50);
+
     cmdHelp = cli.addCommand("help,h,?");
     cmdHelp.setDescription(" Get help!");
 }

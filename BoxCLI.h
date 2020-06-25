@@ -3,8 +3,9 @@
 
 #include "BaseHeader.h"
 #include <SimpleCLI.h>
+#include <EnhancedThread.h>
 
-class BoxCLI {
+class BoxCLI : public EnhancedThread {
     public:
         void
             begin(),

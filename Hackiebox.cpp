@@ -49,6 +49,7 @@ void Hackiebox::setup() {
     _threadController = ThreadController();
     _threadController.add(&boxAccel);
     _threadController.add(&boxBattery);
+    _threadController.add(&boxCLI);
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
@@ -58,6 +59,7 @@ void Hackiebox::setup() {
     Log.info("Config: %s", Config.getAsJson().c_str());
 
     boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
+    boxCLI.onRun(ThreadCallbackHandler([&]() { boxCLI.loop(); }));
     boxDAC.onRun(ThreadCallbackHandler([&]() { boxDAC.loop(); }));
     boxRFID.onRun(ThreadCallbackHandler([&]() { boxRFID.loop(); }));
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
@@ -78,7 +80,6 @@ void Hackiebox::loop() {
     watchdog_feed();
     _threadController.run();
     webServer.handle();
-    boxCLI.loop();
 }
 
 bool Hackiebox::watchdog_isFed() {
