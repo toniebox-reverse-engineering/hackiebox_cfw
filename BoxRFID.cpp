@@ -4,12 +4,15 @@ void BoxRFID::begin() {
     Log.info("Initialize RFID...");
     //Enable CHIP (EN)
     pinMode(62, OUTPUT);
+    delay(10);
+    digitalWrite(62, LOW);
+    delay(10);
     digitalWrite(62, HIGH);
 
     setInterval(250);
 
     SPI.begin();
-    sendCommand(0x03, 0x00);
+    sendCommand(0xF0);
 
     Log.info("...initialized");
 }
@@ -21,18 +24,16 @@ void BoxRFID::setSlaveSelect(bool enabled) {
 }
 
 void BoxRFID::sendCommand(int address, int value) {
+  uint8_t res_address, res_value;
   setSlaveSelect(false);
   //  send in the address and value via SPI:
-  SPI.transfer(address);
-  SPI.transfer(value);
+  res_address = SPI.transfer(address);
+  res_value = SPI.transfer(value);
   // take the SS pin high to de-select the chip:
   setSlaveSelect(true);
+
+  Log.info("SPI address %X, answer %X, value %X, answer %X", address, res_address, value, res_value);
 }
 void BoxRFID::sendCommand(int value) {
-  setSlaveSelect(false);
-  //  send in the address and value via SPI:
-  SPI.transfer(value);
-  SPI.transfer(0x00);
-  // take the SS pin high to de-select the chip:
-  setSlaveSelect(true);
+  sendCommand(value, 0x00);
 }
