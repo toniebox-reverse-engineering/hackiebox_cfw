@@ -15,6 +15,9 @@ class BoxCLI : public EnhancedThread {
 
     private:
         Command cmdHelp;
+        Command cmdI2C;
+        
+        unsigned long int parseNumber(String number);
 };
 
 #endif
