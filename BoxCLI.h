@@ -14,11 +14,18 @@ class BoxCLI : public EnhancedThread {
         SimpleCLI cli;
 
     private:
+        Command lastCmd;
+
         Command cmdHelp;
         Command cmdI2C;
+        Command cmdBeep;
         
         void parse();
         unsigned long parseNumber(String number);
+
+        void
+            execI2C(),
+            execBeep();
 };
 
 #endif
