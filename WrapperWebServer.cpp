@@ -232,6 +232,21 @@ void WrapperWebServer::handleAjax(void) {
         _server->send(200, "text/json", json);
         return;
       }
+    } else if (cmd.equals("cli")) {
+        _server->setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
+        _server->sendContent("HTTP/1.1 200 OK\nContent-Type: text\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n");
+
+        String cli = _server->arg("cli");
+        cli += "\n";
+        WiFiClient client = _server->client();
+        Box.logStreamMulti.setSlot((Stream*)&client, 2);
+        Log.print(("# " + cli).c_str());
+        Box.boxCLI.cli.parse(cli);
+        Box.boxCLI.loop();
+        Box.logStreamMulti.setSlot(NULL, 2);
+        client.flush();
+        client.stop();
+        return;
     }
   }
   handleNotFound();

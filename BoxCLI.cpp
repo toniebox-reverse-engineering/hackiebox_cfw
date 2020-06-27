@@ -1,16 +1,18 @@
 #include "BoxCLI.h"
 
+#include "Hackiebox.h"
+
 void BoxCLI::begin() {
     setInterval(50);
 
     cmdI2C = cli.addCmd("i2c");
     cmdI2C.setDescription("Access I2C");
-    cmdI2C.addFlagArg("r/ead");
-    cmdI2C.addFlagArg("w/rite");
+    cmdI2C.addFlagArg("read");
+    cmdI2C.addFlagArg("write");
     cmdI2C.addArg("a/ddress");
     cmdI2C.addArg("r/egister");
     cmdI2C.addArg("v/alue", "");
-    cmdI2C.addArg("l/ength", "");
+    cmdI2C.addArg("l/ength", "1");
     cmdI2C.addArg("o/utput", "b");
 
     cmdHelp = cli.addCmd("h/elp");
@@ -18,11 +20,12 @@ void BoxCLI::begin() {
 }
 
 void BoxCLI::loop() {
+    parse();
+}
+void BoxCLI::parse() {
     if (cli.available()) {
         Command c = cli.getCmd();
         int argNum = c.countArgs();
-
-        Log.println();
 
         if (c == cmdHelp) {
             Log.println("Help:");
@@ -33,8 +36,8 @@ void BoxCLI::loop() {
 
             int argNum = c.countArgs();
 
+            /*
             Log.info("Received cmd: %s with %i arguments", c.toString().c_str(), argNum);
-
             for (int i = 0; i<argNum; ++i) {
                 Argument arg = c.getArgument(i);
                 // if(arg.isSet()) {
@@ -42,7 +45,7 @@ void BoxCLI::loop() {
                 Log.print(" ");
                 // }
             }
-
+            */
 
             bool read = c.getArg("read").isSet();
             bool write = c.getArg("write").isSet();
@@ -51,8 +54,8 @@ void BoxCLI::loop() {
                 return;
             }
 
-            String saddress = c.getArg("address").toString();
-            String sregister = c.getArg("register").toString();
+            String saddress = c.getArg("address").getValue();
+            String sregister = c.getArg("register").getValue();
 
             tmpNum = parseNumber(saddress);
             if (tmpNum > 127) {
@@ -68,20 +71,40 @@ void BoxCLI::loop() {
             }
             regi = (uint8_t)tmpNum;
 
-            String slength = c.getArg("length").toString();
-            String svalue = c.getArg("value").toString();
+            //Log.printfln("I2C command read=%T, write=%T, addr=%X, regi=%X", read, write, addr, regi);
+            String slength = c.getArg("length").getValue();
+            String svalue = c.getArg("value").getValue();
             if (read) {
                 if (slength.length() == 0) {
                     Log.error("length must be specified");
                     return;
                 }
+                tmpNum = parseNumber(slength);
+                unsigned long len = tmpNum;
+                
+                Log.printfln("Read %i bytes", len);
+                for (uint16_t i=0; i<len; i++) {
+                    uint8_t result = Box.boxI2C.readByte(addr, regi+i);
+                    Log.printf(" %X", result);
+                }
+
             } else if (write) {
                 if (svalue.length() == 0) {
                     Log.error("value must be specified");
                     return;
                 }
+                tmpNum = parseNumber(svalue);
+                if (tmpNum > 255) {
+                    Log.error("register must be lower than 256");
+                    return;
+                }
+                uint8_t data = (uint8_t)tmpNum;
+                bool result = Box.boxI2C.send(addr, regi, data);
+                if (!result) {
+                    Log.error(" %X not written", data);
+                }
+                Log.printf(" %X successful written", data);
             }
-            Log.info("I2C command read=%T, write=%T, addr=%i, regi=%i", read, write, addr, regi);
         }
     }
 
@@ -99,15 +122,13 @@ void BoxCLI::loop() {
     }
 }
 
-unsigned long int BoxCLI::parseNumber(String numberString) {
+unsigned long BoxCLI::parseNumber(String numberString) {
     const char* num = numberString.c_str();
 
-    if (numberString.substring(2) == "0x") {
-        num += 2;
+    if (numberString.substring(0, 2) == "0x") {
         return strtoul(num, NULL, 16);
-    } else if (numberString.substring(2) == "0b") {
-        num += 2;
-        return strtoul(num, NULL, 2);
+    } else if (numberString.substring(0, 2) == "0b") {
+        return strtoul(num+2, NULL, 2);
     }
 
     return strtoul(num, NULL, 10);
