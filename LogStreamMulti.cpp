@@ -2,8 +2,10 @@
 
 //LogStreamMulti::LogStreamMulti(): Stream() {}
 void LogStreamMulti::setSlot(Stream* stream, uint8_t id) {
-    if (id < LOG_STREAM_MULTI_MAX_SIZE)
+    if (id < LOG_STREAM_MULTI_MAX_SIZE) {
+        flush();
         _streams[id] = stream;
+    }
 }
 
 size_t LogStreamMulti::write(uint8_t character) {
