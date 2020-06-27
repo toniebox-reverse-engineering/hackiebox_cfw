@@ -2,13 +2,6 @@
 
 void BoxRFID::begin() {
     Log.info("Initialize RFID...");
-    //Enable CHIP (EN)
-    pinMode(62, OUTPUT);
-    delay(10);
-    digitalWrite(62, LOW);
-    delay(10);
-    digitalWrite(62, HIGH);
-
     setInterval(250);
 
     SPI.begin();
