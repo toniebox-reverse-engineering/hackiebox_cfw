@@ -6,7 +6,7 @@ void BoxCLI::begin() {
     setInterval(50);
 
     cmdI2C = cli.addCmd("i2c");
-    cmdI2C.setDescription("Access I2C");
+    cmdI2C.setDescription(" Access I2C");
     cmdI2C.addFlagArg("read");
     cmdI2C.addFlagArg("write");
     cmdI2C.addArg("a/ddress");
@@ -16,12 +16,12 @@ void BoxCLI::begin() {
     cmdI2C.addArg("o/utput", "b");
 
     cmdBeep = cli.addCmd("beep");
-    cmdBeep.setDescription("Beep with build-in DAC synthesizer");
+    cmdBeep.setDescription(" Beep with build-in DAC synthesizer");
     cmdBeep.addArg("m/idi-id", "60");
     cmdBeep.addArg("l/ength", "200");
 
-    cmdHelp = cli.addCmd("h/elp");
-    cmdHelp.setDescription("Get help!");
+    cmdHelp = cli.addCmd("help");
+    cmdHelp.setDescription(" Show this screen");
 }
 
 void BoxCLI::loop() {
@@ -33,6 +33,7 @@ void BoxCLI::parse() {
 
         if (lastCmd == cmdHelp) {
             Log.println("Help:");
+            Log.println();
             Log.println(cli.toString().c_str());
         } else if (lastCmd == cmdI2C) {
             execI2C();
