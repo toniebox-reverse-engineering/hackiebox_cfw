@@ -25,6 +25,7 @@ void Hackiebox::setup() {
     ConfigStruct* config = Config.get();
     
     boxPower.begin();
+    boxI2C.begin();
     boxLEDs.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::White);
     boxBattery.begin();

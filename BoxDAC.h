@@ -80,7 +80,6 @@ class BoxDAC : public EnhancedThread  {
         };
 
         bool
-            send_raw(uint8_t data),
             send(uint8_t target_register, uint8_t data),
             send(ADDR target_register, PAGE data),
             send(ADDR_P0_SERIAL target_register, uint8_t data),

@@ -268,22 +268,9 @@ void BoxDAC::beep() {
 void BoxDAC::loop() { 
 }
 
-bool BoxDAC::send_raw(uint8_t data) {
-    if (!Wire.write(data)) {
-        Log.error("Could not write into I2C Buffer");
-        return false;
-    }
-    return true;
-}
 bool BoxDAC::send(uint8_t target_register, uint8_t data) {
     //0x30 - 8bit / 0x18 - 7bit
-    Wire.beginTransmission(0x18);
-    if (!send_raw(target_register)) return false;
-    if (!send_raw(data)) return false;
-    
-    uint8_t result = Wire.endTransmission(false);
-    if (!result) return true;
-    Log.error("Could not send I2C buffer, error=%i", result);
+    return Box.boxI2C.send(0x18, target_register, data);
 }
 bool BoxDAC::send(ADDR target_register, PAGE data) {
     return send((uint8_t)target_register, (uint8_t)data);
@@ -300,14 +287,7 @@ bool BoxDAC::send(ADDR_P3_MCLK target_register, uint8_t data) {
 
 uint8_t BoxDAC::readByte(uint8_t source_register) {
     //0x30 - 8bit / 0x18 - 7bit
-    Wire.beginTransmission(0x18);
-    if (!send_raw(source_register)) return false;
-    Wire.endTransmission(false);
-    if (!Wire.requestFrom(0x18 ,1)) return false;
-    int result = Wire.read();
-    //Log.info("readI2C-DAC reg=%i result=%i", source_register, result);
-    if (result == -1) return false;
-    return (uint8_t)result;
+    return Box.boxI2C.readByte(0x18, source_register);
 }
 uint8_t BoxDAC::readByte(ADDR source_register) {
     return readByte((uint8_t)source_register);

@@ -16,6 +16,7 @@
 #include "BoxCLI.h"
 #include "BoxDAC.h"
 #include "BoxEvents.h"
+#include "BoxI2C.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
 #include "BoxRFID.h"
@@ -49,6 +50,7 @@ class Hackiebox {
         BoxButtonEars boxEars; 
         BoxCLI boxCLI; 
         BoxDAC boxDAC;
+        BoxI2C boxI2C;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
         BoxRFID boxRFID;
