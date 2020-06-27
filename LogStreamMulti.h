@@ -3,7 +3,7 @@
 
 #include <Stream.h>
 
-#define LOG_STREAM_MULTI_MAX_SIZE 2
+#define LOG_STREAM_MULTI_MAX_SIZE 3
 #define LOG_STREAM_MULTI_BUFFER_SIZE 256
 
 class LogStreamMulti : public Stream {
