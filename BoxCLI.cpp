@@ -15,6 +15,14 @@ void BoxCLI::begin() {
     cmdI2C.addArg("l/ength", "1");
     cmdI2C.addArg("o/utput", "b");
 
+    cmdRFID = cli.addCmd("rfid");
+    cmdRFID.setDescription(" Access RFID SPI");
+    cmdRFID.addFlagArg("r/ead");
+    cmdRFID.addFlagArg("w/rite");
+    cmdRFID.addFlagArg("c/md,command");
+    cmdRFID.addArg("register", "0");
+    cmdRFID.addArg("value", "0");
+
     cmdBeep = cli.addCmd("beep");
     cmdBeep.setDescription(" Beep with build-in DAC synthesizer");
     cmdBeep.addArg("m/idi-id", "60");
@@ -37,6 +45,8 @@ void BoxCLI::parse() {
             Log.println(cli.toString().c_str());
         } else if (lastCmd == cmdI2C) {
             execI2C();
+        } else if (lastCmd == cmdRFID) {
+            execRFID();
         } else if (lastCmd == cmdBeep) {
             execBeep();
         }
@@ -131,6 +141,41 @@ void BoxCLI::execI2C() {
             Log.error(" %X not written", data);
         }
         Log.printf(" %X successful written", data);
+    }
+}
+
+void BoxCLI::execRFID() {
+    Command c = lastCmd;
+    unsigned long tmpNum;
+
+    String sregister = c.getArg("register").getValue();
+    tmpNum = parseNumber(sregister);
+    if (tmpNum > 255) {
+        Log.error("register must be lower than 256");
+        return;
+    }
+    uint8_t regi = (uint8_t)tmpNum;
+
+    String svalue = c.getArg("value").getValue();
+    tmpNum = parseNumber(svalue);
+    if (tmpNum > 255) {
+        Log.error("value/command must be lower than 256");
+        return;
+    }
+    uint8_t value = (uint8_t)tmpNum;
+
+    bool read = c.getArg("read").isSet();
+    bool write = c.getArg("write").isSet();
+    bool cmd = c.getArg("command").isSet();
+
+    //TODO Exclusive check
+
+    if (read) {
+        Box.boxRFID.readRegister(regi);
+    } else if (write) {
+        Box.boxRFID.writeRegister(regi, value);
+    } else if (cmd) {
+        Box.boxRFID.sendCommand(value);
     }
 }
 

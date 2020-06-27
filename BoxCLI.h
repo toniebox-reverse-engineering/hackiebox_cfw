@@ -18,6 +18,7 @@ class BoxCLI : public EnhancedThread {
 
         Command cmdHelp;
         Command cmdI2C;
+        Command cmdRFID;
         Command cmdBeep;
         
         void parse();
@@ -25,6 +26,7 @@ class BoxCLI : public EnhancedThread {
 
         void
             execI2C(),
+            execRFID(),
             execBeep();
 };
 
