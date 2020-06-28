@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <!-- Bootstrap Table CSS-->
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css" integrity="sha384-stUTdwV9AgSXI+zB6SWTZSIq0SP1EKWXA/H6rWp1hNmSwvjkuFCwPhqcA01KnlWS" crossorigin="anonymous">
-    
+
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-switch@3.4.0/dist/css/bootstrap3/bootstrap-switch.css" integrity="sha384-Wg1u8Kclt9oq0YZoQpkNL8aE9jWVU205nvS5LwJ4MZ3BgvZki5FkD+egd0luNjHV" crossorigin="anonymous">
- 
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.7.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
+    
     <title>Hackiebox Custom Firmware by Team RevvoX</title>
 
     <style>
@@ -266,6 +268,12 @@
           </form>
           <h2>Flash</h2>
         </div>
+        <div id="main-console">
+          <h1>Console</h1>
+          <div style="padding: 10px; background-color: black;">
+            <div id="xtermjs"></div>
+          </div>
+        </div>
         <div id="main-about">
           <div class="jumbotron">
             <h1>About</h1>
@@ -351,6 +359,11 @@
                 <td></td>
               </tr>
               <tr>
+                <td>spacehuhn</td>
+                <td>Creating SimpleCLI</td>
+                <td></td>
+              </tr>
+              <tr>
                 <td>Telegram Toniebox Hacking Community</td>
                 <td>THX2YOU</td>
                 <td></td>
@@ -373,6 +386,11 @@
     
     <script src="https://unpkg.com/bootstrap-switch@3.4.0/dist/js/bootstrap-switch.js" integrity="sha384-q3sTGLJpoYQ878rzOOulCOOPuCgPNS+mTduIHtCHtBFILPoptsW7Bk716ckhZlMt" crossorigin="anonymous"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.7.0/lib/xterm.js" integrity="sha256-5UsA6dt/gD3hmMmEMSJ+o0Zi0gTXk7OzVaQGQUuxXpU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.4.0/lib/xterm-addon-fit.js" integrity="sha256-tz+EctGh0/ncEhZZNAq5oLZlPJUDVGe849gA44c/zX0=" crossorigin="anonymous"></script>
+
+    <script src="local-echo.js"></script>
+
     <script>
       class Site {
         constructor(page = null) {
@@ -380,6 +398,7 @@
           this._mainMenu = new MainMenu();
           this._contentPage = new ContentPage();
           this._server = this._params.get("server");
+          this._console = new WebConsole(this);
           //this._initSse();
 
           $("input[type='checkbox']").bootstrapSwitch();
@@ -396,6 +415,7 @@
             case "content":
               this._contentPage.generatePage();
               break;
+            case "console":
             case "settings":
             case "help":
             case "boxtests":
@@ -424,6 +444,12 @@
 
           this._page = page;
           this._loading(false);
+
+          switch (page) {
+            case "console":
+              this._console.open();
+              break;
+          }
         }
         _loading(isLoading) {
           if (isLoading) {
@@ -526,6 +552,7 @@
               [
                 { "id": "boxtests", "name": "Box Tests", "submenu": true },
                 { "id": "fileupload", "name": "File Upload", "submenu": false },
+                { "id": "console", "name": "Console", "submenu": false },
               ]
             },
             { "id": "help", "name": "Help","sub":
@@ -595,13 +622,60 @@
           $('.dropdown-toggle').dropdown();
         }
       }
+      class WebConsole {
+        constructor(site) {
+          this._site = site;
+          this._term = new Terminal({
+            cursorBlink: "block",
+            theme: { foreground: "#00ff00" }
+          });
+          this._localEcho = new LocalEchoController();
+          this._fitAddon = new FitAddon.FitAddon();
+
+          this._term.loadAddon(this._fitAddon);
+          this._term.loadAddon(this._localEcho);
+
+          this._localEcho.addAutocompleteHandler(function(index, tokens) {
+            if (index == 0) return ["help", "i2c", "beep", "rfid"];
+            return [];
+          });
+
+          this._readPrompt();
+
+          var that = this;
+          $(window).on("resize", function() {
+            that._fitAddon.fit();
+          });
+        }
+        open() {
+          if (!this._opened) {
+            this._term.open(document.getElementById("xtermjs"));
+            this._opened = true;
+          }
+          this._fitAddon.fit();
+        }
+        _readPrompt() {
+          var that = this;
+          this._localEcho.read("hackiebox@"+this._site.getDomainPort()+"$ ", "> ")
+            .then(function(input) {
+              $.get( "http://" + that._site.getDomainPort() + "/api/ajax", { cmd: "cli", cli: input }, function(data) {
+                  that._term.writeln(data);
+                  that._readPrompt();
+                })
+                .fail(function() {
+                  that._term.writeln("ERROR: no connection to host");
+                  that._readPrompt();
+                });
+            })
+            .catch(function(error) { alert(`Error reading: ${error}`);});
+        }
+      }
     </script>
     <script>
       var site;
       $(function() {
-          site = new Site("fileupload");
+          site = new Site("console");
       });
-
       function imageFormatter(value) {
         return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
       }

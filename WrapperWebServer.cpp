@@ -13,6 +13,7 @@ void WrapperWebServer::begin() {
   //second callback handles file uploads at that location
   _server->onNotFound([&](){ WrapperWebServer::handleUnknown(); });
   _server->on("/", HTTP_GET, [&](){ WrapperWebServer::handleRoot(); });
+  _server->on("/local-echo.js", HTTP_GET, [&](){ WrapperWebServer::handleFile("/revvox/web/local-echo.js", "text/javascript"); });
   _server->on("/api/sse/sub", HTTP_GET, [&](){ WrapperWebServer::handleSseSub(); });
   _server->on("/api/ajax", HTTP_GET, [&](){ WrapperWebServer::handleAjax(); });
   _server->on("/api/upload/file", HTTP_POST, [&](){ }, [&](){ WrapperWebServer::handleUploadFile(); });
@@ -71,6 +72,10 @@ void WrapperWebServer::handleRoot(void) {
   //_server->send(200, "text/html", "ROOT");
   String hackiebox = String("/revvox/web/hackiebox.html");
   commandGetFile(&hackiebox, 0, 0, false);
+}
+void WrapperWebServer::handleFile(const char* path, const char* type) {
+  String spath = String(path);
+  commandGetFile(&spath, 0, 0, false);
 }
 void WrapperWebServer::handleSseSub(void) {
   Box.boxPower.feedSleepTimer();
@@ -237,10 +242,12 @@ void WrapperWebServer::handleAjax(void) {
         _server->sendContent("HTTP/1.1 200 OK\nContent-Type: text\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n");
 
         String cli = _server->arg("cli");
+        String echo = _server->arg("echo");
         cli += "\n";
         WiFiClient client = _server->client();
         Box.logStreamMulti.setSlot((Stream*)&client, 2);
-        Log.print(("# " + cli).c_str());
+        if (echo == "true")
+          Log.print(("hackiebox$ " + cli).c_str());
         Box.boxCLI.cli.parse(cli);
         Box.boxCLI.loop();
         Box.logStreamMulti.setSlot(NULL, 2);

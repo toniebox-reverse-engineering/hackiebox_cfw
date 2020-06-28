@@ -26,6 +26,7 @@ class WrapperWebServer : public EnhancedThread {
             handleNotFound(void),
             handleUnknown(void),
             handleRoot(void),
+            handleFile(const char* path, const char* type),
             handleSseSub(void),
             handleAjax(void),
             handleUploadFile(void),
