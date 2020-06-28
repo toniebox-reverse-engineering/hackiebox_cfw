@@ -134,7 +134,6 @@ void BoxCLI::execI2C() {
         char* newVal;
         while (strlen(value)>0) {
             while(isspace((unsigned char)*value)) value++;
-            Log.info("Value value=%s", value);
             tmpNum = parseNumber(value, &newVal);
             if (tmpNum > 255) {
                 Log.error("value must be lower than 256");
