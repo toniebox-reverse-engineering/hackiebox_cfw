@@ -28,7 +28,7 @@ void BoxCLI::begin() {
     cmdBeep.addArg("m/idi-id", "60");
     cmdBeep.addArg("l/ength", "200");
 
-    cmdHelp = cli.addCmd("help");
+    cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
 }
 
@@ -42,6 +42,15 @@ void BoxCLI::parse() {
         if (lastCmd == cmdHelp) {
             Log.println("Help:");
             Log.println();
+            if (lastCmd.getArg(0).isSet()) {
+                String arg = lastCmd.getArg(0).getValue();
+                Command cmd = cli.getCmd(arg);
+                if (cmd.getName() == arg) {
+                    Log.println(cmd.toString().c_str());
+                    return;
+                }
+            }
+            
             Log.println(cli.toString().c_str());
         } else if (lastCmd == cmdI2C) {
             execI2C();
@@ -197,7 +206,6 @@ void BoxCLI::execBeep() {
         Log.error("length must be lower than 65.536");
         return;
     }
-    Log.info("slength=%s, length=%l", slength.c_str(), tmpNum);
     uint16_t length = (uint16_t)tmpNum;
 
     Box.boxDAC.beepMidi(id, length);
