@@ -249,7 +249,8 @@ void WrapperWebServer::handleAjax(void) {
         if (echo == "true")
           Log.print(("hackiebox$ " + cli).c_str());
         Box.boxCLI.cli.parse(cli);
-        Box.boxCLI.loop();
+        while(Box.boxCLI.cli.available() || Box.boxCLI.cli.errored())
+          Box.boxCLI.loop();
         Box.logStreamMulti.setSlot(NULL, 2);
         client.flush();
         client.stop();
