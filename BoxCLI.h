@@ -22,7 +22,10 @@ class BoxCLI : public EnhancedThread {
         Command cmdBeep;
         
         void parse();
-        unsigned long parseNumber(String number);
+        unsigned long
+            parseNumber(String number),
+            parseNumber(char* number),
+            parseNumber(char* number, char** rest);
 
         void
             execI2C(),

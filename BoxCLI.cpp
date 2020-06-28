@@ -13,7 +13,7 @@ void BoxCLI::begin() {
     cmdI2C.addArg("r/egister");
     cmdI2C.addArg("v/alue", "");
     cmdI2C.addArg("l/ength", "1");
-    cmdI2C.addArg("o/utput", "b");
+    cmdI2C.addArg("o/utput", "B");
 
     cmdRFID = cli.addCmd("rfid");
     cmdRFID.setDescription(" Access RFID SPI");
@@ -82,17 +82,6 @@ void BoxCLI::execI2C() {
     unsigned long int tmpNum;
     uint8_t addr, regi;
 
-    /*
-    Log.info("Received cmd: %s with %i arguments", c.toString().c_str(), argNum);
-    for (int i = 0; i<argNum; ++i) {
-        Argument arg = c.getArgument(i);
-        // if(arg.isSet()) {
-        Log.print(arg.toString().c_str());
-        Log.print(" ");
-        // }
-    }
-    */
-
     bool read = c.getArg("read").isSet();
     bool write = c.getArg("write").isSet();
     if (read == write) {
@@ -121,6 +110,12 @@ void BoxCLI::execI2C() {
     String slength = c.getArg("length").getValue();
     String svalue = c.getArg("value").getValue();
     if (read) {
+        String soutput = c.getArg("output").getValue();
+        if (!(soutput == "x" || soutput == "X" || soutput == "i" || soutput == "b" || soutput == "B")) {
+            Log.error("Allowed values for output are: x, X, i, b, B");
+            return;
+        }
+
         if (slength.length() == 0) {
             Log.error("length must be specified");
             return;
@@ -130,26 +125,33 @@ void BoxCLI::execI2C() {
         
         Log.printfln("Read %i bytes", len);
         for (uint16_t i=0; i<len; i++) {
+            String format = String(" %") + soutput;
             uint8_t result = Box.boxI2C.readByte(addr, regi+i);
-            Log.printf(" %X", result);
+            Log.printf(format.c_str(), result);
         }
-
     } else if (write) {
-        if (svalue.length() == 0) {
-            Log.error("value must be specified");
-            return;
+        char* value = (char*)svalue.c_str();
+        char* newVal;
+        while (strlen(value)>0) {
+            while(isspace((unsigned char)*value)) value++;
+            Log.info("Value value=%s", value);
+            tmpNum = parseNumber(value, &newVal);
+            if (tmpNum > 255) {
+                Log.error("value must be lower than 256");
+                return;
+            } else if (value == newVal) {
+                Log.error("Could not parse part \"%s\" of \"%s\"", value, svalue.c_str());
+                return;
+            }
+            uint8_t data = (uint8_t)tmpNum;
+            bool result = Box.boxI2C.send(addr, regi++, data);
+            if (!result) {
+                Log.error(" %X not written, abort", data);
+                break;
+            }
+            Log.info(" %X successful written", data);
+            value = newVal;
         }
-        tmpNum = parseNumber(svalue);
-        if (tmpNum > 255) {
-            Log.error("register must be lower than 256");
-            return;
-        }
-        uint8_t data = (uint8_t)tmpNum;
-        bool result = Box.boxI2C.send(addr, regi, data);
-        if (!result) {
-            Log.error(" %X not written", data);
-        }
-        Log.printf(" %X successful written", data);
     }
 }
 
@@ -213,12 +215,16 @@ void BoxCLI::execBeep() {
 
 unsigned long BoxCLI::parseNumber(String numberString) {
     const char* num = numberString.c_str();
-
-    if (numberString.substring(0, 2) == "0x") {
-        return strtoul(num, NULL, 16);
-    } else if (numberString.substring(0, 2) == "0b") {
-        return strtoul(num+2, NULL, 2);
+    return parseNumber((char*)num);
+}
+unsigned long BoxCLI::parseNumber(char* number) {
+    return parseNumber(number, NULL);
+}
+unsigned long BoxCLI::parseNumber(char* number, char** rest) {
+    if (strncmp(number, "0x", 2) == 0) {
+        return strtoul(number, rest, 16);
+    } else if (strncmp(number, "0b", 2) == 0) {
+        return strtoul(number+2, rest, 2);
     }
-
-    return strtoul(num, NULL, 10);
+    return strtoul(number, rest, 10);
 }
