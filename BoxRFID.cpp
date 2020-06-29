@@ -34,8 +34,11 @@ uint8_t BoxRFID::readRegister(uint8_t regi) {
 
   uint8_t res1, res2;
   spiEnable();
+  SPI.setDataMode(SPI_SUB_MODE_0);
   res1 = SPI.transfer(data);
+  SPI.setDataMode(SPI_SUB_MODE_1);
   res2 = SPI.transfer(0x00);
+  SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
   Log.info("Read register %i, data=%i, res1=%i, res2=%i", regi, data, res1, res2);
@@ -48,8 +51,11 @@ bool BoxRFID::writeRegister(uint8_t regi, uint8_t value) {
   
   uint8_t res1, res2;
   spiEnable();
+  SPI.setDataMode(SPI_SUB_MODE_0);
   res1 = SPI.transfer(data);
+  SPI.setDataMode(SPI_SUB_MODE_1);
   res2 = SPI.transfer(value);
+  SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
   Log.info("Write register %i, data=%i, value=%i, res1=%i, res2=%i", regi, data, value, res1, res2);
@@ -64,8 +70,11 @@ bool BoxRFID::sendCommand(uint8_t command) {
 
   uint8_t res1, res2;
   spiEnable();
+  SPI.setDataMode(SPI_SUB_MODE_0);
   res1 = SPI.transfer(data);
+  SPI.setDataMode(SPI_SUB_MODE_1);
   res2 = SPI.transfer(0x00); //Dummy transfer, see TRF796xA SPI Design Tips (sloa140)
+  SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
   Log.info("Write command %i, data=%i, res1=%i, res2=%i", command, data, res1, res2);
