@@ -4,6 +4,7 @@ void BoxRFID::begin() {
     Log.info("Initialize RFID...");
     setInterval(250);
 
+    pinMode(16, OUTPUT);
     SPI.begin();
 
     sendCommand(DIRECT_COMMANDS::SOFT_INIT);
