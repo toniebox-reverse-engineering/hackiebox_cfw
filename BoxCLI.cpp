@@ -7,8 +7,8 @@ void BoxCLI::begin() {
 
     cmdI2C = cli.addCmd("i2c");
     cmdI2C.setDescription(" Access I2C");
-    cmdI2C.addFlagArg("read");
-    cmdI2C.addFlagArg("write");
+    cmdI2C.addFlagArg("re/ad");
+    cmdI2C.addFlagArg("wr/ite");
     cmdI2C.addArg("a/ddress");
     cmdI2C.addArg("r/egister");
     cmdI2C.addArg("v/alue", "");
@@ -17,11 +17,11 @@ void BoxCLI::begin() {
 
     cmdRFID = cli.addCmd("rfid");
     cmdRFID.setDescription(" Access RFID SPI");
-    cmdRFID.addFlagArg("r/ead");
-    cmdRFID.addFlagArg("w/rite");
-    cmdRFID.addFlagArg("c/md,command");
-    cmdRFID.addArg("register", "0");
-    cmdRFID.addArg("value", "0");
+    cmdRFID.addFlagArg("re/ad");
+    cmdRFID.addFlagArg("wr/ite");
+    cmdRFID.addFlagArg("c/md,co/mmand");
+    cmdRFID.addArg("r/egister", "0");
+    cmdRFID.addArg("v/alue", "0");
 
     cmdBeep = cli.addCmd("beep");
     cmdBeep.setDescription(" Beep with build-in DAC synthesizer");
