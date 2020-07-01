@@ -179,12 +179,12 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	g_pui8TrfBuffer[ui8Offset++] = 0x91;		// Send  //CRC 0x91 Non CRC CRC 0x90
 	g_pui8TrfBuffer[ui8Offset++] = 0x3D;		// Write Continuous
 	g_pui8TrfBuffer[ui8Offset++] = 0x00;		// Length of packet in bytes - upper and middle nibbles of transmit byte length
-	g_pui8TrfBuffer[ui8Offset++] = 0x50;		// Length of packet in bytes - lower and broken nibbles of transmit byte length
+	g_pui8TrfBuffer[ui8Offset++] = 0x30;		// Length of packet in bytes - lower and broken nibbles of transmit byte length
 	g_pui8TrfBuffer[ui8Offset++] = 0x26;		// ISO15693 flags
 	g_pui8TrfBuffer[ui8Offset++] = 0x01;		// Inventory command code
 	g_pui8TrfBuffer[ui8Offset++] = 0x00;		// Mask Length = 0 (Also not sending AFI)
-	g_pui8TrfBuffer[ui8Offset++] = 0x00;		//
-	g_pui8TrfBuffer[ui8Offset++] = 0x00;		//
+	/*g_pui8TrfBuffer[ui8Offset++] = 0x00;		//
+	g_pui8TrfBuffer[ui8Offset++] = 0x00;*/		//
 
 	//TRF79xxA_writeRaw(&g_pui8TrfBuffer[0], ui8Offset);		// Issue the ISO15693 Inventory Command
 
@@ -207,7 +207,8 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
   clearInterrupt();
   irqStatus = (IRQ_STATUS)readIrqRegister();
   while ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::TX_COMPLETE) == IRQ_STATUS::TX_COMPLETE 
-    && (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW) == IRQ_STATUS::FIFO_HIGH_OR_LOW) {
+    && (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW) == IRQ_STATUS::FIFO_HIGH_OR_LOW
+    && (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::RX_COMPLETE) != IRQ_STATUS::RX_COMPLETE) {
     timer.setTimer(5);
     while (!readInterrupt()) {
         timer.tick();
@@ -222,13 +223,13 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 
 
   if ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::TX_COMPLETE) == IRQ_STATUS::TX_COMPLETE 
-    /*&& (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::RX_COMPLETE) != IRQ_STATUS::RX_COMPLETE*/) {
+    && (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::RX_COMPLETE) != IRQ_STATUS::RX_COMPLETE) {
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     timer.setTimer(15);
     while (!readInterrupt()) {
         timer.tick();
         if (!timer.isRunning()) {
-          Log.error("RX Timeout, IRQ_STATUS=%X", irqStatus);
+          //Log.error("RX Timeout, IRQ_STATUS=%X", irqStatus);
           return false;
         }
     }
@@ -236,6 +237,20 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
     irqStatus = (IRQ_STATUS)readIrqRegister();
   } else {
     Log.error("Unknown TX IRQ STATUS=%X", (uint8_t)irqStatus);
+  }
+
+  while ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::RX_COMPLETE) == IRQ_STATUS::RX_COMPLETE 
+    && (IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW) == IRQ_STATUS::FIFO_HIGH_OR_LOW) {
+    timer.setTimer(15);
+    while (!readInterrupt()) {
+        timer.tick();
+        if (!timer.isRunning()) {
+          Log.error("RX Timeout2, IRQ_STATUS=%X", irqStatus);
+          return false;
+        }
+    }
+    clearInterrupt();
+    irqStatus = (IRQ_STATUS)readIrqRegister();
   }
 
   if ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::RX_COMPLETE) == IRQ_STATUS::RX_COMPLETE) {
@@ -259,8 +274,8 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 			ui8Status = true;
       uint8_t g_pui8Iso15693UId[8];
 			// UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
-			for (ui8LoopCount = 2; ui8LoopCount < 10; ui8LoopCount++) {
-				g_pui8Iso15693UId[ui8LoopCount-2] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
+			for (ui8LoopCount = 4; ui8LoopCount < 12; ui8LoopCount++) {
+				g_pui8Iso15693UId[ui8LoopCount-4] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
 			}
 
       Log.info("RFID UID: ");
