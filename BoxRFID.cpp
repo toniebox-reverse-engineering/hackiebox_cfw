@@ -96,7 +96,7 @@ uint8_t BoxRFID::readRegister(uint8_t regi) {
   SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
-  Log.info("Read register %i, data=%i, res1=%i, res2=%i", regi, data, res1, res2);
+  //Log.info("Read register %i, data=%i, res1=%i, res2=%i", regi, data, res1, res2);
 
   return res2;
 }
@@ -122,7 +122,7 @@ void BoxRFID::readRegisterCont(uint8_t* buffer, uint8_t length) {
   SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
-  Log.info("Read register continued");
+  //Log.info("Read register continued");
 }
 void BoxRFID::writeRegister(REGISTER regi, uint8_t value) {
   writeRegister((uint8_t)regi, value);
@@ -137,7 +137,7 @@ void BoxRFID::writeRegister(uint8_t regi, uint8_t value) {
   res2 = SPI.transfer(value);
   spiDisable();
 
-  Log.info("Write register %i, data=%i, value=%i, res1=%i, res2=%i", regi, data, value, res1, res2);
+  //Log.info("Write register %i, data=%i, value=%i, res1=%i, res2=%i", regi, data, value, res1, res2);
 }
 void BoxRFID::sendCommand(DIRECT_COMMANDS command) {
   return sendCommand((uint8_t)command);
@@ -152,7 +152,7 @@ void BoxRFID::sendCommand(uint8_t command) {
   res2 = SPI.transfer(0x00); //Dummy transfer, see TRF796xA SPI Design Tips (sloa140)
   spiDisable();
 
-  Log.info("Write command %i, data=%i, res1=%i, res2=%i", command, data, res1, res2);
+  //Log.info("Write command %i, data=%i, res1=%i, res2=%i", command, data, res1, res2);
 }
 
 void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length, bool continuedSend) {
@@ -228,7 +228,7 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
     Log.info("SSI read result=%X", (uint8_t)irqStatus);
   } else if (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::TX_COMPLETE | (uint8_t)IRQ_STATUS::RX_COMPLETE)) {
     g_sTrfStatus = TRF_STATUS::RX_COMPLETE;
-    Log.info("SSI read direct result=%X", (uint8_t)irqStatus);
+    Log.info("SSI write/read direct result=%X", (uint8_t)irqStatus);
   }
 
 	if (g_sTrfStatus == TRF_STATUS::RX_COMPLETE)		// If data has been received

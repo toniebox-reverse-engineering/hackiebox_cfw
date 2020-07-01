@@ -181,11 +181,14 @@ void BoxCLI::execRFID() {
     //TODO Exclusive check
 
     if (read) {
-        Box.boxRFID.readRegister(regi);
+        uint8_t result = Box.boxRFID.readRegister(regi);
+        Log.info("Read from register=%X value=%X", regi, result);
     } else if (write) {
         Box.boxRFID.writeRegister(regi, value);
+        Log.info("Write to register=%X value=%X", regi, value);
     } else if (cmd) {
         Box.boxRFID.sendCommand(value);
+        Log.info("Send command %X", value);
     }
 }
 
