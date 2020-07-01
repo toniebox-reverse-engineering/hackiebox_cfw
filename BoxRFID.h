@@ -17,6 +17,11 @@ class BoxRFID : public EnhancedThread {
             writeRegister(uint8_t regi, uint8_t value),
             sendCommand(uint8_t command);
 
+        void receivedInterrupt();
+        bool readInterrupt();
+        void clearInterrupt(bool clearRegister=true);
+        bool interrupt;
+
     private:
         enum class REG_CMD_WORD_BITS : uint8_t {
             COMMAND_B7 = 0b10000000,
@@ -104,7 +109,7 @@ class BoxRFID : public EnhancedThread {
         void endReadWriteRegister();
 */
 
-        const uint8_t IRQ_PIN = 16;
+        const uint8_t IRQ_PIN = 18;
 
         uint8_t
             readRegister(REGISTER regi);
@@ -115,6 +120,7 @@ class BoxRFID : public EnhancedThread {
         void sendRaw(uint8_t* buffer, uint8_t length, bool continuedSend);
 
         void
+            readRegisterCont(uint8_t* buffer, uint8_t length),
             readRegisterCont(uint8_t regi, uint8_t* buffer, uint8_t length),
             readRegisterCont(REGISTER regi, uint8_t* buffer, uint8_t length);
 

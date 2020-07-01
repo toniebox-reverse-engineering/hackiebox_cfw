@@ -1,4 +1,21 @@
 #include "BoxRFID.h"
+#include "Hackiebox.h"
+
+void rfid_irq() {
+  Box.boxRFID.receivedInterrupt();
+}
+
+void BoxRFID::receivedInterrupt() {
+  interrupt = true;
+}
+void BoxRFID::clearInterrupt(bool clearRegister) {
+  interrupt = false;
+  if (clearRegister)
+    clearIrqRegister();
+}
+bool BoxRFID::readInterrupt() {
+  return interrupt;
+}
 
 void BoxRFID::begin() {
     Log.info("Initialize RFID...");
@@ -6,6 +23,8 @@ void BoxRFID::begin() {
 
     pinMode(16, OUTPUT);
     pinMode(IRQ_PIN, INPUT);
+    clearInterrupt(false);
+    attachInterrupt(IRQ_PIN, rfid_irq, RISING);
     SPI.begin();
     SPI.setDataMode(SPI_SUB_MODE_0);
 
@@ -85,23 +104,25 @@ void BoxRFID::readRegisterCont(REGISTER regi, uint8_t* buffer, uint8_t length) {
   readRegisterCont((uint8_t)regi, buffer, length);
 }
 void BoxRFID::readRegisterCont(uint8_t regi, uint8_t* buffer, uint8_t length) {
-  uint8_t data = regi & 0b00011111;
+  buffer[0] = regi;
+  readRegisterCont(buffer, length);
+}
+void BoxRFID::readRegisterCont(uint8_t* buffer, uint8_t length) {
+  uint8_t data = buffer[0] & 0b00011111;
   data |= (uint8_t)REG_CMD_WORD_BITS::REGISTER_B7 | (uint8_t)REG_CMD_WORD_BITS::READ_B6 | (uint8_t)REG_CMD_WORD_BITS::CONTINUOUS_MODE_REG_B5;
 
-  uint8_t res1, res2;
   spiEnable();
-  res1 = SPI.transfer(data);
+  SPI.transfer(*buffer);
   SPI.setDataMode(SPI_SUB_MODE_1);
 	
   while(length-- > 0) {
     *buffer = SPI.transfer(0x00);
     buffer++;
   }
-
   SPI.setDataMode(SPI_SUB_MODE_0);
   spiDisable();
 
-  //Log.info("Read register %i, data=%i, res1=%i, res2=%i", regi, data, res1, res2);
+  Log.info("Read register continued");
 }
 void BoxRFID::writeRegister(REGISTER regi, uint8_t value) {
   writeRegister((uint8_t)regi, value);
@@ -156,7 +177,7 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	uint8_t ui8Offset = 0;
 	uint8_t ui8LoopCount = 0;
 	bool ui8Status = false;
-
+  
 	g_pui8TrfBuffer[ui8Offset++] = 0x8F;		// Reset FIFO
 	g_pui8TrfBuffer[ui8Offset++] = 0x91;		// Send with CRC
 	g_pui8TrfBuffer[ui8Offset++] = 0x3D;		// Write Continuous
@@ -167,6 +188,10 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	g_pui8TrfBuffer[ui8Offset++] = 0x00;		// Mask Length = 0 (Also not sending AFI)
 
 	//TRF79xxA_writeRaw(&g_pui8TrfBuffer[0], ui8Offset);		// Issue the ISO15693 Inventory Command
+
+  BoxTimer timer;
+
+  clearInterrupt();
   //<12+5 bytes can directly writeRegister
   sendRaw(&g_pui8TrfBuffer[0], ui8Offset, false);
   Log.info("SSI transmit Buffer");
@@ -174,25 +199,44 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	//g_sTrfStatus = TRF79xxA_waitRxData(5,15);			// 5 millisecond TX timeout, 15 millisecond RX timeout
 
   IRQ_STATUS irqStatus;
-  while (!digitalRead(IRQ_PIN)) { } //Wait for IRQ TODO: Timeout
+  timer.setTimer(5);
+  while (!readInterrupt()) {
+      timer.tick();
+      if (!timer.isRunning()) {
+        Log.error("TX Timeout");
+        return false;
+      }
+  }
   irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
-  clearIrqRegister();
+  clearInterrupt();
 
   Log.info("SSI write result=%X", (uint8_t)irqStatus);
-  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   if (irqStatus == IRQ_STATUS::TX_COMPLETE) {
-    while (!digitalRead(IRQ_PIN)) { } //Wait for IRQ TODO: Timeout
+    sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+    timer.setTimer(15);
+    while (!readInterrupt()) {
+        timer.tick();
+        if (!timer.isRunning()) {
+          Log.error("RX Timeout");
+          return false;
+        }
+    }
     irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
-    clearIrqRegister();
+    clearInterrupt();
     if (irqStatus == IRQ_STATUS::RX_COMPLETE)
       g_sTrfStatus == TRF_STATUS::RX_COMPLETE;
     Log.info("SSI read result=%X", (uint8_t)irqStatus);
+  } else if (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::TX_COMPLETE | (uint8_t)IRQ_STATUS::RX_COMPLETE)) {
+    g_sTrfStatus = TRF_STATUS::RX_COMPLETE;
+    Log.info("SSI read direct result=%X", (uint8_t)irqStatus);
   }
 
 	if (g_sTrfStatus == TRF_STATUS::RX_COMPLETE)		// If data has been received
 	{
     uint8_t len = readRegister(REGISTER::FIFO_STATUS);
+    Log.info("FIFO STATUS=%i", len);
     len = (0x0F & len) + 1;
+    Log.info("RX length=%i", len);
     readRegisterCont(REGISTER::FIFO, g_pui8TrfBuffer, len);
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     
@@ -205,12 +249,16 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 				g_pui8Iso15693UId[ui8LoopCount-2] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
 			}
 
+      Log.info("RFID UID: ");
+      Log.print(" ");
 			for (ui8LoopCount = 0; ui8LoopCount < 8; ui8LoopCount++) {
-        Log.info("RFID UID: ");
-				Log.printf("%x", g_pui8Iso15693UId[7-ui8LoopCount]);		// Send UID to host
+				Log.printf("%x ", g_pui8Iso15693UId[7-ui8LoopCount]);		// Send UID to host
 			}
+      Log.println();
 			g_ui8TagDetectedCount = 1;
-		}
+		} else {
+      Log.error("Error flag=%X while reading", g_pui8TrfBuffer[0]);
+    }
 	}
 	else
 	{
@@ -222,5 +270,12 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 
 void BoxRFID::clearIrqRegister() {
   uint8_t buffer[2];
-  readRegisterCont(REGISTER::IRQ_STATUS, buffer, 2);
+  buffer[0] = (uint8_t)REGISTER::IRQ_STATUS;
+  readRegisterCont(buffer, 2);
+  /*
+  while (digitalRead(IRQ_PIN)) {
+    delay(1000);
+    Log.info("Waiting for IRQ PIN to clear...");
+  }
+  */
 }
