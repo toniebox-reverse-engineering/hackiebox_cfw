@@ -104,6 +104,8 @@ class BoxRFID : public EnhancedThread {
         void endReadWriteRegister();
 */
 
+        const uint8_t IRQ_PIN = 16;
+
         uint8_t
             readRegister(REGISTER regi);
         void
@@ -115,6 +117,8 @@ class BoxRFID : public EnhancedThread {
         void
             readRegisterCont(uint8_t regi, uint8_t* buffer, uint8_t length),
             readRegisterCont(REGISTER regi, uint8_t* buffer, uint8_t length);
+
+        void clearIrqRegister();
 
         bool ISO15693_sendSingleSlotInventory();
 };

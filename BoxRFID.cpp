@@ -5,6 +5,7 @@ void BoxRFID::begin() {
     setInterval(2000);
 
     pinMode(16, OUTPUT);
+    pinMode(IRQ_PIN, INPUT);
     SPI.begin();
     SPI.setDataMode(SPI_SUB_MODE_0);
 
@@ -173,21 +174,18 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	//g_sTrfStatus = TRF79xxA_waitRxData(5,15);			// 5 millisecond TX timeout, 15 millisecond RX timeout
 
   IRQ_STATUS irqStatus;
-  while (true) {
-    irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
-    if (irqStatus != IRQ_STATUS::IDLING)
-      break;
-  }
+  while (!digitalRead(IRQ_PIN)) { } //Wait for IRQ TODO: Timeout
+  irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
+  clearIrqRegister();
+
   Log.info("SSI write result=%X", (uint8_t)irqStatus);
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   if (irqStatus == IRQ_STATUS::TX_COMPLETE) {
-    while (true) {
-      irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
-      if (irqStatus == IRQ_STATUS::RX_COMPLETE)
-        g_sTrfStatus == TRF_STATUS::RX_COMPLETE;
-      if (irqStatus != IRQ_STATUS::IDLING)
-        break;
-    }
+    while (!digitalRead(IRQ_PIN)) { } //Wait for IRQ TODO: Timeout
+    irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
+    clearIrqRegister();
+    if (irqStatus == IRQ_STATUS::RX_COMPLETE)
+      g_sTrfStatus == TRF_STATUS::RX_COMPLETE;
     Log.info("SSI read result=%X", (uint8_t)irqStatus);
   }
 
@@ -220,4 +218,9 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	}
 
 	return ui8Status;
+}
+
+void BoxRFID::clearIrqRegister() {
+  uint8_t buffer[2];
+  readRegisterCont(REGISTER::IRQ_STATUS, buffer, 2);
 }
