@@ -19,7 +19,7 @@ class BoxRFID : public EnhancedThread {
 
         void receivedInterrupt();
         bool readInterrupt();
-        void clearInterrupt(bool clearRegister=true);
+        void clearInterrupt();
         bool interrupt;
 
     private:
@@ -124,7 +124,7 @@ class BoxRFID : public EnhancedThread {
             readRegisterCont(uint8_t regi, uint8_t* buffer, uint8_t length),
             readRegisterCont(REGISTER regi, uint8_t* buffer, uint8_t length);
 
-        void clearIrqRegister();
+        uint8_t readIrqRegister();
 
         bool ISO15693_sendSingleSlotInventory();
 };
