@@ -194,7 +194,6 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
   clearInterrupt();
   //<12+5 bytes can directly writeRegister
   sendRaw(&g_pui8TrfBuffer[0], ui8Offset, false);
-  Log.info("SSI transmit Buffer");
 
 	//g_sTrfStatus = TRF79xxA_waitRxData(5,15);			// 5 millisecond TX timeout, 15 millisecond RX timeout
 
@@ -203,32 +202,34 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
   while (!readInterrupt()) {
       timer.tick();
       if (!timer.isRunning()) {
-        Log.error("TX Timeout");
+        //Log.error("TX Timeout");
         return false;
       }
   }
   irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
   clearInterrupt();
 
-  Log.info("SSI write result=%X", (uint8_t)irqStatus);
   if (irqStatus == IRQ_STATUS::TX_COMPLETE) {
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     timer.setTimer(15);
     while (!readInterrupt()) {
         timer.tick();
         if (!timer.isRunning()) {
-          Log.error("RX Timeout");
+          //Log.error("RX Timeout");
           return false;
         }
     }
     irqStatus = (IRQ_STATUS)readRegister(REGISTER::IRQ_STATUS);
     clearInterrupt();
-    if (irqStatus == IRQ_STATUS::RX_COMPLETE)
-      g_sTrfStatus == TRF_STATUS::RX_COMPLETE;
-    Log.info("SSI read result=%X", (uint8_t)irqStatus);
-  } else if (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::TX_COMPLETE | (uint8_t)IRQ_STATUS::RX_COMPLETE)) {
+  }
+  
+  if ((irqStatus == IRQ_STATUS::RX_COMPLETE)
+    || (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::TX_COMPLETE | (uint8_t)IRQ_STATUS::RX_COMPLETE))
+    || (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::TX_COMPLETE | (uint8_t)IRQ_STATUS::RX_COMPLETE | (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW)) ) {
+    Log.info("RX_COMPLETE IRQ STATUS=%X", (uint8_t)irqStatus);
     g_sTrfStatus = TRF_STATUS::RX_COMPLETE;
-    Log.info("SSI write/read direct result=%X", (uint8_t)irqStatus);
+  } else {
+    Log.error("Unknown IRQ STATUS=%X", (uint8_t)irqStatus);
   }
 
 	if (g_sTrfStatus == TRF_STATUS::RX_COMPLETE)		// If data has been received
