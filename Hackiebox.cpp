@@ -51,6 +51,7 @@ void Hackiebox::setup() {
     _threadController.add(&boxAccel);
     _threadController.add(&boxBattery);
     _threadController.add(&boxCLI);
+    _threadController.add(&boxRFID);
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
