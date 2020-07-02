@@ -19,6 +19,10 @@ The folder with the boards packages are located at:
 `~/.energia15/packages/energia/hardware/`
 ##### macOS
 `~/Library/Energia15/packages/hardware/`
+#### Additional libraries
+[SimpleCLI](https://github.com/toniebox-reverse-engineering/SimpleCLI)
+[ESP8266Audio](https://github.com/toniebox-reverse-engineering/ESP8266Audio)
+[ESP8266SAM](https://github.com/toniebox-reverse-engineering/ESP8266SAM)
 ### Build
 Open hackiebox_cfw.ino with energia and build the cfw. Remember the path where the hackiebox.ino.bin is saved. Usally you find it at `C:\Users\<User>\AppData\Local\Temp\arduino_build_XXXXXX`.
 ## Installation
