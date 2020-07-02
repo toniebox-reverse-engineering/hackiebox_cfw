@@ -269,22 +269,25 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
     readRegisterCont(REGISTER::FIFO, &g_pui8TrfBuffer[0], len);
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     
-		if (g_pui8TrfBuffer[0] == 0x00)		// Confirm "no error" in response flags byte
-		{
-			ui8Status = true;
-      uint8_t g_pui8Iso15693UId[8];
-			// UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
-			for (ui8LoopCount = 4; ui8LoopCount < 12; ui8LoopCount++) {
-				g_pui8Iso15693UId[ui8LoopCount-4] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
-			}
+		if (g_pui8TrfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
+      if (len == 12) {
+        ui8Status = true;
+        uint8_t g_pui8Iso15693UId[8];
+        // UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
+        for (ui8LoopCount = 4; ui8LoopCount < 12; ui8LoopCount++) {
+          g_pui8Iso15693UId[ui8LoopCount-4] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
+        }
 
-      Log.info("RFID UID: ");
-      Log.print(" ");
-			for (ui8LoopCount = 0; ui8LoopCount < 8; ui8LoopCount++) {
-				Log.printf("%x ", g_pui8Iso15693UId[7-ui8LoopCount]);		// Send UID to host
-			}
-      Log.println();
-			g_ui8TagDetectedCount = 1;
+        Log.info("RFID UID: ");
+        Log.print(" ");
+        for (ui8LoopCount = 0; ui8LoopCount < 8; ui8LoopCount++) {
+          Log.printf("%x ", g_pui8Iso15693UId[7-ui8LoopCount]);		// Send UID to host
+        }
+        Log.println();
+        g_ui8TagDetectedCount = 1;
+      } else {
+        Log.error("Received invalid answer. Length should be %i but is %i", 12, len);
+      }
 		} else {
       Log.error("Error flag=%X while reading", g_pui8TrfBuffer[0]);
     }
