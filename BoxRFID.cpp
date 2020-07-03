@@ -271,7 +271,7 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
         g_ui8TagDetectedCount = 1;
         return true;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 12, trfRxLength);
+        Log.error("Received invalid answer. Length should be %i but is %i", 14, trfRxLength);
       }
 		} else {
       Log.error("Error flag=%X while reading", trfStatus);
