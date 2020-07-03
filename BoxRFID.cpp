@@ -36,13 +36,21 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfRxLength = (0x0F & trfRxLength) + 1;
     if (FIFO_SIZE > (trfOffset+trfRxLength)) {
         readRegisterCont(REGISTER::FIFO, &trfBuffer[trfOffset], trfRxLength);
-        
+        /*
           Log.printf("RX_COMPLETE|FIFO_HIGH_OR_LOW, trfOffset=%i, trfRxLength=%i\r\n", trfOffset, trfRxLength);
           for (uint8_t i = trfOffset; i < trfOffset+trfRxLength; i++) {
             Log.printf(" %X", trfBuffer[i]);
           }
           Log.print("\r\n");
-        
+        */
+      //Ghost byte workaround
+      if (trfBuffer[trfOffset] == trfBuffer[trfOffset+1] && trfBuffer[trfOffset+1] == trfBuffer[trfOffset+2]) { //Remove ghost bytes
+        memmove(&trfBuffer[trfOffset], &trfBuffer[trfOffset+2], trfRxLength-2);
+        trfRxLength -= 2;
+      } else {
+        Log.print("No ghost bytes found @RX_COMPLETE|FIFO_HIGH_OR_LOW\r\n”");
+      }
+
       trfOffset += trfRxLength;
     } else {
         trfStatus == TRF_STATUS::PROTOCOL_ERROR;
@@ -55,13 +63,20 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfRxLength = readRegister(REGISTER::FIFO_STATUS);
     trfRxLength = (0x0F & trfRxLength) + 1;
     readRegisterCont(REGISTER::FIFO, &trfBuffer[trfOffset], trfRxLength);
-    
+    /*
       Log.printf("RX_COMPLETE, trfOffset=%i, trfRxLength=%i\r\n", trfOffset, trfRxLength);
       for (uint8_t i = trfOffset; i < trfOffset+trfRxLength; i++) {
         Log.printf(" %X", trfBuffer[i]);
       }
       Log.print("\r\n");
-    
+    */
+    //Ghost byte workaround
+    if (trfBuffer[trfOffset] == trfBuffer[trfOffset+1] && trfBuffer[trfOffset+1] == trfBuffer[trfOffset+2]) { //Remove ghost bytes
+      memmove(&trfBuffer[trfOffset], &trfBuffer[trfOffset+2], trfRxLength-2);
+      trfRxLength -= 2;
+    } else {
+        Log.print("No ghost bytes found @RX_COMPLETE\r\n”");
+    }
     trfOffset += trfRxLength;
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     if (trfStatus == TRF_STATUS::RX_WAIT_EXTENSION)
