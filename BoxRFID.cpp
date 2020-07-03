@@ -243,10 +243,73 @@ void BoxRFID::sendCommand(uint8_t command) {
 }
 
 void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length) {
-  if (FIFO_SIZE+5 > length) {
+  const uint8_t maxFifoSize = 12;
+  trfStatus = TRF_STATUS::TRF_IDLE;
+  if (maxFifoSize+5 > length) {
     sendRawSPI(buffer, length, false);
-  } else {
-    Log.error("Not implemented long FIFO writes");
+  } else { //To be tested!
+    uint8_t ui8TxBytesRemaining;
+    uint8_t ui8TxIndex;
+    uint8_t ui8FifoTxLength;
+    uint8_t ui8TxBytesAvailable;
+    bool bContinuedSend = false;
+		ui8TxBytesRemaining = length;
+		ui8TxIndex = 0;
+		ui8TxBytesAvailable = maxFifoSize+5; // First send includes 5 bytes for command overhead
+														// (Reset FIFO, Transmit with or without CRC, Continuous Write, Length High and Length Low)
+		bContinuedSend = false;							// First send is not continued
+
+		while(ui8TxBytesRemaining > 0) {
+			if (ui8TxBytesRemaining > maxFifoSize) {
+				// Avoid 60A single byte FIFO TX case from sloa140 Section 1.5
+				if ((ui8TxBytesRemaining - ui8TxBytesAvailable) == 1) {
+					sendRawSPI(&buffer[ui8TxIndex], ui8TxBytesAvailable-1, bContinuedSend);
+					ui8TxBytesRemaining = ui8TxBytesRemaining - ui8TxBytesAvailable - 1;
+				} else {
+					sendRawSPI(&buffer[ui8TxIndex], ui8TxBytesAvailable, bContinuedSend);
+					ui8TxBytesRemaining = ui8TxBytesRemaining - ui8TxBytesAvailable;
+				}
+				ui8TxIndex = ui8TxIndex + ui8TxBytesAvailable;
+				bContinuedSend = true;
+			} else {
+				// Last send
+				sendRawSPI(&buffer[ui8TxIndex], ui8TxBytesRemaining, bContinuedSend);
+				bContinuedSend = false;
+				ui8TxBytesRemaining = 0;
+			}
+
+      clearInterrupt();
+      BoxTimer timer;
+      timer.setTimer(5);
+      while (!readInterrupt() && timer.isRunning()) {
+        timer.tick();
+      }
+      if (!timer.isRunning()) {
+        timeoutIRQ();
+        Log.error("sendRaw Timeout");
+      }
+
+			if (trfStatus == TRF_STATUS::TX_WAIT) {
+				ui8FifoTxLength = readRegister(REGISTER::FIFO_STATUS);
+				ui8FifoTxLength = 0x0F & ui8FifoTxLength;
+				ui8TxBytesAvailable = maxFifoSize-ui8FifoTxLength;
+			} else if (trfStatus == TRF_STATUS::TX_COMPLETE) {
+				if (ui8TxBytesRemaining == 0) {
+					// Packet is sent
+					break;
+				} else {
+					ui8FifoTxLength = readRegister(REGISTER::FIFO_STATUS);
+					ui8FifoTxLength = 0x0F & ui8FifoTxLength;
+					ui8TxBytesAvailable = maxFifoSize-ui8FifoTxLength;
+
+					bContinuedSend = true;
+				}
+			} else {
+				// Error occurred, break
+				trfStatus = TRF_STATUS::TX_ERROR;
+				break;
+			}
+		}
   }
 }
 void BoxRFID::sendRawSPI(uint8_t* buffer, uint8_t length, bool continuedSend) {
