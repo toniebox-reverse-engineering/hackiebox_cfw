@@ -124,6 +124,7 @@ class BoxRFID : public EnhancedThread {
             readRegisterCont(REGISTER regi, uint8_t* buffer, uint8_t length);
 
         uint8_t readIrqRegister();
+        void clearIrqRegister();
 
         void processInterrupt(IRQ_STATUS irqStatus);
         bool readInterrupt();
@@ -133,6 +134,7 @@ class BoxRFID : public EnhancedThread {
         TRF_STATUS waitRxData(uint8_t txTimeout, uint8_t rxTimeout);
         void waitTxIRQ(uint8_t txTimeout);
         void waitRxIRQ(uint8_t rxTimeout);
+        void timeoutIRQ();
 
         bool ISO15693_sendSingleSlotInventory();
 

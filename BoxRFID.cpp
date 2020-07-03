@@ -35,7 +35,14 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfRxLength = readRegister(REGISTER::FIFO_STATUS);
     trfRxLength = (0x0F & trfRxLength) + 1;
     if (FIFO_SIZE > (trfOffset+trfRxLength)) {
-      readRegisterCont(REGISTER::FIFO, &trfBuffer[trfOffset], trfRxLength);
+        readRegisterCont(REGISTER::FIFO, &trfBuffer[trfOffset], trfRxLength);
+        
+          Log.printf("RX_COMPLETE|FIFO_HIGH_OR_LOW, trfOffset=%i, trfRxLength=%i\r\n", trfOffset, trfRxLength);
+          for (uint8_t i = trfOffset; i < trfOffset+trfRxLength; i++) {
+            Log.printf(" %X", trfBuffer[i]);
+          }
+          Log.print("\r\n");
+        
       trfOffset += trfRxLength;
     } else {
         trfStatus == TRF_STATUS::PROTOCOL_ERROR;
@@ -48,6 +55,13 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfRxLength = readRegister(REGISTER::FIFO_STATUS);
     trfRxLength = (0x0F & trfRxLength) + 1;
     readRegisterCont(REGISTER::FIFO, &trfBuffer[trfOffset], trfRxLength);
+    
+      Log.printf("RX_COMPLETE, trfOffset=%i, trfRxLength=%i\r\n", trfOffset, trfRxLength);
+      for (uint8_t i = trfOffset; i < trfOffset+trfRxLength; i++) {
+        Log.printf(" %X", trfBuffer[i]);
+      }
+      Log.print("\r\n");
+    
     trfOffset += trfRxLength;
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
     if (trfStatus == TRF_STATUS::RX_WAIT_EXTENSION)
@@ -75,6 +89,8 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
   } else {
     trfStatus = TRF_STATUS::PROTOCOL_ERROR;
     Log.error("Unknown IRQ_STATUS=%X", irqStatus);
+    sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+    clearIrqRegister();
     //TODO
   }
 }
@@ -248,18 +264,16 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	/*trfBuffer[ui8Offset++] = 0x00;		//
 	trfBuffer[ui8Offset++] = 0x00;*/		//
 
-  readIrqRegister();
-  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   sendRaw(&trfBuffer[0], ui8Offset); //TODO TRF79xxA_writeRaw
-  trfStatus = waitRxData(15, 5);
+  trfStatus = waitRxData(15, 5); //15, 5
 
 	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
-      if (trfRxLength == 14) { //4 "ghost" bytes?!
+      if (trfRxLength == 10) { //4 "ghost" bytes?!
         uint8_t g_pui8Iso15693UId[8];
         // UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
-        for (ui8LoopCount = 6; ui8LoopCount < 14; ui8LoopCount++) {
-          g_pui8Iso15693UId[ui8LoopCount-6] = trfBuffer[ui8LoopCount];	// Store UID into a Buffer
+        for (ui8LoopCount = 2; ui8LoopCount < 10; ui8LoopCount++) {
+          g_pui8Iso15693UId[ui8LoopCount-2] = trfBuffer[ui8LoopCount];	// Store UID into a Buffer
         }
 
         Log.info("RFID UID: ");
@@ -271,7 +285,11 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
         g_ui8TagDetectedCount = 1;
         return true;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 14, trfRxLength);
+        Log.error("Received invalid answer. Length should be %i but is %i", 10, trfRxLength);
+        for (uint8_t i=0; i<trfRxLength; i++) {
+          Log.printf(" %x", trfBuffer[i]);
+        }
+        Log.println();
       }
 		} else {
       Log.error("Error flag=%X while reading", trfStatus);
@@ -286,12 +304,18 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 uint8_t BoxRFID::readIrqRegister() {
   uint8_t buffer[2];
   buffer[0] = (uint8_t)REGISTER::IRQ_STATUS;
-  buffer[1] = (uint8_t)REGISTER::IRQ_MASK;
+  buffer[1] = 0x00;
   readRegisterCont(buffer, 2);
-  Log.info("IRQ_STATUS=%X", buffer[0]);
+  //Log.info("IRQ_STATUS=%X", buffer[0]);
   return buffer[0];
 }
-
+void BoxRFID::clearIrqRegister() {
+  uint8_t buffer[2];
+  buffer[0] = (uint8_t)REGISTER::IRQ_STATUS;
+  buffer[1] = (uint8_t)REGISTER::IRQ_MASK;
+  readRegisterCont(buffer, 2);
+  //Log.info("IRQ_STATUS=%X", buffer[0]);
+}
 BoxRFID::TRF_STATUS BoxRFID::waitRxData(uint8_t txTimeout, uint8_t rxTimeout) {
   switch (trfStatus) {
   case TRF_STATUS::TRF_IDLE:
@@ -328,8 +352,10 @@ void BoxRFID::waitTxIRQ(uint8_t txTimeout) {
     while (!readInterrupt() && timer.isRunning()) {
       timer.tick();
     }
-    if (!timer.isRunning())
+    if (!timer.isRunning()) {
+      timeoutIRQ();
       Log.error("waitTxIRQ Timeout");
+    }
     if (trfStatus != TRF_STATUS::TX_COMPLETE) {
       if(trfStatus == TRF_STATUS::TX_WAIT) {
         waitTxIRQ(txTimeout);
@@ -349,22 +375,37 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
     while (!readInterrupt() && timer.isRunning()) {
       timer.tick();
     }
-    if (!timer.isRunning())
+    if (!timer.isRunning()) {
+      timeoutIRQ();
       Log.error("waitRxIRQ Timeout");
+    }
     while (trfStatus == TRF_STATUS::RX_WAIT_EXTENSION) {
       clearInterrupt();
       timer.setTimer(5); //from firmware example
       while (!readInterrupt() && timer.isRunning()) {
         timer.tick();
         }
-      if (!timer.isRunning())
+      if (!timer.isRunning()) {
+        timeoutIRQ();
         Log.error("waitRxIRQ Timeout 2");
+      }
       if (trfStatus == TRF_STATUS::NO_RESPONSE_RECEIVED)
         trfStatus = TRF_STATUS::RX_COMPLETE;
     }
     if (trfStatus == TRF_STATUS::RX_WAIT)
       trfStatus = TRF_STATUS::NO_RESPONSE_RECEIVED;
   }  
+}
+
+void BoxRFID::timeoutIRQ() {
+  IRQ_STATUS irqStatus = (IRQ_STATUS)readIrqRegister();
+  if (irqStatus == IRQ_STATUS::TX_COMPLETE) {
+    trfStatus = TRF_STATUS::TX_COMPLETE;
+  } else if (irqStatus == IRQ_STATUS::IDLING) {
+    trfStatus = TRF_STATUS::NO_RESPONSE_RECEIVED;
+  } else {
+    trfStatus = TRF_STATUS::RX_WAIT;
+  }
 }
 
 void BoxRFID::resetRFID() {
