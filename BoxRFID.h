@@ -144,6 +144,8 @@ class BoxRFID : public EnhancedThread {
         uint8_t trfRxLength;
 
         void resetRFID();
+
+        TRF_STATUS sendDataTag(uint8_t *sendBuffer, uint8_t sendLen);
 };
 
 #endif

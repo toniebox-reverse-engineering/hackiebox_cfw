@@ -331,20 +331,11 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
   uint8_t ui8LoopCount = 0;
   uint8_t ui8Offset = 0;
   
-	trfBuffer[ui8Offset++] = 0x8F;		// Reset FIFO
-	trfBuffer[ui8Offset++] = 0x91;		// Send  //CRC 0x91 Non CRC CRC 0x90
-	trfBuffer[ui8Offset++] = 0x3D;		// Write Continuous
-	trfBuffer[ui8Offset++] = 0x00;		// Length of packet in bytes - upper and middle nibbles of transmit byte length
-	trfBuffer[ui8Offset++] = 0x30;		// Length of packet in bytes - lower and broken nibbles of transmit byte length
 	trfBuffer[ui8Offset++] = 0x26;		// ISO15693 flags
 	trfBuffer[ui8Offset++] = 0x01;		// Inventory command code
 	trfBuffer[ui8Offset++] = 0x00;		// Mask Length = 0 (Also not sending AFI)
-	/*trfBuffer[ui8Offset++] = 0x00;		//
-	trfBuffer[ui8Offset++] = 0x00;*/		//
 
-  sendRaw(&trfBuffer[0], ui8Offset); //TODO TRF79xxA_writeRaw
-  trfStatus = waitRxData(15, 5); //15, 5
-
+  trfStatus = sendDataTag(&trfBuffer[0], ui8Offset); 
 	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
       if (trfRxLength == 10) { //4 "ghost" bytes?!
@@ -495,4 +486,21 @@ void BoxRFID::resetRFID() {
   trfOffset = 0;
   trfRxLength = 0;
   trfStatus = TRF_STATUS::TRF_IDLE;
+}
+
+BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
+  uint8_t buffer[sendLen+5];
+  memcpy(&buffer[5], sendBuffer, sendLen);
+
+  uint8_t offset = 0;
+  buffer[offset++] = 0x8F;		// Reset FIFO
+	buffer[offset++] = 0x91;		// Send  //CRC 0x91 Non CRC CRC 0x90
+	buffer[offset++] = 0x3D;		// Write Continuous
+
+	buffer[offset++] = ((sendLen>>4)&0xFF);		// Length of packet in bytes - upper and middle nibbles of transmit byte length
+	buffer[offset++] = ((sendLen<<4)&0xFF);		// Length of packet in bytes - lower and broken nibbles of transmit byte length
+
+
+  sendRaw(&buffer[0], sendLen+5);
+  return waitRxData(15, 5); //15, 5
 }
