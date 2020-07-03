@@ -115,7 +115,8 @@ class BoxRFID : public EnhancedThread {
             sendCommand(DIRECT_COMMANDS command),
             writeRegister(REGISTER regi, uint8_t value);
         
-        void sendRaw(uint8_t* buffer, uint8_t length, bool continuedSend);
+        void sendRaw(uint8_t* buffer, uint8_t length);
+        void sendRawSPI(uint8_t* buffer, uint8_t length, bool continuedSend);
 
         void
             readRegisterCont(uint8_t* buffer, uint8_t length),

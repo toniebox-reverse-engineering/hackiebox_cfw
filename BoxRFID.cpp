@@ -60,9 +60,13 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfStatus = TRF_STATUS::PROTOCOL_ERROR;
     Log.error("CRC_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
   } else if((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FRAMING_ERROR) == IRQ_STATUS::FRAMING_ERROR) {
-    resetRFID();
-    trfStatus = TRF_STATUS::PROTOCOL_ERROR;
-    Log.error("FRAMING_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
+    if ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW) == IRQ_STATUS::FIFO_HIGH_OR_LOW) {
+      trfStatus = TRF_STATUS::RX_WAIT;
+    } else {
+      resetRFID();
+      trfStatus = TRF_STATUS::PROTOCOL_ERROR;
+      Log.error("FRAMING_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
+    }
   } else if (irqStatus == IRQ_STATUS::IDLING) {
     trfStatus = TRF_STATUS::NO_RESPONSE_RECEIVED;
   } else if (irqStatus == IRQ_STATUS::NO_RESPONSE) {
@@ -88,7 +92,6 @@ void BoxRFID::begin() {
 
     pinMode(16, OUTPUT);
     pinMode(IRQ_PIN, INPUT);
-    clearInterrupt();
     attachInterrupt(IRQ_PIN, rfid_irq, RISING);
     SPI.begin();
     SPI.setDataMode(SPI_SUB_MODE_0);
@@ -208,7 +211,14 @@ void BoxRFID::sendCommand(uint8_t command) {
   //Log.info("Write command %i, data=%i, res1=%i, res2=%i", command, data, res1, res2);
 }
 
-void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length, bool continuedSend) {
+void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length) {
+  if (FIFO_SIZE+5 > length) {
+    sendRawSPI(buffer, length, false);
+  } else {
+    Log.error("Not implemented long FIFO writes");
+  }
+}
+void BoxRFID::sendRawSPI(uint8_t* buffer, uint8_t length, bool continuedSend) {
   spiEnable();
 
   if (continuedSend)
@@ -238,16 +248,18 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	/*trfBuffer[ui8Offset++] = 0x00;		//
 	trfBuffer[ui8Offset++] = 0x00;*/		//
 
-  sendRaw(&trfBuffer[0], ui8Offset, false);
+  readIrqRegister();
+  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+  sendRaw(&trfBuffer[0], ui8Offset); //TODO TRF79xxA_writeRaw
   trfStatus = waitRxData(15, 5);
 
 	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
-      if (trfRxLength == 12 || trfRxLength == 14) {
+      if (trfRxLength == 14) {
         uint8_t g_pui8Iso15693UId[8];
         // UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
-        for (ui8LoopCount = 4; ui8LoopCount < 12; ui8LoopCount++) {
-          g_pui8Iso15693UId[ui8LoopCount-4] = trfBuffer[ui8LoopCount];	// Store UID into a Buffer
+        for (ui8LoopCount = 6; ui8LoopCount < 14; ui8LoopCount++) {
+          g_pui8Iso15693UId[ui8LoopCount-6] = trfBuffer[ui8LoopCount];	// Store UID into a Buffer
         }
 
         Log.info("RFID UID: ");
@@ -276,6 +288,7 @@ uint8_t BoxRFID::readIrqRegister() {
   buffer[0] = (uint8_t)REGISTER::IRQ_STATUS;
   buffer[1] = (uint8_t)REGISTER::IRQ_MASK;
   readRegisterCont(buffer, 2);
+  Log.info("IRQ_STATUS=%X", buffer[0]);
   return buffer[0];
 }
 
@@ -315,6 +328,8 @@ void BoxRFID::waitTxIRQ(uint8_t txTimeout) {
     while (!readInterrupt() && timer.isRunning()) {
       timer.tick();
     }
+    if (!timer.isRunning())
+      Log.error("waitTxIRQ Timeout");
     if (trfStatus != TRF_STATUS::TX_COMPLETE) {
       if(trfStatus == TRF_STATUS::TX_WAIT) {
         waitTxIRQ(txTimeout);
@@ -334,12 +349,16 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
     while (!readInterrupt() && timer.isRunning()) {
       timer.tick();
     }
+    if (!timer.isRunning())
+      Log.error("waitRxIRQ Timeout");
     while (trfStatus == TRF_STATUS::RX_WAIT_EXTENSION) {
       clearInterrupt();
       timer.setTimer(5); //from firmware example
       while (!readInterrupt() && timer.isRunning()) {
         timer.tick();
-      }
+        }
+      if (!timer.isRunning())
+        Log.error("waitRxIRQ Timeout 2");
       if (trfStatus == TRF_STATUS::NO_RESPONSE_RECEIVED)
         trfStatus = TRF_STATUS::RX_COMPLETE;
     }
@@ -352,7 +371,9 @@ void BoxRFID::resetRFID() {
   sendCommand(DIRECT_COMMANDS::SOFT_INIT);
   sendCommand(DIRECT_COMMANDS::IDLING);
   delay(1);
+  clearInterrupt();
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   trfOffset = 0;
   trfRxLength = 0;
+  trfStatus = TRF_STATUS::TRF_IDLE;
 }
