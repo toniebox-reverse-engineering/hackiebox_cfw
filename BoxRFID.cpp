@@ -133,28 +133,22 @@ void BoxRFID::begin() {
 }
 void BoxRFID::loop() {  
     resetRFID();
+    initRFID();
 
     writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-
-    /* SETUP START */
-    writeRegister(REGISTER::ISO_CONTROL, 0b10000010); //ISO / IEC 15693 high bit rate, 26.48 kbps, one subcarrier, 1 out of 4 no crcr
-    writeRegister(REGISTER::IRQ_MASK, 0b00111110);
-    writeRegister(REGISTER::MODULATOR_CONTROL, 0b00100001); //Sys Clock Output = 6.78MHz, OOK = 100%
-    writeRegister(REGISTER::TX_PULSE_LENGTH_CONTROL, 0x80); 
-    /*writeRegister(REGISTER::MODULATOR_CONTROL, 0x01); //Sys Clock Output = 13.56MHz, OOK = 100%
-    writeRegister(REGISTER::RX_NO_RESPONSE_WAIT_TIME, 0x15); //No Response Wait Time
-    writeRegister(REGISTER::RX_WAIT_TIME, 0x1F); //RX Wait Time*/
-    /* SETUP END */
-
-    //ISO15693_resetTagCount();
-
     // The VCD should wait at least 1 ms after it activated the
 	  // powering field before sending the first request, to
 	  // ensure that the VICCs are ready to receive it. (ISO15693-3)
     delay(20); //not 1 ms?!
 
-    ISO15693_sendSingleSlotInventory();
+    ISO15693_getRandomSlixL();
+    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 
+    resetRFID();
+    initRFID();
+    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+    delay(20); //not 1 ms?!
+    ISO15693_sendSingleSlotInventory();
     writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 }
 
@@ -329,16 +323,16 @@ void BoxRFID::sendRawSPI(uint8_t* buffer, uint8_t length, bool continuedSend) {
 bool BoxRFID::ISO15693_sendSingleSlotInventory() {
   uint8_t g_ui8TagDetectedCount;
   uint8_t ui8LoopCount = 0;
-  uint8_t ui8Offset = 0;
+  uint8_t offset = 0;
   
-	trfBuffer[ui8Offset++] = 0x26;		// ISO15693 flags
-	trfBuffer[ui8Offset++] = 0x01;		// Inventory command code
-	trfBuffer[ui8Offset++] = 0x00;		// Mask Length = 0 (Also not sending AFI)
+	trfBuffer[offset++] = 0x26;		// ISO15693 flags
+	trfBuffer[offset++] = 0x01;		// Inventory command code
+	trfBuffer[offset++] = 0x00;		// Mask Length = 0 (Also not sending AFI)
 
-  trfStatus = sendDataTag(&trfBuffer[0], ui8Offset); 
+  trfStatus = sendDataTag(&trfBuffer[0], offset); 
 	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
-      if (trfRxLength == 10) { //4 "ghost" bytes?!
+      if (trfRxLength == 10) {
         uint8_t g_pui8Iso15693UId[8];
         // UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
         for (ui8LoopCount = 2; ui8LoopCount < 10; ui8LoopCount++) {
@@ -368,6 +362,33 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 	}
 
 	return false;
+}
+bool BoxRFID::ISO15693_getRandomSlixL() {
+  uint8_t offset = 0;
+  
+	trfBuffer[offset++] = 0x02;		// ISO15693 flags - ISO15693_REQ_DATARATE_HIGH
+	trfBuffer[offset++] = 0xB2;		// ISO15693_CMD_NXP_GET_RANDOM_NUMBER
+	trfBuffer[offset++] = 0x04;		// ISO15693_MANUFACTURER_NXP
+
+  trfStatus = sendDataTag(&trfBuffer[0], offset); 
+  if (trfStatus == TRF_STATUS::RX_COMPLETE) {
+		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
+      if (trfRxLength == 5-2) {
+        Log.info("Random number=%X", trfBuffer[1]);
+        return true;
+      } else {
+        Log.error("Received invalid answer. Length should be %i but is %i", 10, trfRxLength);
+        for (uint8_t i=0; i<trfRxLength; i++) {
+          Log.printf(" %x", trfBuffer[i]);
+        }
+        Log.println();
+      }
+		} else {
+      Log.error("Error flag=%X while reading", trfStatus);
+    }
+  } else {
+    Log.error("Unexpected TRF_STATUS for random %X", trfStatus);
+	}
 }
 
 uint8_t BoxRFID::readIrqRegister() {
@@ -478,6 +499,7 @@ void BoxRFID::timeoutIRQ() {
 }
 
 void BoxRFID::resetRFID() {
+  //Log.info("resetRFID();");
   sendCommand(DIRECT_COMMANDS::SOFT_INIT);
   sendCommand(DIRECT_COMMANDS::IDLING);
   delay(1);
@@ -486,6 +508,18 @@ void BoxRFID::resetRFID() {
   trfOffset = 0;
   trfRxLength = 0;
   trfStatus = TRF_STATUS::TRF_IDLE;
+}
+void BoxRFID::initRFID() {
+  //Log.info("initRFID();");
+  /* SETUP START */
+  writeRegister(REGISTER::ISO_CONTROL, 0b10000010); //ISO / IEC 15693 high bit rate, 26.48 kbps, one subcarrier, 1 out of 4 no crcr
+  writeRegister(REGISTER::IRQ_MASK, 0b00111110);
+  writeRegister(REGISTER::MODULATOR_CONTROL, 0b00100001); //Sys Clock Output = 6.78MHz, OOK = 100%
+  writeRegister(REGISTER::TX_PULSE_LENGTH_CONTROL, 0x80); 
+  /*writeRegister(REGISTER::MODULATOR_CONTROL, 0x01); //Sys Clock Output = 13.56MHz, OOK = 100%
+  writeRegister(REGISTER::RX_NO_RESPONSE_WAIT_TIME, 0x15); //No Response Wait Time
+  writeRegister(REGISTER::RX_WAIT_TIME, 0x1F); //RX Wait Time*/
+  /* SETUP END */
 }
 
 BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
