@@ -255,7 +255,7 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 
 	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
-      if (trfRxLength == 14) {
+      if (trfRxLength == 14) { //4 "ghost" bytes?!
         uint8_t g_pui8Iso15693UId[8];
         // UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
         for (ui8LoopCount = 6; ui8LoopCount < 14; ui8LoopCount++) {
