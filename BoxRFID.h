@@ -82,17 +82,35 @@ class BoxRFID : public EnhancedThread {
         };
 
         enum class TRF_STATUS {
-            TRF_IDLE,
-            TX_COMPLETE,
-            RX_COMPLETE,
-            TX_ERROR,
-            RX_WAIT,
-            RX_WAIT_EXTENSION,
-            TX_WAIT,
-            PROTOCOL_ERROR,
-            COLLISION_ERROR,
-            NO_RESPONSE_RECEIVED,
-            NO_RESPONSE_RECEIVED_15693
+            TRF_IDLE = 0x00,
+            TX_COMPLETE = 0x01,
+            RX_COMPLETE = 0x02,
+            TX_ERROR = 0x03,
+            RX_WAIT = 0x04,
+            RX_WAIT_EXTENSION = 0x05,
+            TX_WAIT = 0x06,
+            PROTOCOL_ERROR = 0x07,
+            COLLISION_ERROR = 0x08,
+            NO_RESPONSE_RECEIVED = 0x09,
+            NO_RESPONSE_RECEIVED_15693 = 0x0A
+        };
+
+        enum class ISO15693_RESULT {
+            NO_RESPONSE = 0x00,
+            VALID_RESPONSE = 0x01,
+            INVALID_RESPONSE = 0x02,
+
+            INVENTORY_NO_RESPONSE = 0x10,
+            INVENTORY_VALID_RESPONSE = 0x11,
+            INVENTORY_INVALID_RESPONSE = 0x12,
+
+            GET_RANDOM_NO_RESPONSE = 0x20,
+            GET_RANDOM_VALID = 0x21,
+            GET_RANDOM_INVALID = 0x22,
+
+            SET_PASSWORD_NO_RESPONSE = 0x30,
+            SET_PASSWORD_CORRECT = 0x31,
+            SET_PASSWORD_INCORRECT = 0x32
         };
 
         void
@@ -136,9 +154,11 @@ class BoxRFID : public EnhancedThread {
         void waitRxIRQ(uint8_t rxTimeout);
         void timeoutIRQ();
 
-        bool ISO15693_sendSingleSlotInventory();
-        bool ISO15693_getRandomSlixL(uint8_t* random);
-        bool ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password);
+        ISO15693_RESULT ISO15693_sendSingleSlotInventory(uint8_t* uid);
+        ISO15693_RESULT ISO15693_getRandomSlixL(uint8_t* random);
+        ISO15693_RESULT ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password);
+
+        void reinitRFID();
 
         TRF_STATUS trfStatus;
         uint8_t trfBuffer[FIFO_SIZE]; //may reduce size
@@ -149,6 +169,9 @@ class BoxRFID : public EnhancedThread {
         void initRFID();
 
         TRF_STATUS sendDataTag(uint8_t *sendBuffer, uint8_t sendLen);
+
+        uint8_t tagUid[8];
+        bool tagActive;
 };
 
 #endif
