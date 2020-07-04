@@ -27,6 +27,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   } else if((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::COLLISION_ERROR) == IRQ_STATUS::COLLISION_ERROR) {
     resetRFID();
+    initRFID();
     readIrqRegister();
     trfStatus = TRF_STATUS::COLLISION_ERROR;
     Log.error("COLLISION_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
@@ -43,7 +44,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
           }
           Log.print("\r\n");
         */
-      //Ghost byte workaround
+      //Ghost byte workaround //TODO https://www.ti.com/lit/an/sloa140b/sloa140b.pdf 1.6
       if (trfBuffer[trfOffset] == trfBuffer[trfOffset+1] && trfBuffer[trfOffset+1] == trfBuffer[trfOffset+2]) { //Remove ghost bytes
         memmove(&trfBuffer[trfOffset], &trfBuffer[trfOffset+2], trfRxLength-2);
         trfRxLength -= 2;
@@ -86,6 +87,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     trfStatus = TRF_STATUS::RX_WAIT_EXTENSION;
   } else if((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::CRC_ERROR) == IRQ_STATUS::CRC_ERROR) {
     resetRFID();
+    initRFID();
     trfStatus = TRF_STATUS::PROTOCOL_ERROR;
     Log.error("CRC_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
   } else if((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FRAMING_ERROR) == IRQ_STATUS::FRAMING_ERROR) {
@@ -93,6 +95,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
       trfStatus = TRF_STATUS::RX_WAIT;
     } else {
       resetRFID();
+      initRFID();
       trfStatus = TRF_STATUS::PROTOCOL_ERROR;
       Log.error("FRAMING_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
     }
@@ -132,27 +135,27 @@ void BoxRFID::begin() {
     Log.info("...initialized");
 }
 void BoxRFID::loop() {  
-    resetRFID();
-    initRFID();
-
-    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-    // The VCD should wait at least 1 ms after it activated the
-	  // powering field before sending the first request, to
-	  // ensure that the VICCs are ready to receive it. (ISO15693-3)
-    delay(1); //not 1 ms?!
-    //ISO15693_getRandomSlixL(random);
-    ISO15693_setPassSlixL(0x04, 0x00000000); //"0F0F0F0F", "5B6EFD7F" "7FFD6E5B",  "00000000"
-    //writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
-
-
   resetRFID();
   initRFID();
+
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  // The VCD should wait at least 1 ms after it activated the
+  // powering field before sending the first request, to
+  // ensure that the VICCs are ready to receive it. (ISO15693-3)
+  delay(20); //not 1 ms?!
+  //ISO15693_getRandomSlixL(random);
+  ISO15693_setPassSlixL(0x04, 0x7FFD6E5B); //"0F0F0F0F", 7FFD6E5B",  "00000000"
+  //writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+  delay(20);
   clearInterrupt();
   trfOffset = 0;
   trfRxLength = 0;
+  trfStatus = TRF_STATUS::TRF_IDLE;
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  delay(1);
+  delay(20);
   ISO15693_sendSingleSlotInventory();
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 }
@@ -410,21 +413,12 @@ bool BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password) {
   clearInterrupt();
   trfOffset = 0;
   trfRxLength = 0;
+  trfStatus = TRF_STATUS::TRF_IDLE;
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  delay(1);
-
-  Log.info("Random 2");
-  if (!ISO15693_getRandomSlixL(random))
-    return false;
-  
-  clearInterrupt();
-  trfOffset = 0;
-  trfRxLength = 0;
-  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+  Log.info("CHIP_STATUS_CONTROL=%X", readRegister(REGISTER::CHIP_STATUS_CONTROL));
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
   delay(20);
-
+  
   uint8_t buffer[4];
 	buffer[0] = (password>>0) & 0xFF;
 	buffer[1] = (password>>8) & 0xFF;
@@ -445,13 +439,13 @@ bool BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password) {
 
   memcpy(&trfBuffer[offset], buffer, 4);
   offset += 4; // XOR PWD
-  Log.info("Password");
+  Log.info("Password...");
   trfStatus = sendDataTag(&trfBuffer[0], offset); 
 
   if (trfStatus == TRF_STATUS::RX_COMPLETE) {
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
       if (trfRxLength == 1) {
-
+        Log.info(" ...correct");
         return true;
       } else {
         Log.error("Received invalid answer. Length should be %i but is %i", 1, trfRxLength);
@@ -466,6 +460,7 @@ bool BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password) {
   } else {
     Log.error("Unexpected TRF_STATUS for setpwd %X", trfStatus);
 	}
+  Log.error(" ...incorrect");
   return false;
 }
 
@@ -591,6 +586,7 @@ void BoxRFID::initRFID() {
   //Log.info("initRFID();");
   /* SETUP START */
   writeRegister(REGISTER::ISO_CONTROL, 0b10000010); //ISO / IEC 15693 high bit rate, 26.48 kbps, one subcarrier, 1 out of 4 no crcr
+  //writeRegister(REGISTER::ISO_CONTROL, 0b00000010); //ISO / IEC 15693 high bit rate, 26.48 kbps, one subcarrier, 1 out of 4 crcr
   writeRegister(REGISTER::IRQ_MASK, 0b00111110);
   writeRegister(REGISTER::MODULATOR_CONTROL, 0b00100001); //Sys Clock Output = 6.78MHz, OOK = 100%
   writeRegister(REGISTER::TX_PULSE_LENGTH_CONTROL, 0x80); 
@@ -612,11 +608,12 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
 	buffer[offset++] = ((sendLen>>4)&0xFF);		// Length of packet in bytes - upper and middle nibbles of transmit byte length
 	buffer[offset++] = ((sendLen<<4)&0xFF);		// Length of packet in bytes - lower and broken nibbles of transmit byte length
 
+  /*
   Log.info("sendDataTag buffer length=%i", sendLen+5);
   for (int i=0; i<sendLen+5; i++) {
     Log.printf(" %x", buffer[i]);
   }
-  Log.println();
+  Log.println();*/
 
   sendRaw(&buffer[0], sendLen+5);
   return waitRxData(15, 5); //15, 5
