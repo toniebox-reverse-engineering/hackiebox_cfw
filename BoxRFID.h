@@ -137,7 +137,8 @@ class BoxRFID : public EnhancedThread {
         void timeoutIRQ();
 
         bool ISO15693_sendSingleSlotInventory();
-        bool ISO15693_getRandomSlixL();
+        bool ISO15693_getRandomSlixL(uint8_t* random);
+        bool ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password);
 
         TRF_STATUS trfStatus;
         uint8_t trfBuffer[FIFO_SIZE]; //may reduce size

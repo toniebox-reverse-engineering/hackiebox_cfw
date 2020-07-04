@@ -139,17 +139,22 @@ void BoxRFID::loop() {
     // The VCD should wait at least 1 ms after it activated the
 	  // powering field before sending the first request, to
 	  // ensure that the VICCs are ready to receive it. (ISO15693-3)
-    delay(20); //not 1 ms?!
+    delay(1); //not 1 ms?!
+    //ISO15693_getRandomSlixL(random);
+    ISO15693_setPassSlixL(0x04, 0x00000000); //"0F0F0F0F", "5B6EFD7F" "7FFD6E5B",  "00000000"
+    //writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 
-    ISO15693_getRandomSlixL();
-    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 
-    resetRFID();
-    initRFID();
-    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-    delay(20); //not 1 ms?!
-    ISO15693_sendSingleSlotInventory();
-    writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+  resetRFID();
+  initRFID();
+  clearInterrupt();
+  trfOffset = 0;
+  trfRxLength = 0;
+  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  delay(1);
+  ISO15693_sendSingleSlotInventory();
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 }
 
 void BoxRFID::setSlaveSelect(bool enabled) {
@@ -363,8 +368,9 @@ bool BoxRFID::ISO15693_sendSingleSlotInventory() {
 
 	return false;
 }
-bool BoxRFID::ISO15693_getRandomSlixL() {
+bool BoxRFID::ISO15693_getRandomSlixL(uint8_t* random) {
   uint8_t offset = 0;
+  uint16_t randomNum;
   
 	trfBuffer[offset++] = 0x02;		// ISO15693 flags - ISO15693_REQ_DATARATE_HIGH
 	trfBuffer[offset++] = 0xB2;		// ISO15693_CMD_NXP_GET_RANDOM_NUMBER
@@ -373,11 +379,14 @@ bool BoxRFID::ISO15693_getRandomSlixL() {
   trfStatus = sendDataTag(&trfBuffer[0], offset); 
   if (trfStatus == TRF_STATUS::RX_COMPLETE) {
 		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
-      if (trfRxLength == 5-2) {
-        Log.info("Random number=%X", trfBuffer[1]);
+      if (trfRxLength == 3) {
+        random[0] = trfBuffer[1];
+        random[1] = trfBuffer[2];
+        randomNum = ((trfBuffer[1]<<8)|trfBuffer[2]);
+        Log.info("Random number=%X", randomNum);
         return true;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 10, trfRxLength);
+        Log.error("Received invalid answer. Length should be %i but is %i", 3, trfRxLength);
         for (uint8_t i=0; i<trfRxLength; i++) {
           Log.printf(" %x", trfBuffer[i]);
         }
@@ -389,6 +398,75 @@ bool BoxRFID::ISO15693_getRandomSlixL() {
   } else {
     Log.error("Unexpected TRF_STATUS for random %X", trfStatus);
 	}
+  return false;
+}
+bool BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password) {
+  uint8_t offset = 0;
+  uint8_t random[2];
+  Log.info("Random 1");
+  if (!ISO15693_getRandomSlixL(random))
+    return false;
+  
+  clearInterrupt();
+  trfOffset = 0;
+  trfRxLength = 0;
+  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  delay(1);
+
+  Log.info("Random 2");
+  if (!ISO15693_getRandomSlixL(random))
+    return false;
+  
+  clearInterrupt();
+  trfOffset = 0;
+  trfRxLength = 0;
+  sendCommand(DIRECT_COMMANDS::RESET_FIFO);
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  delay(20);
+
+  uint8_t buffer[4];
+	buffer[0] = (password>>0) & 0xFF;
+	buffer[1] = (password>>8) & 0xFF;
+	buffer[2] = (password>>16) & 0xFF;
+	buffer[3] = (password>>24) & 0xFF;
+
+	if(random) {
+		buffer[0] ^= random[0];
+		buffer[1] ^= random[1];
+		buffer[2] ^= random[0];
+		buffer[3] ^= random[1];
+	}
+
+	trfBuffer[offset++] = 0x02;		// ISO15693 flags - ISO15693_REQ_DATARATE_HIGH
+	trfBuffer[offset++] = 0xB3;		// ISO15693_CMD_NXP_SET_PASSWORD
+	trfBuffer[offset++] = 0x04;		// ISO15693_MANUFACTURER_NXP
+  trfBuffer[offset++] = pass_id; // Space for Password identifier
+
+  memcpy(&trfBuffer[offset], buffer, 4);
+  offset += 4; // XOR PWD
+  Log.info("Password");
+  trfStatus = sendDataTag(&trfBuffer[0], offset); 
+
+  if (trfStatus == TRF_STATUS::RX_COMPLETE) {
+		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
+      if (trfRxLength == 1) {
+
+        return true;
+      } else {
+        Log.error("Received invalid answer. Length should be %i but is %i", 1, trfRxLength);
+        for (uint8_t i=0; i<trfRxLength; i++) {
+          Log.printf(" %x", trfBuffer[i]);
+        }
+        Log.println();
+      }
+		} else {
+      Log.error("Error flag=%X while reading", trfStatus);
+    }
+  } else {
+    Log.error("Unexpected TRF_STATUS for setpwd %X", trfStatus);
+	}
+  return false;
 }
 
 uint8_t BoxRFID::readIrqRegister() {
@@ -534,6 +612,11 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
 	buffer[offset++] = ((sendLen>>4)&0xFF);		// Length of packet in bytes - upper and middle nibbles of transmit byte length
 	buffer[offset++] = ((sendLen<<4)&0xFF);		// Length of packet in bytes - lower and broken nibbles of transmit byte length
 
+  Log.info("sendDataTag buffer length=%i", sendLen+5);
+  for (int i=0; i<sendLen+5; i++) {
+    Log.printf(" %x", buffer[i]);
+  }
+  Log.println();
 
   sendRaw(&buffer[0], sendLen+5);
   return waitRxData(15, 5); //15, 5
