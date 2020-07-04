@@ -406,7 +406,6 @@ bool BoxRFID::ISO15693_getRandomSlixL(uint8_t* random) {
 bool BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password) {
   uint8_t offset = 0;
   uint8_t random[2];
-  Log.info("Random 1");
   if (!ISO15693_getRandomSlixL(random))
     return false;
   
