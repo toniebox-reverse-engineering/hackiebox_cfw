@@ -12,6 +12,17 @@ Please install the latest [Energia release](https://energia.nu/download/) (1.8.1
 In addition you need to install the cc3200 board library. 
 #### Toniebox board library
 Replace the cc3200 board library files with the [toniebox-cc3200-core](https://github.com/toniebox-reverse-engineering/toniebox-cc3200-core) and restart energia.
+The folder with the boards packages are located at:
+##### Windows
+`%LOCALAPPDATA%\Energia15\packages\hardware\`
+##### Linux
+`~/.energia15/packages/energia/hardware/`
+##### macOS
+`~/Library/Energia15/packages/hardware/`
+#### Additional libraries
+[SimpleCLI](https://github.com/toniebox-reverse-engineering/SimpleCLI)
+[ESP8266Audio](https://github.com/toniebox-reverse-engineering/ESP8266Audio)
+[ESP8266SAM](https://github.com/toniebox-reverse-engineering/ESP8266SAM)
 ### Build
 Open hackiebox_cfw.ino with energia and build the cfw. Remember the path where the hackiebox.ino.bin is saved. Usally you find it at `C:\Users\<User>\AppData\Local\Temp\arduino_build_XXXXXX`.
 ## Installation

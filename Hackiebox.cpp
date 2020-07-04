@@ -9,9 +9,13 @@ void Hackiebox::setup() {
         //reset box?!
     }
 
-    Log.init(LOG_LEVEL_VERBOSE, 115200/*, &logStream*/);
+    logStreamMulti.setSlot(&logStreamSd, 0);
+    logStreamMulti.setSlot(&logStreamSse, 1);
+    Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamMulti);
     Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
 
+    Wire.begin();
+    
     boxPower.initPins();
     boxPower.setSdPower(true);
     boxPower.setOtherPower(true);
@@ -21,14 +25,22 @@ void Hackiebox::setup() {
     ConfigStruct* config = Config.get();
     
     boxPower.begin();
+    boxI2C.begin();
     boxLEDs.begin();
-    boxLEDs.setAllBool(true);
+    boxLEDs.setAll(BoxLEDs::CRGB::White);
     boxBattery.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Orange);
     boxEars.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Yellow);
     boxAccel.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Pink);
     boxRFID.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Teal);
     boxDAC.begin();
+    boxLEDs.setAll(BoxLEDs::CRGB::Fuchsia);
     
+    boxCLI.begin();
+
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
 
@@ -38,6 +50,8 @@ void Hackiebox::setup() {
     _threadController = ThreadController();
     _threadController.add(&boxAccel);
     _threadController.add(&boxBattery);
+    _threadController.add(&boxCLI);
+    _threadController.add(&boxRFID);
     _threadController.add(&boxEars);
     _threadController.add(&boxLEDs);
     _threadController.add(&boxPower);
@@ -47,6 +61,7 @@ void Hackiebox::setup() {
     Log.info("Config: %s", Config.getAsJson().c_str());
 
     boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
+    boxCLI.onRun(ThreadCallbackHandler([&]() { boxCLI.loop(); }));
     boxDAC.onRun(ThreadCallbackHandler([&]() { boxDAC.loop(); }));
     boxRFID.onRun(ThreadCallbackHandler([&]() { boxRFID.loop(); }));
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
@@ -59,6 +74,7 @@ void Hackiebox::setup() {
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
  
+    boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
 }
 

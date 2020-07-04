@@ -25,25 +25,26 @@ typedef struct {
 
 typedef struct {
   char ssid[32];
-  char spacer1[32];
   char password[64];
-  char spacer2[64];
   
   bool dhcp;
   ConfigIP ip;
   ConfigIP subnet;
   ConfigIP dns;
-  char spacer3[16];
   
   char hostname[32];
-  char spacer4[128];
 } ConfigWifi;
+
+typedef struct {
+  bool sdLog;
+} ConfigLog;
 
 typedef struct {
   uint8_t version;
   ConfigBattery battery;
   ConfigButtonEars buttonEars;
   ConfigWifi wifi;
+  ConfigLog log;
 } ConfigStruct;
 
 #endif

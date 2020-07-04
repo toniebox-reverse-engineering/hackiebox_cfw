@@ -4,7 +4,6 @@
 void BoxAccelerometer::begin() {  
     pinMode(62, OUTPUT);
     digitalWrite(62, HIGH);
-    Wire.begin();
     
     setInterval(250);
     Log.info("Initialize Accelerometer...");

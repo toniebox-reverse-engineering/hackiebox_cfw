@@ -27,6 +27,7 @@ void BoxPower::loop() {
 
 void BoxPower::feedSleepTimer() {
     _lastFeed = millis();
+    Box.watchdog_feed();
     Log.verbose("Sleep timer reset, _lastFeed=%l, freeMEM=%i", _lastFeed, freeMemory());
 }
 
@@ -62,6 +63,15 @@ void BoxPower::setSdPower(bool power) {
 }
 void BoxPower::setOtherPower(bool power) {
     digitalWrite(61, power);
+
+    if (power) {
+        //RESET Chips
+        pinMode(62, OUTPUT);
+        digitalWrite(62, LOW);
+        delay(1);
+        digitalWrite(62, HIGH);
+        delay(10);
+    }
 }
 
 bool BoxPower::getSdPower() {

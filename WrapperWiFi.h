@@ -28,6 +28,8 @@ class WrapperWiFi : public EnhancedThread {
     void
       reconnect();
 
+    void apMode();
+
     WrapperWiFi::ConnectionState getStatus();
 
   private:

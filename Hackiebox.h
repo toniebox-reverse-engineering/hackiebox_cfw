@@ -13,8 +13,10 @@
 #include "BoxAccelerometer.h"
 #include "BoxBattery.h"
 #include "BoxButtonEars.h"
+#include "BoxCLI.h"
 #include "BoxDAC.h"
 #include "BoxEvents.h"
+#include "BoxI2C.h"
 #include "BoxLEDs.h"
 #include "BoxPower.h"
 #include "BoxRFID.h"
@@ -23,7 +25,9 @@
 #include "WrapperWiFi.h"
 #include "WrapperWebServer.h"
 
-#include "LogStream.h"
+#include "LogStreamMulti.h"
+#include "LogStreamSd.h"
+#include "LogStreamSse.h"
 
 class Hackiebox { 
     public:
@@ -44,7 +48,9 @@ class Hackiebox {
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
         BoxButtonEars boxEars; 
+        BoxCLI boxCLI; 
         BoxDAC boxDAC;
+        BoxI2C boxI2C;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
         BoxRFID boxRFID;
@@ -52,7 +58,9 @@ class Hackiebox {
         WrapperWiFi boxWiFi;
         WrapperWebServer webServer;
 
-        LogStream logStream;
+        LogStreamMulti logStreamMulti;
+        LogStreamSd logStreamSd;
+        LogStreamSse logStreamSse;
 
     private:/*
         typedef void (*fAPPWDTDevCallbk)();

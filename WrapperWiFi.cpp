@@ -26,6 +26,15 @@ WrapperWiFi::WrapperWiFi(const char* ssid, const char* password, const byte ip[4
 }
 
 void WrapperWiFi::begin() {
+  WiFiClass::WlanProfile profiles[8];
+  WiFi.getSavedProfiles(profiles);
+  
+  Log.info("Known WiFi Profiles:");
+  for (uint8_t i=0; i<7; i++) {
+    if (strlen(profiles[i].wifiName)>0)
+      Log.info(" -%i: Name=%s", i, profiles[i].wifiName);
+  }
+  
   reconnect();
 }
 
@@ -74,6 +83,10 @@ void WrapperWiFi::reconnect() { //TODO: LED Stuff
   WiFi.begin((char*)_ssid, (char*)_password); 
   _state = ConnectionState::WAIT_CONNECT;
   Events.handleWiFiEvent(_state);
+}
+
+void WrapperWiFi::apMode() {
+  WiFi.beginNetwork("Hackiebox-");
 }
 
 WrapperWiFi::ConnectionState WrapperWiFi::getStatus() {
