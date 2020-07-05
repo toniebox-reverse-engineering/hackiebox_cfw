@@ -45,6 +45,8 @@ class Hackiebox {
             watchdog_unfeed();
 
 
+        ThreadController threadController;
+        
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
         BoxButtonEars boxEars; 
@@ -68,7 +70,6 @@ class Hackiebox {
             watchdog_handler();*/
         
         bool _watchdog_fed;
-        ThreadController _threadController;
 };
 extern Hackiebox Box;
 

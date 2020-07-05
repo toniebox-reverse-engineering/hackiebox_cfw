@@ -47,16 +47,16 @@ void Hackiebox::setup() {
     webServer = WrapperWebServer();
     webServer.begin();
     
-    _threadController = ThreadController();
-    _threadController.add(&boxAccel);
-    _threadController.add(&boxBattery);
-    _threadController.add(&boxCLI);
-    _threadController.add(&boxRFID);
-    _threadController.add(&boxEars);
-    _threadController.add(&boxLEDs);
-    _threadController.add(&boxPower);
-    _threadController.add(&boxWiFi);
-    _threadController.add(&webServer);
+    threadController = ThreadController();
+    threadController.add(&boxAccel);
+    threadController.add(&boxBattery);
+    threadController.add(&boxCLI);
+    threadController.add(&boxRFID);
+    threadController.add(&boxEars);
+    threadController.add(&boxLEDs);
+    threadController.add(&boxPower);
+    threadController.add(&boxWiFi);
+    threadController.add(&webServer);
 
     Log.info("Config: %s", Config.getAsJson().c_str());
 
@@ -80,7 +80,7 @@ void Hackiebox::setup() {
 
 void Hackiebox::loop() {  
     watchdog_feed();
-    _threadController.run();
+    threadController.run();
     webServer.handle();
 }
 

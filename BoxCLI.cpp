@@ -33,6 +33,9 @@ void BoxCLI::begin() {
     cmdRFID.setDescription(" Access RFID");
     cmdRFID.addFlagArg("u/id");
     cmdRFID.addFlagArg("r/ead");
+    
+    cmdLoad = cli.addCmd("load");
+    cmdLoad.setDescription(" Shows the current load of all threads");
 
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
@@ -66,6 +69,8 @@ void BoxCLI::parse() {
             execBeep();
         } else if (lastCmd == cmdRFID) {
             execRFID();
+        } else if (lastCmd == cmdLoad) {
+            execLoad();
         }
     }
 
@@ -242,6 +247,17 @@ void BoxCLI::execRFID() {
         Box.boxRFID.logUID();
     } else {
         Log.error("Nothing to do...");
+    }
+}
+
+void BoxCLI::execLoad() {
+    //Command c = lastCmd;
+    Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
+    Log.println("---");
+    for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+        EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+        thread->logStats();
+        Log.println();
     }
 }
 
