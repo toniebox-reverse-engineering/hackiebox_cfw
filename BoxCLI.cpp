@@ -36,6 +36,8 @@ void BoxCLI::begin() {
     
     cmdLoad = cli.addCmd("load");
     cmdLoad.setDescription(" Shows the current load of all threads");
+    cmdLoad.addArg("n/ame", "");
+    cmdLoad.addArg("p/ointer", 0);
 
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
@@ -251,13 +253,40 @@ void BoxCLI::execRFID() {
 }
 
 void BoxCLI::execLoad() {
-    //Command c = lastCmd;
-    Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
-    Log.println("---");
-    for (uint8_t i = 0; i < Box.threadController.size(); i++) {
-        EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
-        thread->logStats();
-        Log.println();
+    Command c = lastCmd;
+
+    String name = c.getArg("name").getValue();
+    String pointerStr = c.getArg("pointer").getValue();
+    unsigned long pointer = parseNumber(pointerStr);
+
+    if (name != "") {
+        Log.info("Thread statistics for Threads starting with \"%s\"", name.c_str());
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            if (strncasecmp(name.c_str(), thread->ThreadName, name.length()) == 0) {
+                thread->logStats();
+                Log.println();
+            }
+        }
+    } else if (pointer > 0) {
+        Log.info("Thread statistics for Threads with pointer=%i", pointer);
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            if (pointer == thread->ThreadID) {
+                thread->logStats();
+                Log.println();
+            }
+        }
+    } else {
+        Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            thread->logStats();
+            Log.println();
+        }
     }
 }
 
