@@ -13,6 +13,9 @@ void BoxLEDs::begin() {
     _stateGreen = LED_PWM_MIN;
     _stateBlue = LED_PWM_MIN;
 }
+void BoxLEDs::defaultIdleAnimation() {
+    Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
+}
 
 void BoxLEDs::loop() {
     _timer.tick();

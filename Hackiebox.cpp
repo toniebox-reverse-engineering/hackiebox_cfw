@@ -74,7 +74,7 @@ void Hackiebox::setup() {
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
  
-    boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
+    boxLEDs.defaultIdleAnimation();
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
 }
 

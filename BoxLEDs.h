@@ -218,6 +218,7 @@ class BoxLEDs : public EnhancedThread {
             getGreen(),
             getBlue();
 
+        void defaultIdleAnimation();
         void setIntervalForAnimationType(ANIMATION_TYPE idleType);
         unsigned long getIntervalForAnimationType(ANIMATION_TYPE idleType);
         void setIdleAnimation(ANIMATION_TYPE animationType, CRGB::HTMLColorCode animationColor);
