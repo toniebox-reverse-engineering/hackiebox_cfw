@@ -81,7 +81,6 @@ void Hackiebox::setup() {
 void Hackiebox::loop() {  
     watchdog_feed();
     threadController.run();
-    webServer.handle();
 }
 
 bool Hackiebox::watchdog_isFed() {

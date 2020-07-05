@@ -20,14 +20,17 @@ void WrapperWebServer::begin() {
   _server->on("/api/upload/flash-file", HTTP_POST, [&](){ WrapperWebServer::handleUploadFlashFile(); });
   _server->begin();
 
-  setInterval(30*1000);
+  setInterval(1);
 }
 
 void WrapperWebServer::loop() {  
-  sseKeepAlive();
-}
-void WrapperWebServer::handle(void) {
   _server->handleClient();
+  
+  _sseTimer.tick();
+  if (!_sseTimer.isRunning()) {
+    sseKeepAlive();
+    _sseTimer.setTimer(30*1000);
+  }
 }
 
 void WrapperWebServer::handleUnknown(void) {

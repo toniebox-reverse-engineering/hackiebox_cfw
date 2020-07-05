@@ -4,6 +4,7 @@
 #include "BaseHeader.h"
 #include <WebServer.h>
 #include <EnhancedThread.h>
+#include "BoxTimer.h"
 
 #define SSE_MAX_CHANNELS 5 
 
@@ -18,8 +19,7 @@ class WrapperWebServer : public EnhancedThread {
         
     void
         begin(),
-        loop(),
-        handle(void);
+        loop();
     
     private:
         void
@@ -46,6 +46,7 @@ class WrapperWebServer : public EnhancedThread {
             commandGetFile(String* path, long read_start, long read_length, bool download),
             commandGetFlashFile(String* path, long read_start, long read_length);
 
+        BoxTimer _sseTimer;
         WebServer* _server;
         FileFs _uploadFile;
         bool _uploadFileOpen = false;
