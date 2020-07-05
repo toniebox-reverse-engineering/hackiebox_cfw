@@ -240,19 +240,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
     case BoxRFID::TAG_EVENT::TAG_PLACED:
         Log.info("Tag placed", event);
         Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
-        Log.info("RFID UID: ");
-        Log.print(" ");
-        for (uint8_t i = 0; i < 8; i++) {
-            uint8_t element = Box.boxRFID.tagUid[7-i];
-            if (element < 0x10) {
-                Log.printf("0%x", element);
-            } else {
-                Log.printf("%x", element);
-            }
-            if (i<7)
-                Log.print(":");
-        }
-        Log.println();
+        Box.boxRFID.logUID();
 
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:

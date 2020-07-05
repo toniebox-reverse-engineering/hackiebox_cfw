@@ -655,3 +655,19 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
   TRF_STATUS status = waitRxData(15, 15); //15, 5 vs. 15, 15 (longer timeout for set password)
   return status;
 }
+
+void BoxRFID::logUID() {
+  Log.info("RFID UID: ");
+  Log.print(" ");
+  for (uint8_t i = 0; i < 8; i++) {
+      uint8_t element = Box.boxRFID.tagUid[7-i];
+      if (element < 0x10) {
+          Log.printf("0%x", element);
+      } else {
+          Log.printf("%x", element);
+      }
+      if (i<7)
+          Log.print(":");
+  }
+  Log.println();
+}
