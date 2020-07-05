@@ -239,7 +239,7 @@ void WrapperWebServer::handleAjax(void) {
       }
     } else if (cmd.equals("box-rfid")) {
       String sub = _server->arg("sub");
-      if (sub.equals("stats")) {
+      if (sub.equals("uid")) {
         StaticJsonDocument<218> rfidStats; //Size from https://arduinojson.org/v6/assistant/
         uint8_t uid[24];
         Box.boxRFID.getUID(uid);
