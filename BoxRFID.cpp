@@ -656,18 +656,17 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
   return status;
 }
 
+void BoxRFID::getUID(uint8_t* uid) {
+  //size 24 (7 + 16 + 1)
+  sprintf(
+    (char*)uid,
+    "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+    tagUid[7], tagUid[6], tagUid[5], tagUid[4], tagUid[3], tagUid[2], tagUid[1], tagUid[0]
+  );
+}
+
 void BoxRFID::logUID() {
-  Log.info("RFID UID: ");
-  Log.print(" ");
-  for (uint8_t i = 0; i < 8; i++) {
-      uint8_t element = Box.boxRFID.tagUid[7-i];
-      if (element < 0x10) {
-          Log.printf("0%x", element);
-      } else {
-          Log.printf("%x", element);
-      }
-      if (i<7)
-          Log.print(":");
-  }
-  Log.println();
+  uint8_t uid[24];
+  getUID(uid);
+  Log.info("RFID UID: %s", uid);
 }

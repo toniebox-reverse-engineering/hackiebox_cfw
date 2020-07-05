@@ -26,6 +26,7 @@ class BoxRFID : public EnhancedThread {
         void receivedInterrupt();
 
         void logUID();
+        void getUID(uint8_t* uid);
         uint8_t tagUid[8];
         bool tagActive;
 
