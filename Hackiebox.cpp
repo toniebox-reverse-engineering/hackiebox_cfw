@@ -50,6 +50,7 @@ void Hackiebox::setup() {
     boxAccel.setName("Accelerometer");
     boxBattery.setName("Battery");
     boxCLI.setName("CLI");
+    boxDAC.setName("DAC");
     boxRFID.setName("RFID");
     boxEars.setName("Ears");
     boxLEDs.setName("LEDs");
@@ -61,6 +62,7 @@ void Hackiebox::setup() {
     threadController.add(&boxAccel);
     threadController.add(&boxBattery);
     threadController.add(&boxCLI);
+    threadController.add(&boxDAC);
     threadController.add(&boxRFID);
     threadController.add(&boxEars);
     threadController.add(&boxLEDs);

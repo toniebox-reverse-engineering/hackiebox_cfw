@@ -148,7 +148,12 @@ void BoxDAC::begin() {
     sam->Say(out, "I can't hear you!");
     delete sam;*/
 
+    setInterval(10);
+
     Log.info("...initialized");
+}
+
+void BoxDAC::loop() { 
 }
 
 void BoxDAC::beepTest() {
@@ -263,9 +268,6 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
 void BoxDAC::beep() {
     //beepRaw(0x30FC, 0x7642, 0x640);
     beepMidi(84, 1000, false);
-}
-
-void BoxDAC::loop() { 
 }
 
 bool BoxDAC::send(uint8_t target_register, uint8_t data) {
