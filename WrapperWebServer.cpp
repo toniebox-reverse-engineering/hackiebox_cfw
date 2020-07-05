@@ -237,6 +237,26 @@ void WrapperWebServer::handleAjax(void) {
         _server->send(200, "text/json", json);
         return;
       }
+    } else if (cmd.equals("box-rfid")) {
+      String sub = _server->arg("sub");
+      if (sub.equals("stats")) {
+        StaticJsonDocument<218> rfidStats; //Size from https://arduinojson.org/v6/assistant/
+        uint8_t uid[24];
+        Box.boxRFID.getUID(uid);
+
+        rfidStats["active"] = Box.boxRFID.tagActive;
+        rfidStats["uid"] = uid;
+        JsonArray uidRaw = rfidStats.createNestedArray("uidRaw");
+        for (uint8_t i = 0; i < 8; i++) {
+          uidRaw.add(Box.boxRFID.tagUid[i]);
+        }
+
+        size_t len = measureJson(rfidStats)+1;
+        char json[len];
+        serializeJson(rfidStats, json, len);
+        _server->send(200, "text/json", json);
+        return;
+      }
     } else if (cmd.equals("cli")) {
         _server->setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
         _server->sendContent("HTTP/1.1 200 OK\nContent-Type: text\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n");
