@@ -47,6 +47,16 @@ void Hackiebox::setup() {
     webServer = WrapperWebServer();
     webServer.begin();
     
+    boxAccel.setName("Accelerometer");
+    boxBattery.setName("Battery");
+    boxCLI.setName("CLI");
+    boxRFID.setName("RFID");
+    boxEars.setName("Ears");
+    boxLEDs.setName("LEDs");
+    boxPower.setName("Power");
+    boxWiFi.setName("WiFi");
+    webServer.setName("Webserver");
+
     threadController = ThreadController();
     threadController.add(&boxAccel);
     threadController.add(&boxBattery);
