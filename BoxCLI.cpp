@@ -1,6 +1,7 @@
 #include "BoxCLI.h"
 
 #include "Hackiebox.h"
+#include "BoxEvents.h"
 
 void BoxCLI::begin() {
     setInterval(50);
@@ -15,18 +16,23 @@ void BoxCLI::begin() {
     cmdI2C.addArg("l/ength", "1");
     cmdI2C.addArg("o/utput", "B");
 
-    cmdRFID = cli.addCmd("rfid");
-    cmdRFID.setDescription(" Access RFID SPI");
-    cmdRFID.addFlagArg("re/ad");
-    cmdRFID.addFlagArg("wr/ite");
-    cmdRFID.addFlagArg("c/md,co/mmand");
-    cmdRFID.addArg("r/egister", "0");
-    cmdRFID.addArg("v/alue", "0");
+    cmdSpiRFID = cli.addCmd("spi-rfid");
+    cmdSpiRFID.setDescription(" Access RFID SPI");
+    cmdSpiRFID.addFlagArg("re/ad");
+    cmdSpiRFID.addFlagArg("wr/ite");
+    cmdSpiRFID.addFlagArg("c/md,co/mmand");
+    cmdSpiRFID.addArg("r/egister", "0");
+    cmdSpiRFID.addArg("v/alue", "0");
 
     cmdBeep = cli.addCmd("beep");
     cmdBeep.setDescription(" Beep with build-in DAC synthesizer");
     cmdBeep.addArg("m/idi-id", "60");
     cmdBeep.addArg("l/ength", "200");
+
+    cmdRFID = cli.addCmd("rfid");
+    cmdRFID.setDescription(" Access RFID");
+    cmdRFID.addFlagArg("u/id");
+    cmdRFID.addFlagArg("r/ead");
 
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
@@ -54,10 +60,12 @@ void BoxCLI::parse() {
             Log.println(cli.toString().c_str());
         } else if (lastCmd == cmdI2C) {
             execI2C();
-        } else if (lastCmd == cmdRFID) {
-            execRFID();
+        } else if (lastCmd == cmdSpiRFID) {
+            execSpiRFID();
         } else if (lastCmd == cmdBeep) {
             execBeep();
+        } else if (lastCmd == cmdRFID) {
+            execRFID();
         }
     }
 
@@ -154,7 +162,7 @@ void BoxCLI::execI2C() {
     }
 }
 
-void BoxCLI::execRFID() {
+void BoxCLI::execSpiRFID() {
     Command c = lastCmd;
     unsigned long tmpNum;
 
@@ -213,6 +221,28 @@ void BoxCLI::execBeep() {
     uint16_t length = (uint16_t)tmpNum;
 
     Box.boxDAC.beepMidi(id, length);
+}
+
+void BoxCLI::execRFID() {
+    Command c = lastCmd;
+
+    if (c.getArg("read").isSet()) {
+        if (Box.boxRFID.tagActive) {
+            Box.boxRFID.tagActive = false;
+            Events.handleTagEvent(BoxRFID::TAG_EVENT::TAG_REMOVED);
+        }
+        Box.boxRFID.loop();
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place");
+        }
+    } else if (c.getArg("uid").isSet()) {
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place, last known is shown");
+        }
+        Box.boxRFID.logUID();
+    } else {
+        Log.error("Nothing to do...");
+    }
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {
