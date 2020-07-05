@@ -81,7 +81,10 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
             } else if (earId == BoxButtonEars::EarButton::SMALL) {
                 
             } else if (earId == BoxButtonEars::EarButton::BOTH) {
-                if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_DOWN) {
+                if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_UP) {
+                    Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PULSE, BoxLEDs::CRGB::Blue);
+                    Box.boxWiFi.apMode();
+                } else if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_DOWN) {
                     Box.boxPower.reset();
                 } else if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_FRONT) {
                     //Prepare Hibernation
@@ -229,4 +232,34 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
         break;
     }
     Log.info("Box' orientation changed to %s", orientText);
+}
+
+void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
+    switch (event) { 
+    case BoxRFID::TAG_EVENT::TAG_PLACED:
+        Log.info("Tag placed", event);
+        Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
+        Log.info("RFID UID: ");
+        Log.print(" ");
+        for (uint8_t i = 0; i < 8; i++) {
+            uint8_t element = Box.boxRFID.tagUid[7-i];
+            if (element < 0x10) {
+                Log.printf("0%x", element);
+            } else {
+                Log.printf("%x", element);
+            }
+            if (i<7)
+                Log.print(":");
+        }
+        Log.println();
+
+        break;
+    case BoxRFID::TAG_EVENT::TAG_REMOVED:
+        Log.info("Tag removed", event);
+        Box.boxLEDs.defaultIdleAnimation();
+        break;
+    default:
+        Log.error("Unknown TAG_EVENT=%X", event);
+        break;
+    }
 }

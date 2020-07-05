@@ -5,6 +5,7 @@
 #include "Hackiebox.h"
 #include "WrapperWiFi.h"
 #include "BoxPower.h"
+#include "BoxRFID.h"
 
 class BoxEvents {
     public:
@@ -13,7 +14,8 @@ class BoxEvents {
            EAR,
            WIFI,
            POWER,
-           ACCELEROMETER
+           ACCELEROMETER,
+           TAG
         };
 
         void
@@ -25,6 +27,7 @@ class BoxEvents {
         void handleWiFiEvent(WrapperWiFi::ConnectionState state);
         void handlePowerEvent(BoxPower::PowerEvent event);
         void handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient);
+        void handleTagEvent(BoxRFID::TAG_EVENT event);
 
     private:
 };

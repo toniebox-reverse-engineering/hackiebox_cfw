@@ -1,5 +1,6 @@
 #include "BoxRFID.h"
 #include "Hackiebox.h"
+#include "BoxEvents.h"
 
 void rfid_irq() {
   Box.boxRFID.receivedInterrupt();
@@ -34,8 +35,10 @@ void BoxRFID::loop() {
 
   if (tagActive) {
     result = ISO15693_getRandomSlixL(NULL);
-      if (result != ISO15693_RESULT::GET_RANDOM_VALID)
+      if (result != ISO15693_RESULT::GET_RANDOM_VALID) {
         tagActive = false;
+        Events.handleTagEvent(TAG_EVENT::TAG_REMOVED);
+      }
   } else {
     for (uint8_t i = 0; i < 3; i++) {
       result = ISO15693_setPassSlixL(0x04, knownPasswords[i]); //reversed!
@@ -56,14 +59,12 @@ void BoxRFID::loop() {
       reinitRFID();
       result = ISO15693_sendSingleSlotInventory(tagUid);
       if (result == ISO15693_RESULT::INVENTORY_VALID_RESPONSE) {
-        Log.info("RFID UID: ");
-        Log.print(" ");
-        for (uint8_t i = 0; i < 8; i++) {
-          Log.printf("%x ", tagUid[7-i]);
-        }
-        Log.println();
+        //TODO
+        tagActive = true;
+        Events.handleTagEvent(TAG_EVENT::TAG_PLACED);
+      } else {
+        tagActive = false;
       }
-      tagActive = true; 
     } else {
       tagActive = false;
       //Log.error("No tag? ISO15693_RESULT=%X", result);
@@ -396,7 +397,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid)
       Log.error("Error flag=%X while reading", trfStatus);
     }
 	} else {
-    //Log.error("Unexpected TRF_STATUS for inventory %X", trfStatus);
+    Log.error("Unexpected TRF_STATUS for inventory %X", trfStatus);
 	}
   return ISO15693_RESULT::INVENTORY_INVALID_RESPONSE; //TODO 
 }
