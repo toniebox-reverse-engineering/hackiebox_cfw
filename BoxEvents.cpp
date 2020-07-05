@@ -232,6 +232,7 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
         break;
     }
     Log.info("Box' orientation changed to %s", orientText);
+    Box.boxPower.feedSleepTimer();
 }
 
 void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
@@ -262,4 +263,5 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
         Log.error("Unknown TAG_EVENT=%X", event);
         break;
     }
+    Box.boxPower.feedSleepTimer();
 }
