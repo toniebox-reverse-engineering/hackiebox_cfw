@@ -1,17 +1,30 @@
 #include "BoxDAC.h"
 #include <Wire.h>
 
-#include "driverlib/prcm.h"
-#include "driverlib/i2s.h"
+#include <driverlib/prcm.h>
+#include <driverlib/i2s.h>
+#include <driverlib/udma.h>
+#include <driverlib/rom_map.h>
+#include <udma_if.h>
 
 #include "AudioOutputCC3200I2S.h"
 #include <ESP8266SAM.h>
 
 #include "Hackiebox.h"
 
+void dma_irq() {
+    Box.boxDAC.dmaPingPingComplete();
+}
+
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
     
+    pPlayBuffer = CreateCircularBuffer(PLAY_BUFFER_SIZE);
+    if (pPlayBuffer == NULL) {
+        Log.error("Unable to allocate memory for Tx buffer");
+        return;
+    }
+
     uint32_t clock; //(Num of bytes * STEREO * sampling)
     clock = 16*2*16000;
 
@@ -21,12 +34,44 @@ void BoxDAC::begin() {
 
     MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralReset(PRCM_I2S);
+
+    UDMAInit();
+    UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
+    
+    SetupTransfer(
+        UDMA_CH5_I2S_TX,
+        UDMA_MODE_PINGPONG,
+        I2S_PACKET_ELEMENTS,
+        UDMA_SIZE_16,
+        UDMA_ARB_8,
+        (void *)&aZeroBuffer[0],
+        UDMA_CHCTL_SRCINC_16,
+        (void *)I2S_TX_DMA_PORT,
+        UDMA_DST_INC_NONE
+    );
+    SetupTransfer(
+        UDMA_CH5_I2S_TX|UDMA_ALT_SELECT,
+        UDMA_MODE_PINGPONG,
+        I2S_PACKET_ELEMENTS,
+        UDMA_SIZE_16,
+        UDMA_ARB_8,
+        (void *)&aZeroBuffer[0],
+        UDMA_CHCTL_SRCINC_16,
+        (void *)I2S_TX_DMA_PORT,
+        UDMA_DST_INC_NONE
+    );
+
+
+    MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
+    MAP_I2SIntRegister(I2S_BASE, dma_irq);
+    MAP_I2STxFIFOEnable(I2S_BASE, 8, 1);
     MAP_PRCMI2SClockFreqSet(clock);
-    MAP_I2SConfigSetExpClk(I2S_BASE,clock,clock,I2S_SLOT_SIZE_16|I2S_PORT_DMA);
-    //MAP_I2SConfigSetExpClk(I2S_BASE,clock,clock,I2S_SLOT_SIZE_16|I2S_PORT_CPU);
-    MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_1,I2S_SER_MODE_RX, I2S_INACT_LOW_LEVEL);
-    MAP_I2SSerializerConfig(I2S_BASE,I2S_DATA_LINE_0,I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
+
+    MAP_I2SConfigSetExpClk(I2S_BASE, clock, clock, I2S_SLOT_SIZE_16|I2S_PORT_DMA);
+    MAP_I2SSerializerConfig(I2S_BASE, I2S_DATA_LINE_0, I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
+
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
+
 
     //Extracted from logic analyzer capture of box
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
@@ -148,12 +193,56 @@ void BoxDAC::begin() {
     sam->Say(out, "I can't hear you!");
     delete sam;*/
 
-    setInterval(10);
+    setInterval(1);
 
     Log.info("...initialized");
 }
 
 void BoxDAC::loop() { 
+    BoxTimer timeout;
+    timeout.setTimer(50);
+    while(timeout.isRunning()) {
+        if (!GetBufferEmptySize(pPlayBuffer)>4)  //Crashes when full?
+            break;
+
+        if (count % halfWavelength == 0) 
+            sample[0] = -1 * sample[0]; // invert the sample every half wavelength count multiple to generate square wave
+        
+        FillBuffer(pPlayBuffer, (unsigned char*)sample, 2);
+        FillBuffer(pPlayBuffer, (unsigned char*)sample, 2);
+        if (count % (halfWavelength*2) == 0) 
+            count = 0;
+        
+        count++;
+        timeout.tick();
+    }
+}
+
+void BoxDAC::dmaPingPingComplete() {
+    if (MAP_uDMAIntStatus() & 0x20) { //TX IRQ
+        unsigned long bufferSize = GetBufferSize(pPlayBuffer);
+        unsigned long size = bufferSize > I2S_PACKET_SIZE ? I2S_PACKET_SIZE : bufferSize;
+        unsigned long elements = size / 2;
+
+        if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT) == UDMA_MODE_STOP) {
+            if (bufferSize == 0) {
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)&aZeroBuffer[0], (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+            } else {
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, GetReadPtr(pPlayBuffer), (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+                UpdateReadPtr(pPlayBuffer, size);
+            }
+            MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
+        } if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT) == UDMA_MODE_STOP) {
+            if (GetBufferSize(pPlayBuffer) == 0) {
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)&aZeroBuffer[0], (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+            } else {
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, GetReadPtr(pPlayBuffer), (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+                UpdateReadPtr(pPlayBuffer, size);
+            }
+            MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT);
+        }
+        I2SIntClear(I2S_BASE, I2S_INT_XDMA);
+    }
 }
 
 void BoxDAC::beepTest() {

@@ -3,6 +3,7 @@
 
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
+#include "circ_buff.h"
 
 class BoxDAC : public EnhancedThread  { 
     public:
@@ -14,6 +15,21 @@ class BoxDAC : public EnhancedThread  {
         void beep();
         void beepMidi(uint8_t midiId, uint16_t lengthMs, bool async=false);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
+
+        void dmaPingPingComplete();
+        const static uint16_t I2S_PACKET_SIZE = 2 * 512; //TODO
+        const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
+        const static uint16_t PLAY_BUFFER_SIZE = 70*I2S_PACKET_SIZE; //TODO
+
+        unsigned char aZeroBuffer[I2S_PACKET_SIZE];
+        tCircularBuffer* pPlayBuffer;
+
+        const int frequency = 440; // frequency of square wave in Hz
+        const int amplitude = 500; // amplitude of square wave
+        const int sampleRate = 16000; // sample rate in Hz
+        const int halfWavelength = (sampleRate / frequency); // half wavelength of square wave
+        int16_t sample[1] { amplitude }; // current sample value
+        int count = 0;
     
     private:
         enum class PAGE {
