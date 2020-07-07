@@ -17,18 +17,21 @@ class BoxDAC : public EnhancedThread  {
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
 
         void dmaPingPingComplete();
-        const static uint16_t I2S_PACKET_SIZE = 2 * 512; //TODO
+        const static uint16_t I2S_PACKET_SIZE = 2 * 256; //TODO
         const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
-        const static uint16_t PLAY_BUFFER_SIZE = 70*I2S_PACKET_SIZE; //TODO
+        const static uint16_t PLAY_BUFFER_SIZE = 10*I2S_PACKET_SIZE; //TODO //70 in Example
 
         unsigned char aZeroBuffer[I2S_PACKET_SIZE];
         tCircularBuffer* pPlayBuffer;
+        const static uint16_t PLAY_WATERMARK = 30*1024;
+        unsigned int playWaterMark = 0;
 
         const int frequency = 440; // frequency of square wave in Hz
         const int amplitude = 500; // amplitude of square wave
         const int sampleRate = 16000; // sample rate in Hz
         const int halfWavelength = (sampleRate / frequency); // half wavelength of square wave
-        int16_t sample[1] { amplitude }; // current sample value
+        const int wavelength = (2*sampleRate / frequency); // half wavelength of square wave
+        int16_t sample[2] { amplitude, amplitude }; // current sample value
         int count = 0;
     
     private:
