@@ -60,9 +60,9 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
     if (pressType == BoxButtonEars::PressedType::PRESS) {
         if (pressLength == BoxButtonEars::PressedTime::SHORT) {
             if (earId == BoxButtonEars::EarButton::BIG) {
-                
+                Box.boxDAC.increaseVolume();
             } else if (earId == BoxButtonEars::EarButton::SMALL) {
-                
+                Box.boxDAC.decreaseVolume();
             } else if (earId == BoxButtonEars::EarButton::BOTH) {
                 
             }

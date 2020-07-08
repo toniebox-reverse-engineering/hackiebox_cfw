@@ -417,3 +417,44 @@ uint8_t BoxDAC::readByte(ADDR_P1_DAC_OUT source_register) {
 uint8_t BoxDAC::readByte(ADDR_P3_MCLK source_register) {
     return readByte((uint8_t)source_register);
 }
+
+bool BoxDAC::increaseVolume() {
+    if (current_volume < VOL_MAX) {
+        current_volume += VOL_STEP;
+        setVolume(current_volume);
+        beepRaw(0x278A, 0x79BD, 0x000140); //16kHz
+        //beepMidi(78,50,true);
+        return true;
+    } else {
+        beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
+        delay(50);
+        beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
+        //beepMidi(84,50,true);
+        Log.info("Maximum volume %X reached.", current_volume);
+    }
+    return false;
+}
+bool BoxDAC::decreaseVolume() {
+    if (current_volume > VOL_MIN) {
+        current_volume -= VOL_STEP;
+        setVolume(current_volume);
+        beepRaw(0x18F5, 0x7D87, 0x000140); //16kHz
+        //beepMidi(70, 50, true);
+        return true;
+    } else {
+        beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
+        delay(50);
+        beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
+        //beepMidi(62, 50, true);
+        Log.info("Minimal volume %X reached.", current_volume);
+    }
+    return false;
+}
+
+void BoxDAC::setVolume(uint8_t volume) {
+    send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
+    send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, volume);
+    send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, volume);
+    Log.info("Set volume to %X", volume);
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+}

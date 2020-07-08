@@ -33,6 +33,16 @@ class BoxDAC : public EnhancedThread  {
         const int wavelength = (2*sampleRate / frequency); // half wavelength of square wave
         int16_t sample[2] { amplitude, amplitude }; // current sample value
         int count = 0;
+
+        const static uint8_t VOL_MIN = 0x0A;
+        const static uint8_t VOL_MAX = 0xB0;
+        uint8_t VOL_STEP = 0x06;
+        uint8_t current_volume = VOL_MIN;
+        bool increaseVolume();
+        bool decreaseVolume();
+
+        void setVolume(uint8_t volume);
+
     
     private:
         enum class PAGE {
