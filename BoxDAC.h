@@ -15,6 +15,7 @@ class BoxDAC : public EnhancedThread  {
         void beep();
         void beepMidi(uint8_t midiId, uint16_t lengthMs, bool async=false);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
+        void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
 
         void dmaPingPingComplete();
         const static uint16_t I2S_PACKET_SIZE = 2 * 256; //TODO
@@ -34,14 +35,41 @@ class BoxDAC : public EnhancedThread  {
         int16_t sample[2] { amplitude, amplitude }; // current sample value
         int count = 0;
 
-        const static uint8_t VOL_MIN = 0x0A;
-        const static uint8_t VOL_MAX = 0xB0;
-        uint8_t VOL_STEP = 0x06;
+
+        const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
+        const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
+        const static uint8_t VOL_STEP = 0x06; //3dB
         uint8_t current_volume = VOL_MIN;
+
+        //const static uint8_t VOL_BEEP_MIN = 0x2A; //0x2A=-40dB /min allowed value 0x3F=-61dB
+        //const static uint8_t VOL_BEEP_MAX = 0x00; //0x00=+02dB /max allowed value 0x00=+02dB
+
+        //0x2A
+        //0x27
+        //0x24
+        //0x21
+        //0x1E
+        //0x1B
+        //0x18
+        //0x14
+        //0x11
+        //0x0E
+        //0x0B
+        //0x08
+        //0x05
+        //0x02
+        //0x00
+
+
+
+
         bool increaseVolume();
         bool decreaseVolume();
 
         void setVolume(uint8_t volume);
+        uint8_t convertDacVol2BeepVol(uint8_t dacVol);
+        void logVolume();
+        void logBeepVolume(uint8_t volume);
 
     
     private:
