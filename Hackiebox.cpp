@@ -95,7 +95,9 @@ void Hackiebox::setup() {
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
-    if (!inDelayTask && millis > 1) {
+    if (millis == 0)
+        return;
+    if (!inDelayTask) {
         inDelayTask = true;
         BoxTimer timer;
         timer.setTimer(millis);
