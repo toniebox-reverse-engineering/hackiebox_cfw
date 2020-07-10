@@ -316,6 +316,7 @@ void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length) {
       BoxTimer timer;
       timer.setTimer(5);
       while (!readInterrupt() && timer.isRunning()) {
+        Box.delayTask(1);
         timer.tick();
       }
       if (!timer.isRunning()) {
