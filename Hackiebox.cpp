@@ -8,7 +8,8 @@ void Hackiebox::setup() {
         watchdog_stop();
         //reset box?!
     }
-
+    
+    inDelayTask = true;
     logStreamMulti.setSlot(&logStreamSd, 0);
     logStreamMulti.setSlot(&logStreamSse, 1);
     Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamMulti);
@@ -88,6 +89,26 @@ void Hackiebox::setup() {
  
     boxLEDs.defaultIdleAnimation();
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
+    inDelayTask = false;
+}
+
+void Hackiebox::delayTask(uint16_t millis) {
+    if (!inDelayTask) {
+        inDelayTask = true;
+        BoxTimer timer;
+        timer.setTimer(millis);
+
+        //Work start
+        boxDAC.fillBuffer(millis);
+        //Work end
+
+        timer.tick();
+        delay(timer.getTimeTillEnd());
+        //Log.info("delayTask(%i), restDelay=%i", millis, timer.getTimeTillEnd());
+        inDelayTask = false;
+    } else {
+        delay(millis);
+    }
 }
 
 void Hackiebox::loop() {  

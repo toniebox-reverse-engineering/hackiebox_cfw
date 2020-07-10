@@ -44,6 +44,9 @@ class Hackiebox {
             watchdog_feed(),
             watchdog_unfeed();
 
+        bool inDelayTask;
+        void delayTask(uint16_t millis);
+
 
         ThreadController threadController;
         

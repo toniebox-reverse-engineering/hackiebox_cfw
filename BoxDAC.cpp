@@ -206,14 +206,17 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::loop() { 
-    fillBuffer(50);
+    fillBuffer(100);
 }
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
     timeout.setTimer(timeoutMs);
-    unsigned int bufferFree;
+    unsigned int bufferFree = GetBufferEmptySize(pPlayBuffer);
+    //if (bufferFree > PLAY_BUFFER_SIZE-(PLAY_BUFFER_SIZE/20))
+    //    Log.info("Playbuffer (nearly) empty (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
+    //if (bufferFree < 256)
+    //    Log.info("Playbuffer (nearly) full (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
-        bufferFree = GetBufferEmptySize(pPlayBuffer);
         if (bufferFree<4)  //Crashes when full?
             break;
         
@@ -229,9 +232,8 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
 
         count++;
         timeout.tick();
+        bufferFree = GetBufferEmptySize(pPlayBuffer);
     }
-    //if (bufferFree>4)
-    //    Log.info("bufferFree=%i", bufferFree);
 }
 
 void BoxDAC::dmaPingPingComplete() {
@@ -277,57 +279,57 @@ void BoxDAC::beepTest() {
     uint16_t pauseLen = 50;
     uint8_t baseNote = 48 + 1*12;
     beepMidi(baseNote, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+2, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+4, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+5, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, 2*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, 2*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, 4*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+9, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, 4*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+5, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+5, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+5, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+5, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+4, 2*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+4, 2*pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote+7, pauseLen);
-    delay(pauseLen);
+    Box.delayTask(pauseLen);
     beepMidi(baseNote, 4*pauseLen);
 }
 
@@ -435,7 +437,7 @@ bool BoxDAC::increaseVolume() {
         result =  true;
     } else {
         beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
-        delay(50);
+        Box.delayTask(50);
         beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
         //beepMidi(84,50,true);
         Log.info("Maximum volume reached.");
@@ -453,7 +455,7 @@ bool BoxDAC::decreaseVolume() {
         result = true;
     } else {
         beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
-        delay(50);
+        Box.delayTask(50);
         beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
         //beepMidi(62, 50, true);
         Log.info("Minimal volume reached.");

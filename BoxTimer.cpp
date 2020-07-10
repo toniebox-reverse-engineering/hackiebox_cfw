@@ -10,12 +10,18 @@ void BoxTimer::tick() {
     if (!_isRunning) {
         _hasChanged = false;
     } else {
-        unsigned long currentMillis = millis();
-        if (_endMillis <= currentMillis) {
+        _currentMillis = millis();
+        if (_endMillis <= _currentMillis) {
             _isRunning = false;
             _hasChanged = true;
         }
     }
+}
+
+unsigned long BoxTimer::getTimeTillEnd() {
+    if (!_isRunning)
+        return 0;
+    return _endMillis - _currentMillis;
 }
 
 bool BoxTimer::isRunning() { 

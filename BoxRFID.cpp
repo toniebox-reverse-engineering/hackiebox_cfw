@@ -29,7 +29,7 @@ void BoxRFID::loop() {
   // The VCD should wait at least 1 ms after it activated the
   // powering field before sending the first request, to
   // ensure that the VICCs are ready to receive it. (ISO15693-3)
-  delay(20); //not 1 ms?!
+  Box.delayTask(20); //not 1 ms?!
   ISO15693_RESULT result;
   uint32_t knownPasswords[3] = { 0x7FFD6E5B, 0x0F0F0F0F, 0x00000000 };
 
@@ -48,7 +48,7 @@ void BoxRFID::loop() {
       } else if (result == ISO15693_RESULT::SET_PASSWORD_INCORRECT) {
         Log.info("Password %X (i=%i) was incorrect", knownPasswords[i], i);
         writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
-        delay(20);
+        Box.delayTask(20);
         reinitRFID();
       } else {
         break;
@@ -496,7 +496,7 @@ void BoxRFID::reinitRFID() {
   trfRxLength = 0;
   trfStatus = TRF_STATUS::TRF_IDLE;
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  delay(20);
+  Box.delayTask(20);
 }
 
 uint8_t BoxRFID::readIrqRegister() {
@@ -548,6 +548,7 @@ void BoxRFID::waitTxIRQ(uint8_t txTimeout) {
     BoxTimer timer;
     timer.setTimer(txTimeout);
     while (!readInterrupt() && timer.isRunning()) {
+      Box.delayTask(1);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -571,6 +572,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
     BoxTimer timer;
     timer.setTimer(rxTimeout);
     while (!readInterrupt() && timer.isRunning()) {
+      Box.delayTask(1);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -581,6 +583,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
       clearInterrupt();
       timer.setTimer(5); //from firmware example
       while (!readInterrupt() && timer.isRunning()) {
+        Box.delayTask(1);
         timer.tick();
         }
       if (!timer.isRunning()) {
@@ -611,7 +614,7 @@ void BoxRFID::resetRFID() {
   //Log.info("resetRFID();");
   sendCommand(DIRECT_COMMANDS::SOFT_INIT);
   sendCommand(DIRECT_COMMANDS::IDLING);
-  delay(1);
+  Box.delayTask(1);
   clearInterrupt();
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   trfOffset = 0;
