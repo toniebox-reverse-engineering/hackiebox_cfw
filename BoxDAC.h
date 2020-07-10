@@ -11,6 +11,8 @@ class BoxDAC : public EnhancedThread  {
             begin(),
             loop();
 
+        void fillBuffer(uint16_t timeoutMs);
+
         void beepTest();
         void beep();
         void beepMidi(uint8_t midiId, uint16_t lengthMs, bool async=false);

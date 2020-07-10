@@ -206,8 +206,11 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::loop() { 
+    fillBuffer(50);
+}
+void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
-    timeout.setTimer(50);
+    timeout.setTimer(timeoutMs);
     unsigned int bufferFree;
     while(timeout.isRunning()) {
         bufferFree = GetBufferEmptySize(pPlayBuffer);
