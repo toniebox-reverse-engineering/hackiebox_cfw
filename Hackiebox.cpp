@@ -91,7 +91,7 @@ void Hackiebox::setup() {
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
     inDelayTask = false;
 
-    boxDAC.i2sStartMillis = millis();
+    boxDAC.i2sStartMicros = micros();
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
