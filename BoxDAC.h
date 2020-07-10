@@ -36,6 +36,8 @@ class BoxDAC : public EnhancedThread  {
         const int wavelength = (2*sampleRate / frequency); // half wavelength of square wave
         int16_t sample[2] { amplitude, amplitude }; // current sample value
         int count = 0;
+        unsigned long i2sElmCount = 0;
+        unsigned long i2sStartMillis = 0;
 
 
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB

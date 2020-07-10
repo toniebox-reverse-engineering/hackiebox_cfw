@@ -90,10 +90,12 @@ void Hackiebox::setup() {
     boxLEDs.defaultIdleAnimation();
     Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
     inDelayTask = false;
+
+    boxDAC.i2sStartMillis = millis();
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
-    if (!inDelayTask) {
+    if (!inDelayTask && millis > 1) {
         inDelayTask = true;
         BoxTimer timer;
         timer.setTimer(millis);

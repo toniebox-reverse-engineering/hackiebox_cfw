@@ -212,9 +212,12 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
     timeout.setTimer(timeoutMs);
     unsigned int bufferFree = GetBufferEmptySize(pPlayBuffer);
-    if (bufferFree > PLAY_BUFFER_SIZE-256)
+    if (bufferFree > PLAY_BUFFER_SIZE-64) {
     //if (bufferFree > PLAY_BUFFER_SIZE-(PLAY_BUFFER_SIZE/20))
-        Log.info("Playbuffer (nearly) empty (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
+        Log.info("Playbuffer (nearly) empty (%i/%i), SampleRate=%iHz", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE, (i2sElmCount/((millis()-i2sStartMillis)/1000)));
+        i2sElmCount = 0;
+        i2sStartMillis = millis();
+    }
     //if (bufferFree < 256)
     //    Log.info("Playbuffer (nearly) full (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
@@ -232,8 +235,9 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             count = 0;
 
         count++;
-        timeout.tick();
+        i2sElmCount++;
         bufferFree = GetBufferEmptySize(pPlayBuffer);
+        timeout.tick();
     }
 }
 
