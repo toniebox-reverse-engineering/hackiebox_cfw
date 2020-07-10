@@ -363,7 +363,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
     
     //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider - Page 41 (but makes glitches?!)
 
-    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optinal
+    send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optional
     
 }
 void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
