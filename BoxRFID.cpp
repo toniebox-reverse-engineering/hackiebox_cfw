@@ -316,7 +316,7 @@ void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length) {
       BoxTimer timer;
       timer.setTimer(5);
       while (!readInterrupt() && timer.isRunning()) {
-        Box.delayTask(1);
+        Box.delayTask(0);
         timer.tick();
       }
       if (!timer.isRunning()) {
@@ -549,7 +549,7 @@ void BoxRFID::waitTxIRQ(uint8_t txTimeout) {
     BoxTimer timer;
     timer.setTimer(txTimeout);
     while (!readInterrupt() && timer.isRunning()) {
-      Box.delayTask(1);
+      Box.delayTask(0);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -573,7 +573,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
     BoxTimer timer;
     timer.setTimer(rxTimeout);
     while (!readInterrupt() && timer.isRunning()) {
-      Box.delayTask(1);
+      Box.delayTask(0);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -584,7 +584,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
       clearInterrupt();
       timer.setTimer(5); //from firmware example
       while (!readInterrupt() && timer.isRunning()) {
-        Box.delayTask(1);
+        Box.delayTask(0);
         timer.tick();
         }
       if (!timer.isRunning()) {
