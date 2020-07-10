@@ -206,14 +206,15 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::loop() { 
-    fillBuffer(100);
+    fillBuffer(25);
 }
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
     timeout.setTimer(timeoutMs);
     unsigned int bufferFree = GetBufferEmptySize(pPlayBuffer);
+    if (bufferFree > PLAY_BUFFER_SIZE-256)
     //if (bufferFree > PLAY_BUFFER_SIZE-(PLAY_BUFFER_SIZE/20))
-    //    Log.info("Playbuffer (nearly) empty (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
+        Log.info("Playbuffer (nearly) empty (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
     //if (bufferFree < 256)
     //    Log.info("Playbuffer (nearly) full (%i/%i)", PLAY_BUFFER_SIZE-bufferFree, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
@@ -345,8 +346,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optional
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
     while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
-    
-    send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider
+    //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider - Page 41 (but makes glitches?!)
 
     send(ADDR_P0_SERIAL::BEEP_LEN_MSB, (length>>16)&0xFF);
     send(ADDR_P0_SERIAL::BEEP_LEN_MID, (length>>8)&0xFF);
@@ -361,7 +361,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
     send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x80);
     send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80|(volume&0x3F)); //enable beep generator with right channel volume,
     
-    send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider
+    //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider - Page 41 (but makes glitches?!)
 
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optinal
     
