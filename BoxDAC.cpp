@@ -230,8 +230,8 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
         count++;
         timeout.tick();
     }
-    if (bufferFree>4)
-        Log.info("bufferFree=%i", bufferFree);
+    //if (bufferFree>4)
+    //    Log.info("bufferFree=%i", bufferFree);
 }
 
 void BoxDAC::dmaPingPingComplete() {
