@@ -214,7 +214,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     unsigned int bufferFree;
     while(timeout.isRunning()) {
         bufferFree = GetBufferEmptySize(pPlayBuffer);
-        if (bufferFree<=4)  //Crashes when full?
+        if (bufferFree<4)  //Crashes when full?
             break;
         
         if (count % halfWavelength == 0) {
