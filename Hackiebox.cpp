@@ -13,7 +13,8 @@ void Hackiebox::setup() {
     logStreamMulti.setSlot(&logStreamSd, 0);
     logStreamMulti.setSlot(&logStreamSse, 1);
     Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamMulti);
-    Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
+    Log.info("Booting Hackiebox...");
+    Box.boxPower.feedSleepTimer();
 
     Wire.begin();
     
