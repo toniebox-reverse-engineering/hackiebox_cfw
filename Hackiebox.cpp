@@ -117,7 +117,7 @@ void Hackiebox::delayTask(uint16_t millis) {
     }
 }
 
-void Hackiebox::loop() {  
+void Hackiebox::loop() {
     watchdog_feed();
     threadController.run();
 }
