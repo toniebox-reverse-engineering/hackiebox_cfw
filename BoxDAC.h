@@ -24,11 +24,28 @@ class BoxDAC : public EnhancedThread  {
         const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
         const static uint16_t PLAY_BUFFER_SIZE = 32*I2S_PACKET_SIZE; //TODO //70 in Example
 
-        unsigned char aZeroBuffer[I2S_PACKET_SIZE];
+        unsigned char aZeroBuffer[I2S_PACKET_SIZE+1];
+        //const static uint16_t PLAY_WATERMARK = 30*1024;
+        //unsigned int playWaterMark = 0;
         tCircularBuffer* pPlayBuffer;
-        const static uint16_t PLAY_WATERMARK = 30*1024;
-        unsigned int playWaterMark = 0;
+        unsigned long dmaIRQcount = 0;
+        unsigned long lastDmaIRQcount = 0xFFFF;
+        bool ready = false;
 
+        unsigned long ulPrimaryIndexRxFilled = 0;
+        unsigned long lastUlPrimaryIndexRxFilled = 0xFFFF;
+        unsigned long ulPrimaryIndexRxEmpty = 0;
+        unsigned long lastUlPrimaryIndexRxEmpty = 0xFFFF;
+
+        unsigned long ulAltIndexRxFilled = 0;
+        unsigned long lastUlAltIndexRxFilled = 0xFFFF;
+        unsigned long ulAltIndexRxEmpty = 0;
+        unsigned long lastUlAltIndexRxEmpty = 0xFFFF;
+
+        unsigned long dmaBufferFilled = 0;
+        unsigned long lastDmaBufferFilled = 0xFFFF;
+
+        
         const int frequency = 440; // frequency of square wave in Hz
         const int amplitude = 500; // amplitude of square wave
         const int sampleRate = 16000; // sample rate in Hz
@@ -153,6 +170,8 @@ class BoxDAC : public EnhancedThread  {
             readByte(ADDR_P0_SERIAL source_register),
             readByte(ADDR_P1_DAC_OUT source_register),
             readByte(ADDR_P3_MCLK source_register);
+
+        void initDACI2C();
 
         uint32_t frequencyTable[128] = {
             818, 
