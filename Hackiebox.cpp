@@ -88,7 +88,8 @@ void Hackiebox::setup() {
     boxBattery._batteryTestThread.enabled = false;
  
     boxLEDs.defaultIdleAnimation();
-    Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
+    Log.info("Hackiebox started!");
+    Box.boxPower.feedSleepTimer();
     inDelayTask = false;
 
     boxDAC.i2sStartMicros = micros();
