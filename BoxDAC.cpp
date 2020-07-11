@@ -28,8 +28,10 @@ void dma_irq() {
 
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
-    
-    pPlayBuffer = CreateCircularBuffer(PLAY_BUFFER_SIZE);
+    pPlayBuffer = &playBuffer;
+    InitCircularBuffer(pPlayBuffer, dataBuffer, PLAY_BUFFER_SIZE);
+    //pPlayBuffer = CreateCircularBuffer(PLAY_BUFFER_SIZE);
+
     if (pPlayBuffer == NULL) {
         Log.error("Unable to allocate memory for Tx buffer");
         return;

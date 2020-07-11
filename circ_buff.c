@@ -80,6 +80,16 @@ CreateCircularBuffer(unsigned long ulBufferSize)
     return(pTempBuff);
 }
 
+void InitCircularBuffer(tCircularBuffer* circBuffer, unsigned char* dataBuffer, unsigned long dataBufferSize) {
+    tCircularBuffer *pTempBuff = circBuffer;
+
+    pTempBuff->pucBufferStartPtr = dataBuffer;
+    pTempBuff->pucReadPtr = pTempBuff->pucBufferStartPtr;
+    pTempBuff->pucWritePtr = pTempBuff->pucBufferStartPtr;
+    pTempBuff->ulBufferSize = dataBufferSize;
+    pTempBuff->pucBufferEndPtr = (pTempBuff->pucBufferStartPtr + dataBufferSize);
+}
+
 //*****************************************************************************
 //
 //! Creating and Initializing the Circular Buffer

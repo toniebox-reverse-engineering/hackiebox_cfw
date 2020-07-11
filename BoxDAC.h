@@ -28,6 +28,8 @@ class BoxDAC : public EnhancedThread  {
         //const static uint16_t PLAY_WATERMARK = 30*1024;
         //unsigned int playWaterMark = 0;
         tCircularBuffer* pPlayBuffer;
+        tCircularBuffer playBuffer;
+        unsigned char dataBuffer[PLAY_BUFFER_SIZE];
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
         bool ready = false;
