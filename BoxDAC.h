@@ -22,14 +22,14 @@ class BoxDAC : public EnhancedThread  {
         void dmaPingPingComplete();
         const static uint16_t I2S_PACKET_SIZE = 2 * 256; //TODO
         const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
-        const static uint16_t PLAY_BUFFER_SIZE = 32*I2S_PACKET_SIZE; //TODO //70 in Example
+        const static uint16_t PLAY_BUFFER_SIZE = 32*I2S_PACKET_SIZE; //0x4000
 
         unsigned char aZeroBuffer[I2S_PACKET_SIZE+1];
         //const static uint16_t PLAY_WATERMARK = 30*1024;
         //unsigned int playWaterMark = 0;
         tCircularBuffer* pPlayBuffer;
         tCircularBuffer playBuffer;
-        unsigned char dataBuffer[PLAY_BUFFER_SIZE];
+        unsigned char* dataBuffer = (unsigned char*)0x20000000; //lower memory up to 0x4000 length;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
         bool ready = false;
