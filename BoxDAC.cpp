@@ -14,12 +14,13 @@
 
 
 void logCircBuf(CircularBuffer* buffer) {
-    Log.info("Log *CircBuf=%i", buffer);
-    Log.info(" *pucReadPtr=%i", buffer->pucReadPtr);
-    Log.info(" *pucWritePtr=%i", buffer->pucWritePtr);
-    Log.info(" *pucBufferStartPtr=%i", buffer->pucBufferStartPtr);
-    Log.info(" ulBufferSize=%i", buffer->ulBufferSize);
-    Log.info(" *pucBufferEndPtr=%i", buffer->pucBufferEndPtr);
+    Log.info("Log *CircBuf=%X", buffer);
+    Log.info(" *pucBufferStartPtr=%X", buffer->pucBufferStartPtr);
+    Log.info(" *pucBufferEndPtr=%X", buffer->pucBufferEndPtr);
+    Log.info(" *pucReadPtr=%X", buffer->pucReadPtr - buffer->pucBufferStartPtr);
+    Log.info(" *pucWritePtr=%X", buffer->pucWritePtr - buffer->pucBufferStartPtr);
+    Log.info(" *GetBufferSize()=%X", GetBufferSize(buffer));
+    Log.info(" ulBufferSize=%X", buffer->ulBufferSize);
 }
 
 void dma_irq() {
@@ -36,7 +37,7 @@ void BoxDAC::begin() {
         Log.error("Unable to allocate memory for Tx buffer");
         return;
     }
-    Log.info("pPlayBuffer=%i", pPlayBuffer);
+    Log.info("pPlayBuffer=%X", pPlayBuffer);
 
     uint32_t clock; //(Num of bytes * STEREO * sampling)
     clock = 16*2*16000;
@@ -52,6 +53,8 @@ void BoxDAC::begin() {
     initDACI2C();
 
     Log.info("DMA");
+    fillBuffer(100);
+    logCircBuf(pPlayBuffer);
 
     UDMAInit();
     UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
@@ -62,7 +65,7 @@ void BoxDAC::begin() {
         I2S_PACKET_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
-        (void *)&aZeroBuffer[0],
+        (void *)aZeroBuffer,
         UDMA_CHCTL_SRCINC_16,
         (void *)I2S_TX_DMA_PORT,
         UDMA_DST_INC_NONE
@@ -73,7 +76,7 @@ void BoxDAC::begin() {
         I2S_PACKET_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
-        (void *)&aZeroBuffer[0],
+        (void *)aZeroBuffer,
         UDMA_CHCTL_SRCINC_16,
         (void *)I2S_TX_DMA_PORT,
         UDMA_DST_INC_NONE
@@ -161,7 +164,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     //    Log.info("Playbuffer (nearly) full (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     //Log.info("Playbuffer (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
-        if (GetBufferEmptySize(pPlayBuffer)<4) //Crashes when full?
+        if (GetBufferEmptySize(pPlayBuffer)<=4) //sic! Circual Buffer must not be full!
             break;
         
         if (count % halfWavelength == 0) {
@@ -187,6 +190,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
 }
 
 void BoxDAC::dmaPingPingComplete() {
+    unsigned long intStatus = MAP_uDMAIntStatus();
     tCircularBuffer *buffer = Box.boxDAC.pPlayBuffer;
 
     unsigned int bufferFilled = GetBufferSize(buffer);
@@ -194,7 +198,7 @@ void BoxDAC::dmaPingPingComplete() {
         dmaBufferFilled++;
     
     dmaIRQcount++;
-    if (MAP_uDMAIntStatus() & 0x20) { //TX IRQ I2S_INT_XDMA?
+    if (intStatus & 0x20) { //TX IRQ I2S_INT_XDMA?
 
         tDMAControlTable *pControlTable;
         pControlTable = (tDMAControlTable*)MAP_uDMAControlBaseGet();
@@ -214,7 +218,7 @@ void BoxDAC::dmaPingPingComplete() {
             } else {
                 ulPrimaryIndexRxFilled++;
                 MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)GetReadPtr(buffer), (void *)I2S_TX_DMA_PORT, elements);
-                UpdateReadPtr(buffer, I2S_PACKET_SIZE);
+                UpdateReadPtr(buffer, size);
             }
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         } else if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT) == UDMA_MODE_STOP) {
@@ -225,11 +229,13 @@ void BoxDAC::dmaPingPingComplete() {
             } else {
                 ulAltIndexRxFilled++;
                 MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)GetReadPtr(buffer), (void *)I2S_TX_DMA_PORT, elements);
-                UpdateReadPtr(buffer, I2S_PACKET_SIZE);
+                UpdateReadPtr(buffer, size);
             }
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT);
         }
         MAP_I2SIntClear(I2S_BASE, I2S_INT_XDMA);
+    } else {
+        Log.error("Unintended intStatus=%X, buffer=%X, Box.boxDAC.pPlayBuffer=%X", intStatus, buffer, Box.boxDAC.pPlayBuffer);
     }
 }
 
