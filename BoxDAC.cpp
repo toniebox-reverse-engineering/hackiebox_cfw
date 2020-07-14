@@ -13,7 +13,33 @@
 #include "Hackiebox.h"
 
 
-void logCircBuf(CircularBuffer* buffer) {
+void BoxDAC::logDmaIrqChanges() {
+    if (lastDmaIRQcount != dmaIRQcount) {
+        Log.info("***dmaIRQcount=%i", dmaIRQcount);
+        lastDmaIRQcount = dmaIRQcount;
+    }
+    if (lastUlPrimaryIndexRxEmpty != ulPrimaryIndexRxEmpty) {
+        Log.info("***ulPrimaryIndexRxEmpty=%i", ulPrimaryIndexRxEmpty);
+        lastUlPrimaryIndexRxEmpty = ulPrimaryIndexRxEmpty;
+    }
+    if (lastUlPrimaryIndexRxFilled != ulPrimaryIndexRxFilled) {
+        Log.info("***ulPrimaryIndexRxFilled=%i", ulPrimaryIndexRxFilled);
+        lastUlPrimaryIndexRxFilled = ulPrimaryIndexRxFilled;
+    }
+    if (lastUlAltIndexRxEmpty != ulAltIndexRxEmpty) {
+        Log.info("***ulAltIndexRxEmpty=%i", ulAltIndexRxEmpty);
+        lastUlAltIndexRxEmpty = ulAltIndexRxEmpty;
+    }
+    if (lastUlAltIndexRxFilled != ulAltIndexRxFilled) {
+        Log.info("***ulAltIndexRxFilled=%i", ulAltIndexRxFilled);
+        lastUlAltIndexRxFilled = ulAltIndexRxFilled;
+    }
+    if (lastDmaBufferFilled != dmaBufferFilled) {
+        Log.info("***dmaBufferFilled=%i", dmaBufferFilled);
+        lastDmaBufferFilled = dmaBufferFilled;
+    }
+}
+void BoxDAC::logCircBuf(CircularBuffer* buffer) {
     Log.info("Log *CircBuf=%X", buffer);
     Log.info(" *pucBufferStartPtr=%X", buffer->pucBufferStartPtr);
     Log.info(" *pucBufferEndPtr=%X", buffer->pucBufferEndPtr);
@@ -93,6 +119,8 @@ void BoxDAC::begin() {
     MAP_I2SSerializerConfig(I2S_BASE, I2S_DATA_LINE_0, I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
 
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
+    fillBuffer(100);
+    logCircBuf(pPlayBuffer);
 
     /*
     for (uint32_t i = 0; i<5; i++) {
@@ -123,31 +151,7 @@ void BoxDAC::begin() {
 
 void BoxDAC::loop() { 
     fillBuffer(25);
-
-    if (lastDmaIRQcount != dmaIRQcount) {
-        Log.info("***dmaIRQcount=%i", dmaIRQcount);
-        lastDmaIRQcount = dmaIRQcount;
-    }
-    if (lastUlPrimaryIndexRxEmpty != ulPrimaryIndexRxEmpty) {
-        Log.info("***ulPrimaryIndexRxEmpty=%i", ulPrimaryIndexRxEmpty);
-        lastUlPrimaryIndexRxEmpty = ulPrimaryIndexRxEmpty;
-    }
-    if (lastUlPrimaryIndexRxFilled != ulPrimaryIndexRxFilled) {
-        Log.info("***ulPrimaryIndexRxFilled=%i", ulPrimaryIndexRxFilled);
-        lastUlPrimaryIndexRxFilled = ulPrimaryIndexRxFilled;
-    }
-    if (lastUlAltIndexRxEmpty != ulAltIndexRxEmpty) {
-        Log.info("***ulAltIndexRxEmpty=%i", ulAltIndexRxEmpty);
-        lastUlAltIndexRxEmpty = ulAltIndexRxEmpty;
-    }
-    if (lastUlAltIndexRxFilled != ulAltIndexRxFilled) {
-        Log.info("***ulAltIndexRxFilled=%i", ulAltIndexRxFilled);
-        lastUlAltIndexRxFilled = ulAltIndexRxFilled;
-    }
-    if (lastDmaBufferFilled != dmaBufferFilled) {
-        Log.info("***dmaBufferFilled=%i", dmaBufferFilled);
-        lastDmaBufferFilled = dmaBufferFilled;
-    }
+    //logDmaIrqChanges();
 }
 
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {

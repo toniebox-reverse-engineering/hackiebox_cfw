@@ -47,6 +47,9 @@ class BoxDAC : public EnhancedThread  {
         unsigned long dmaBufferFilled = 0;
         unsigned long lastDmaBufferFilled = 0xFFFF;
 
+        void logCircBuf(CircularBuffer* buffer);
+        void logDmaIrqChanges();
+
         
         const int frequency = 440; // frequency of square wave in Hz
         const int amplitude = 500; // amplitude of square wave
