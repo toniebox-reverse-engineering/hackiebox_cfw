@@ -93,6 +93,9 @@ void Hackiebox::setup() {
     Box.boxPower.feedSleepTimer();
     inDelayTask = false;
 
+    boxDAC.begin();
+    //Workaround, as something seems to interfere / remove the irq.
+    //But box now crashes!
     boxDAC.i2sStartMicros = micros();
 }
 
