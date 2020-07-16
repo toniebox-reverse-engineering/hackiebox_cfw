@@ -38,7 +38,7 @@ void Hackiebox::setup() {
     boxLEDs.setAll(BoxLEDs::CRGB::Pink);
     boxRFID.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::Teal);
-    boxDAC.begin();
+    //boxDAC.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::Fuchsia);
     
     boxCLI.begin();

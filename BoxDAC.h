@@ -3,7 +3,8 @@
 
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
-#include "circ_buff.h"
+//#include "circ_buff.h"
+#include "BoxAudioBuffer.h"
 
 class BoxDAC : public EnhancedThread  { 
     public:
@@ -24,12 +25,13 @@ class BoxDAC : public EnhancedThread  {
         const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
         const static uint16_t PLAY_BUFFER_SIZE = 32*I2S_PACKET_SIZE; //0x4000
 
-        unsigned char aZeroBuffer[I2S_PACKET_SIZE+1];
+        uint8_t* aZeroBuffer[I2S_PACKET_SIZE] {};
         //const static uint16_t PLAY_WATERMARK = 30*1024;
         //unsigned int playWaterMark = 0;
-        tCircularBuffer* pPlayBuffer;
-        tCircularBuffer playBuffer;
-        unsigned char* dataBuffer = (unsigned char*)0x20000000; //lower memory up to 0x4000 length;
+        //tCircularBuffer* pPlayBuffer;
+        //tCircularBuffer playBuffer;
+        BoxAudioBuffer audioBuffer;
+        uint8_t* dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
         bool ready = false;
@@ -47,7 +49,7 @@ class BoxDAC : public EnhancedThread  {
         unsigned long dmaBufferFilled = 0;
         unsigned long lastDmaBufferFilled = 0xFFFF;
 
-        void logCircBuf(CircularBuffer* buffer);
+        void logAudioBuffer();
         void logDmaIrqChanges();
 
         

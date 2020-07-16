@@ -39,14 +39,16 @@ void BoxDAC::logDmaIrqChanges() {
         lastDmaBufferFilled = dmaBufferFilled;
     }
 }
-void BoxDAC::logCircBuf(CircularBuffer* buffer) {
-    Log.info("Log *CircBuf=%X", buffer);
+
+void BoxDAC::logAudioBuffer() {/*
+    Log.info("Log audioBuffer=%X", audioBuffer);
+    Log.info(" dataBuffer=%X", dataBuffer);
     Log.info(" *pucBufferStartPtr=%X", buffer->pucBufferStartPtr);
     Log.info(" *pucBufferEndPtr=%X", buffer->pucBufferEndPtr);
     Log.info(" *pucReadPtr=%X", buffer->pucReadPtr - buffer->pucBufferStartPtr);
     Log.info(" *pucWritePtr=%X", buffer->pucWritePtr - buffer->pucBufferStartPtr);
-    Log.info(" *GetBufferSize()=%X", GetBufferSize(buffer));
-    Log.info(" ulBufferSize=%X", buffer->ulBufferSize);
+    Log.info(" *GetBufferSize()=%X", GetBufferBlockSize(buffer));
+    Log.info(" ulBufferSize=%X", buffer->ulBufferSize);*/
 }
 
 void dma_irq() {
@@ -55,15 +57,8 @@ void dma_irq() {
 
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
-    pPlayBuffer = &playBuffer;
-    InitCircularBuffer(pPlayBuffer, dataBuffer, PLAY_BUFFER_SIZE);
-    //pPlayBuffer = CreateCircularBuffer(PLAY_BUFFER_SIZE);
-
-    if (pPlayBuffer == NULL) {
-        Log.error("Unable to allocate memory for Tx buffer");
-        return;
-    }
-    Log.info("pPlayBuffer=%X", pPlayBuffer);
+    audioBuffer.init(dataBuffer, PLAY_BUFFER_SIZE);
+    fillBuffer(25);
 
     uint32_t clock; //(Num of bytes * STEREO * sampling)
     clock = 16*2*16000;
@@ -79,8 +74,7 @@ void BoxDAC::begin() {
     initDACI2C();
 
     Log.info("DMA");
-    fillBuffer(100);
-    logCircBuf(pPlayBuffer);
+    logAudioBuffer();
 
     UDMAInit();
     UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
@@ -119,8 +113,7 @@ void BoxDAC::begin() {
     MAP_I2SSerializerConfig(I2S_BASE, I2S_DATA_LINE_0, I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
 
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
-    fillBuffer(100);
-    logCircBuf(pPlayBuffer);
+    
 
     /*
     for (uint32_t i = 0; i<5; i++) {
@@ -157,10 +150,10 @@ void BoxDAC::loop() {
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
     timeout.setTimer(timeoutMs);
-    unsigned int bufferFilled = GetBufferSize(pPlayBuffer);
-    if (bufferFilled < I2S_PACKET_SIZE) {
+    uint16_t bytesReadable = audioBuffer.getBytesReadable();
+    if (bytesReadable < I2S_PACKET_SIZE) {
     //if (bufferFree > PLAY_BUFFER_SIZE-(PLAY_BUFFER_SIZE/20))
-        Log.info("Playbuffer (nearly) empty (%i/%i), SampleRate=%iHz, BufferEmpty=%T", bufferFilled, PLAY_BUFFER_SIZE, (i2sElmCount/((micros()-i2sStartMicros)/(1000*1000))), IsBufferEmpty(pPlayBuffer));
+        Log.info("Playbuffer (nearly) empty (%i/%i), SampleRate=%iHz, BufferEmpty=%T, BufferFull=%T", bytesReadable, PLAY_BUFFER_SIZE, (i2sElmCount/((micros()-i2sStartMicros)/(1000*1000))), audioBuffer.isEmpty(), audioBuffer.isFull());
         i2sElmCount = 0;
         i2sStartMicros = micros();
     }
@@ -168,7 +161,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     //    Log.info("Playbuffer (nearly) full (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     //Log.info("Playbuffer (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
-        if (GetBufferEmptySize(pPlayBuffer)<=4) //sic! Circual Buffer must not be full!
+        if (!audioBuffer.readPointerEqualsWritePointer() && audioBuffer.getBytesWritable()<4) //sic! Circual Buffer must not be full!
             break;
         
         if (count % halfWavelength == 0) {
@@ -176,8 +169,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             sample[1] = sample[0];
         }
         
-        if (FillBuffer(pPlayBuffer, (unsigned char*)sample, 4) == -1) 
-            Log.error("FillBuffer failed");
+        audioBuffer.write((uint8_t*)sample, 4);
         
         if (count % (wavelength*2) == 0) 
             count = 0;
@@ -188,17 +180,15 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     }
     if (!ready) {
         Log.info("XXXXXXXXXXXXXXXXXXX");
-        logCircBuf(pPlayBuffer);
+        logAudioBuffer();
         ready = true;
     }
 }
 
 void BoxDAC::dmaPingPingComplete() {
     unsigned long intStatus = MAP_uDMAIntStatus();
-    tCircularBuffer *buffer = Box.boxDAC.pPlayBuffer;
-
-    unsigned int bufferFilled = GetBufferSize(buffer);
-    if (bufferFilled > 0)
+    unsigned int bytesReadable = audioBuffer.getBytesReadable();
+    if (bytesReadable > 0)
         dmaBufferFilled++;
     
     dmaIRQcount++;
@@ -210,36 +200,36 @@ void BoxDAC::dmaPingPingComplete() {
         unsigned long ulPrimaryIndexRx = 0x5;
         unsigned long ulAltIndexRx = 0x25;
 
-        unsigned long bufferSize = GetBufferSize(buffer);
+        unsigned long bufferSize = audioBuffer.getBytesReadableBlock();
         unsigned long size = bufferSize > I2S_PACKET_SIZE ? I2S_PACKET_SIZE : bufferSize;
         unsigned long elements = size / 2;
 
         if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT) == UDMA_MODE_STOP) {
         //if((pControlTable[ulPrimaryIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
-            if (IsBufferEmpty(buffer)) {
+            if (elements==0) {
                 ulPrimaryIndexRxEmpty++;
-                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)&aZeroBuffer[0], (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)aZeroBuffer, (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
             } else {
                 ulPrimaryIndexRxFilled++;
-                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)GetReadPtr(buffer), (void *)I2S_TX_DMA_PORT, elements);
-                UpdateReadPtr(buffer, size);
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)audioBuffer.getReadPointer(), (void *)I2S_TX_DMA_PORT, elements);
+                audioBuffer.updateReadPointer(size);
             }
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         } else if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT) == UDMA_MODE_STOP) {
         //} else if((pControlTable[ulAltIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
-            if (IsBufferEmpty(buffer)) {
+            if (elements==0) {
                 ulAltIndexRxEmpty++;
-                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)&aZeroBuffer[0], (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)aZeroBuffer, (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
             } else {
                 ulAltIndexRxFilled++;
-                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)GetReadPtr(buffer), (void *)I2S_TX_DMA_PORT, elements);
-                UpdateReadPtr(buffer, size);
+                MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)audioBuffer.getReadPointer(), (void *)I2S_TX_DMA_PORT, elements);
+                audioBuffer.updateReadPointer(size);
             }
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT);
         }
         MAP_I2SIntClear(I2S_BASE, I2S_INT_XDMA);
     } else {
-        Log.error("Unintended intStatus=%X, buffer=%X, Box.boxDAC.pPlayBuffer=%X", intStatus, buffer, Box.boxDAC.pPlayBuffer);
+        Log.error("Unintended intStatus=%X", intStatus);
     }
 }
 
