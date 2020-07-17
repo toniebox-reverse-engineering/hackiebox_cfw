@@ -13,8 +13,10 @@ void BoxAudioBuffer::init(uint8_t* buffer, uint16_t size) {
 }
 
 void BoxAudioBuffer::logState() {
+    //noIRQ = true;
     Log.info("BoxAudioBuffer bufferStart=%X, _bufferEnd=%X, _bufferSize=%X, _readPointer=%X, _writePointer=%X", _bufferStart, _bufferEnd, _bufferSize, _readPointer, _writePointer);
     Log.info(" getBytesReadable()=%X, getBytesReadableBlock()=%X, getBytesWritable()=%X, getBytesWritableBlock()=%X", getBytesReadable(), getBytesReadableBlock(), getBytesWritable(), getBytesWritableBlock());
+    //noIRQ = false;
 }
 
 bool BoxAudioBuffer::readPointerEqualsWritePointer() {
@@ -57,7 +59,7 @@ void BoxAudioBuffer::updateReadPointer(uint16_t readLength) {
 }
 
 void BoxAudioBuffer::write(uint8_t* buffer, uint16_t size) {
-    isWriting = true;
+    noIRQ = true;
     uint16_t writableBlock = getBytesWritableBlock();
     //Log.info("write *buffer=%X, size=%i, writableBlock=%i", buffer, size, writableBlock);
 
@@ -78,7 +80,7 @@ void BoxAudioBuffer::write(uint8_t* buffer, uint16_t size) {
         _isEmpty = false;
         _isFull = true;
     }
-    isWriting = false;
+    noIRQ = false;
 }
 
 

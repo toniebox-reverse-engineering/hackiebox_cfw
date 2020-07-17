@@ -5,7 +5,7 @@
 
 class BoxAudioBuffer  { 
     public:
-        bool isWriting = false;
+        bool noIRQ = false;
 
         void init(uint8_t* buffer, uint16_t size);
         void logState();
