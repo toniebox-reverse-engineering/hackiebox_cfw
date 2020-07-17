@@ -52,11 +52,9 @@ class BoxDAC : public EnhancedThread  {
         void logDmaIrqChanges();
 
         
-        const int frequency = 440; // frequency of square wave in Hz
+        int frequency = 440; // frequency of square wave in Hz
         const int amplitude = 500; // amplitude of square wave
         const int sampleRate = 16000; // sample rate in Hz
-        const int halfWavelength = (sampleRate / frequency); // half wavelength of square wave
-        const int wavelength = (2*sampleRate / frequency); // half wavelength of square wave
         int16_t sample[2] { amplitude, amplitude }; // current sample value
         int count = 0;
         unsigned long i2sElmCount = 0;

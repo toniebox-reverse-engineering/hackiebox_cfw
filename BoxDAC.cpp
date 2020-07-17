@@ -127,7 +127,6 @@ void BoxDAC::begin() {
 
     setInterval(0);
 
-    Log.info("sample[0]=%i", sample[0]);
     setVolume(current_volume);
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
@@ -137,7 +136,6 @@ void BoxDAC::begin() {
 
 void BoxDAC::loop() { 
     fillBuffer(25);
-    //logDmaIrqChanges();
 }
 
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {
@@ -156,7 +154,8 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     while(timeout.isRunning()) {
         if (audioBuffer.getBytesWritable()<4) //sic! Circual Buffer must not be full!
             break;
-        
+
+        int halfWavelength = (sampleRate / frequency);
         if (count % halfWavelength == 0) {
             sample[0] = -1 * sample[0]; // invert the sample every half wavelength count multiple to generate square wave
             sample[1] = sample[0];
@@ -164,7 +163,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
         
         audioBuffer.write((uint8_t*)sample, 4);
         
-        if (count % (wavelength*2) == 0) 
+        if (count % (2*halfWavelength) == 0) 
             count = 0;
         
         count++;
