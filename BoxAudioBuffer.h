@@ -8,6 +8,7 @@ class BoxAudioBuffer  {
         bool isWriting = false;
 
         void init(uint8_t* buffer, uint16_t size);
+        void logState();
 
         bool readPointerEqualsWritePointer();
 
@@ -28,6 +29,11 @@ class BoxAudioBuffer  {
 
     private:
         bool _ready = false;
+
+        bool
+            _isFull,
+            _isEmpty;
+        
 
         uint8_t* _bufferStart;
         uint8_t* _bufferEnd;

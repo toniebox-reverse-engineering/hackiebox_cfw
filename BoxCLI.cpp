@@ -41,6 +41,9 @@ void BoxCLI::begin() {
 
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
+
+    cmdI2S = cli.addCmd("i2s");
+    cmdI2S.setDescription(" I2S debug information");
 }
 
 void BoxCLI::loop() {
@@ -73,6 +76,8 @@ void BoxCLI::parse() {
             execRFID();
         } else if (lastCmd == cmdLoad) {
             execLoad();
+        } else if (lastCmd == cmdI2S) {
+            execI2S();
         }
     }
 
@@ -288,6 +293,11 @@ void BoxCLI::execLoad() {
             Log.println();
         }
     }
+}
+
+void BoxCLI::execI2S() {
+    Box.boxDAC.audioBuffer.logState();
+    Box.boxDAC.logDmaIrqChanges();
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {

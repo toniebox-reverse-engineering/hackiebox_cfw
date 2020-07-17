@@ -161,7 +161,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     //    Log.info("Playbuffer (nearly) full (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     //Log.info("Playbuffer (%i/%i)", bufferFilled, PLAY_BUFFER_SIZE);
     while(timeout.isRunning()) {
-        if (!audioBuffer.readPointerEqualsWritePointer() && audioBuffer.getBytesWritable()<4) //sic! Circual Buffer must not be full!
+        if (audioBuffer.getBytesWritable()<4) //sic! Circual Buffer must not be full!
             break;
         
         if (count % halfWavelength == 0) {
@@ -180,12 +180,15 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     }
     if (!ready) {
         Log.info("XXXXXXXXXXXXXXXXXXX");
-        logAudioBuffer();
+        audioBuffer.logState();
         ready = true;
     }
 }
 
 void BoxDAC::dmaPingPingComplete() {
+    if (audioBuffer.isWriting)
+        return;
+
     unsigned long intStatus = MAP_uDMAIntStatus();
     unsigned int bytesReadable = audioBuffer.getBytesReadable();
     if (bytesReadable > 0)
@@ -203,10 +206,15 @@ void BoxDAC::dmaPingPingComplete() {
         unsigned long bufferSize = audioBuffer.getBytesReadableBlock();
         unsigned long size = bufferSize > I2S_PACKET_SIZE ? I2S_PACKET_SIZE : bufferSize;
         unsigned long elements = size / 2;
+        
+        if (size == 1) {
+            audioBuffer.updateReadPointer(1); //Workaround
+        }
+        size = elements * 2;
 
         if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT) == UDMA_MODE_STOP) {
         //if((pControlTable[ulPrimaryIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
-            if (elements==0) {
+            if (elements<4) {
                 ulPrimaryIndexRxEmpty++;
                 MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)aZeroBuffer, (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
             } else {
@@ -217,7 +225,7 @@ void BoxDAC::dmaPingPingComplete() {
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         } else if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT) == UDMA_MODE_STOP) {
         //} else if((pControlTable[ulAltIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
-            if (elements==0) {
+            if (elements<0) {
                 ulAltIndexRxEmpty++;
                 MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)aZeroBuffer, (void *)I2S_TX_DMA_PORT, I2S_PACKET_ELEMENTS);
             } else {

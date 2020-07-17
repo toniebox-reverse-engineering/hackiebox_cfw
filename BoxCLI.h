@@ -22,6 +22,7 @@ class BoxCLI : public EnhancedThread {
         Command cmdBeep;
         Command cmdRFID;
         Command cmdLoad;
+        Command cmdI2S;
         
         void parse();
         unsigned long
@@ -34,7 +35,8 @@ class BoxCLI : public EnhancedThread {
             execSpiRFID(),
             execBeep(),
             execRFID(),
-            execLoad();
+            execLoad(),
+            execI2S();
 };
 
 #endif

@@ -2,13 +2,18 @@
 
 void BoxAudioBuffer::init(uint8_t* buffer, uint16_t size) {
     _bufferStart = buffer;
-    _bufferEnd = buffer+size;
+    _bufferEnd = buffer+size-1;
     _bufferSize = size;
 
     _readPointer = _bufferStart;
     _writePointer = _bufferStart;
 
-    Log.info("BoxAudioBuffer init bufferStart=%X, _bufferEnd=%X, _bufferSize=%X, _readPointer=%X, _writePointer=%X", _bufferStart, _bufferEnd, _bufferSize, _readPointer, _writePointer);
+    _isFull = false;
+    _isEmpty = true;
+}
+
+void BoxAudioBuffer::logState() {
+    Log.info("BoxAudioBuffer bufferStart=%X, _bufferEnd=%X, _bufferSize=%X, _readPointer=%X, _writePointer=%X", _bufferStart, _bufferEnd, _bufferSize, _readPointer, _writePointer);
     Log.info(" getBytesReadable()=%X, getBytesReadableBlock()=%X, getBytesWritable()=%X, getBytesWritableBlock()=%X", getBytesReadable(), getBytesReadableBlock(), getBytesWritable(), getBytesWritableBlock());
 }
 
@@ -17,10 +22,22 @@ bool BoxAudioBuffer::readPointerEqualsWritePointer() {
 }
 
 bool BoxAudioBuffer::isEmpty(uint16_t threshold) {
-    return (getBytesReadable() <= threshold);
+    if (getBytesReadable() <= threshold) {
+        if (threshold == 0) {
+            return _isEmpty;
+        }
+        return true;
+    }
+    return false;
 }
 bool BoxAudioBuffer::isFull(uint16_t threshold) {
-    return (getBytesWritable() <= threshold);
+    if (getBytesWritable() <= threshold) {
+        if (threshold == 0) {
+            return _isFull;
+        }
+        return true;
+    }
+    return false;
 }
 
 uint8_t* BoxAudioBuffer::getReadPointer() {
@@ -31,7 +48,11 @@ void BoxAudioBuffer::updateReadPointer(uint16_t readLength) {
     if (readLength < readableBlock) {
         _readPointer += readLength;
     } else {
-        _readPointer = _bufferStart + (readLength - readableBlock - 1);
+        _readPointer = _bufferStart + (readLength - readableBlock);
+    }
+    if (readPointerEqualsWritePointer()) {
+        _isFull = false;
+        _isEmpty = true;
     }
 }
 
@@ -53,28 +74,40 @@ void BoxAudioBuffer::write(uint8_t* buffer, uint16_t size) {
         memcpy(_bufferStart, buffer + writableBlock, size - writableBlock);
         _writePointer = _bufferStart + (size - writableBlock);
     }
+    if (readPointerEqualsWritePointer()) {
+        _isEmpty = false;
+        _isFull = true;
+    }
     isWriting = false;
 }
 
 
 uint16_t BoxAudioBuffer::getBytesReadable() {
+    if (readPointerEqualsWritePointer() && _isEmpty)
+        return 0;
     return _measureDistance(_writePointer, _readPointer);
 }
 uint16_t BoxAudioBuffer::getBytesReadableBlock() {
+    if (readPointerEqualsWritePointer() && _isEmpty)
+        return 0;
     return _measureDistanceBlock(_writePointer, _readPointer);
 }
 
 uint16_t BoxAudioBuffer::getBytesWritable() {
+    if (readPointerEqualsWritePointer() && _isFull)
+        return 0;
     return _measureDistance(_readPointer, _writePointer);
 }
 uint16_t BoxAudioBuffer::getBytesWritableBlock() {
+    if (readPointerEqualsWritePointer() && _isFull)
+        return 0;
     return _measureDistanceBlock(_readPointer, _writePointer);
 }
 
 uint16_t BoxAudioBuffer::_measureDistance(uint8_t* p1, uint8_t* p2) {
     int32_t offset = p1 - p2;
 
-    if (offset >= 0)
+    if (offset > 0)
         return offset;
     
     return (_bufferEnd - p2 + 1) + (p1 - _bufferStart);
@@ -82,7 +115,7 @@ uint16_t BoxAudioBuffer::_measureDistance(uint8_t* p1, uint8_t* p2) {
 uint16_t BoxAudioBuffer::_measureDistanceBlock(uint8_t* p1, uint8_t* p2) {
     int32_t offset = p1 - p2;
 
-    if (offset >= 0)
+    if (offset > 0)
         return offset;
     
     return _bufferEnd - p2 + 1;
