@@ -4,7 +4,7 @@
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
 //#include "circ_buff.h"
-#include "BoxAudioBuffer.h"
+#include "BoxAudioBufferTriple.h"
 
 class BoxDAC : public EnhancedThread  { 
     public:
@@ -30,11 +30,9 @@ class BoxDAC : public EnhancedThread  {
         //unsigned int playWaterMark = 0;
         //tCircularBuffer* pPlayBuffer;
         //tCircularBuffer playBuffer;
-        BoxAudioBuffer audioBuffer;
-        uint8_t* dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
+        BoxAudioBufferTriple audioBuffer;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
-        bool ready = false;
 
         unsigned long ulPrimaryIndexRxFilled = 0;
         unsigned long lastUlPrimaryIndexRxFilled = 0xFFFF;
@@ -52,13 +50,16 @@ class BoxDAC : public EnhancedThread  {
         void logDmaIrqChanges();
 
         
-        int frequency = 440; // frequency of square wave in Hz
-        const int amplitude = 500; // amplitude of square wave
-        const int sampleRate = 16000; // sample rate in Hz
-        int16_t sample[2] { amplitude, amplitude }; // current sample value
+        uint32_t frequency = 440; // frequency of square wave in Hz
+        const int16_t amplitude = 500; // amplitude of square wave
+        const uint32_t sampleRate = 16000; // sample rate in Hz
+        int16_t sample = amplitude; // current sample value
         int count = 0;
         unsigned long i2sElmCount = 0;
         unsigned long i2sStartMicros = 0;
+
+        BoxAudioBufferTriple::BufferStruct writeBuffer;
+        uint16_t writePosition = 0;
 
 
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
