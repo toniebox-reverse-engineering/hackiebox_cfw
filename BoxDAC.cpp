@@ -165,11 +165,12 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
         }
     }
     if (writeBuffer.state == BoxAudioBufferTriple::BufferState::WRITING) {
-        while(writePosition<writeBuffer.size && timeout.isRunning()) {
+        while(writePosition<writeBuffer.size-1 && timeout.isRunning()) {
             if (count % halfWavelength == 0) {
                 sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
             }
             
+            writeBuffer.buffer[writePosition++] = sample;
             writeBuffer.buffer[writePosition++] = sample;
             
             if (count % (2*halfWavelength) == 0) 
