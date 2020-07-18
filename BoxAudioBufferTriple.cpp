@@ -1,7 +1,7 @@
 #include "BoxAudioBufferTriple.h"
 
 void BoxAudioBufferTriple::init() {
-    _bufferSize = ((_dataBufferSize / 3) / 4) * 2;
+    _bufferSize = ((_dataBufferSize / 3) / 8) * 4; // -> 0xAAA crashes, 0xAA8 not?!
 
     for (uint8_t i = 0; i < 3; i++) {
         _bufferStruct[i].index = i;
@@ -22,6 +22,13 @@ void BoxAudioBufferTriple::init() {
     
 }
 void BoxAudioBufferTriple::logState() {
+    Log.info("BoxAudioBufferTriple state");
+    for (uint8_t i = 0; i < 4; i++) 
+        logState(_bufferStruct[i]);
+}
+
+void BoxAudioBufferTriple::logState(BoxAudioBufferTriple::BufferStruct buffer) {
+    Log.info(" [%i] buffer=%X, size=%X, state=%X", buffer.index, buffer.buffer, buffer.size, buffer.state);
 }
 
 BoxAudioBufferTriple::BufferStruct BoxAudioBufferTriple::getBuffer(BoxAudioBufferTriple::BufferState state) {
@@ -29,8 +36,7 @@ BoxAudioBufferTriple::BufferStruct BoxAudioBufferTriple::getBuffer(BoxAudioBuffe
         if (_bufferStruct[i].state == state)
             return _bufferStruct[i];
     }
-    //Log.error(" No buffer with state=%X available.", state);
-    return _bufferStruct[3];
+    return _emptyStruct;
 }
 void BoxAudioBufferTriple::setBufferState(BoxAudioBufferTriple::BufferState state, uint8_t index) {
     if (index < 3)

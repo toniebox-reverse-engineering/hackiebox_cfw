@@ -47,6 +47,12 @@ class BoxDAC : public EnhancedThread  {
         unsigned long dmaBufferFilled = 0;
         unsigned long lastDmaBufferFilled = 0xFFFF;
 
+        unsigned long readBufferUnknown = 0;
+        unsigned long lastReadBufferUnknown = 0xFFFF;
+        unsigned long readingBufferUnknown = 0;
+        unsigned long lastReadingBufferUnknown = 0xFFFF;
+
+
         void logDmaIrqChanges();
 
         

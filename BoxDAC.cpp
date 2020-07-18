@@ -38,6 +38,15 @@ void BoxDAC::logDmaIrqChanges() {
         Log.info("***dmaBufferFilled=%i", dmaBufferFilled);
         lastDmaBufferFilled = dmaBufferFilled;
     }
+    
+    if (lastReadBufferUnknown != readBufferUnknown) {
+        Log.info("***readBufferUnknown=%i", readBufferUnknown);
+        lastReadBufferUnknown = readBufferUnknown;
+    }
+    if (lastReadingBufferUnknown != readingBufferUnknown) {
+        Log.info("***readingBufferUnknown=%i", readingBufferUnknown);
+        lastReadingBufferUnknown = readingBufferUnknown;
+    }
 }
 
 void dma_irq() {
@@ -46,9 +55,11 @@ void dma_irq() {
 
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
-    audioBuffer.init();
+    audioBuffer.init();/*
     audioBuffer.logState();
     fillBuffer(25);
+    fillBuffer(25);
+    fillBuffer(25);*/
     audioBuffer.logState();
 
     uint32_t clock; //(Num of bits * STEREO * sampling)
@@ -68,14 +79,17 @@ void BoxDAC::begin() {
 
     UDMAInit();
     UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
-        
+    
+    BoxAudioBufferTriple::BufferStruct buffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_READ);
+    audioBuffer.logState(buffer);
+
     SetupTransfer(
         UDMA_CH5_I2S_TX,
         UDMA_MODE_PINGPONG,
         I2S_PACKET_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
-        (void *)aZeroBuffer,
+        (void *)buffer.buffer,
         UDMA_CHCTL_SRCINC_16,
         (void *)I2S_TX_DMA_PORT,
         UDMA_DST_INC_NONE
@@ -86,7 +100,7 @@ void BoxDAC::begin() {
         I2S_PACKET_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
-        (void *)aZeroBuffer,
+        (void *)buffer.buffer,
         UDMA_CHCTL_SRCINC_16,
         (void *)I2S_TX_DMA_PORT,
         UDMA_DST_INC_NONE
@@ -145,10 +159,13 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
 
     if (writePosition == 0) {
         writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE);
-        audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::WRITING, writeBuffer.index);
+        if (writeBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
+            audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::WRITING, writeBuffer.index);
+            writeBuffer.state = BoxAudioBufferTriple::BufferState::WRITING;
+        }
     }
-    if (writeBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_READ) {
-        while(writePosition<writeBuffer.size) {
+    if (writeBuffer.state == BoxAudioBufferTriple::BufferState::WRITING) {
+        while(writePosition<writeBuffer.size && timeout.isRunning()) {
             if (count % halfWavelength == 0) {
                 sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
             }
@@ -165,6 +182,10 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
         if (writePosition >= writeBuffer.size) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_READ, writeBuffer.index);
             writePosition = 0;
+            /*
+            Log.info("##reset writePosition");
+            audioBuffer.logState(writeBuffer);
+            audioBuffer.logState();*/
         }
     }
 }
@@ -181,9 +202,12 @@ void BoxDAC::dmaPingPingComplete() {
         
         if (readBuffer.state == BoxAudioBufferTriple::BufferState::UNKNOWN) { //If not available reuse old read buffer
             readBuffer = readingBuffer;
-        } else {
+            readBufferUnknown++;
+        } else if (readingBuffer.state == BoxAudioBufferTriple::BufferState::READING) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE, readingBuffer.index);
+            readingBufferUnknown++;
         }
+        //readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::UNKNOWN);
 
         if (readBuffer.size > 0)
             dmaBufferFilled++;
@@ -198,14 +222,22 @@ void BoxDAC::dmaPingPingComplete() {
         //if((pControlTable[ulPrimaryIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READING, readBuffer.index);
             MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)readBuffer.buffer, (void *)I2S_TX_DMA_PORT, readBuffer.size);
-            ulPrimaryIndexRxFilled++;
+            if (readBuffer.state == BoxAudioBufferTriple::BufferState::UNKNOWN || readBuffer.index == readingBuffer.index) {
+                ulPrimaryIndexRxEmpty++;
+            } else {
+                ulPrimaryIndexRxFilled++;
+            }
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         } else if (MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT) == UDMA_MODE_STOP) {
         //} else if((pControlTable[ulAltIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READING, readBuffer.index);
             MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT, UDMA_MODE_PINGPONG, (void *)readBuffer.buffer, (void *)I2S_TX_DMA_PORT, readBuffer.size);
-            ulAltIndexRxFilled++;
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX|UDMA_ALT_SELECT);
+            if (readBuffer.state == BoxAudioBufferTriple::BufferState::UNKNOWN || readBuffer.index == readingBuffer.index) {
+                ulAltIndexRxEmpty++;
+            } else {
+                ulAltIndexRxFilled++;
+            }
         }
     } else {
         //Log.error("Unintended intStatus=%X", intStatus);
