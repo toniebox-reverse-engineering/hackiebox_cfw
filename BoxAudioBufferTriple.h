@@ -12,6 +12,10 @@ class BoxAudioBufferTriple {
             READING = 0x03,
             WRITING = 0x04
         };
+        enum class BufferType {
+            READ = 0x01,
+            WRITE = 0x02
+        };
         struct BufferStruct {
             uint8_t index;
             uint16_t* buffer;
@@ -25,13 +29,18 @@ class BoxAudioBufferTriple {
 
         uint16_t getBufferSize();
 
-        BufferStruct getBuffer(BoxAudioBufferTriple::BufferState state);
-        void setBufferState(BoxAudioBufferTriple::BufferState state, uint8_t index);
+        BufferStruct getBuffer(BoxAudioBufferTriple::BufferType type);
+
+        bool flip(BoxAudioBufferTriple::BufferType type);
 
     private:
         
         BufferStruct _bufferStruct[4];
         BufferStruct _emptyStruct;
+
+        BufferStruct _bufferRead;
+        BufferStruct _bufferWrite;
+        BufferStruct _bufferWait;
 
         uint8_t
             _indexReadBuffer,

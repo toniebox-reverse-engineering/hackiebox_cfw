@@ -34,23 +34,15 @@ class BoxDAC : public EnhancedThread  {
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
 
-        unsigned long ulPrimaryIndexRxFilled = 0;
-        unsigned long lastUlPrimaryIndexRxFilled = 0xFFFF;
-        unsigned long ulPrimaryIndexRxEmpty = 0;
-        unsigned long lastUlPrimaryIndexRxEmpty = 0xFFFF;
-
-        unsigned long ulAltIndexRxFilled = 0;
-        unsigned long lastUlAltIndexRxFilled = 0xFFFF;
-        unsigned long ulAltIndexRxEmpty = 0;
-        unsigned long lastUlAltIndexRxEmpty = 0xFFFF;
-
         unsigned long dmaBufferFilled = 0;
         unsigned long lastDmaBufferFilled = 0xFFFF;
+        unsigned long dmaBufferEmpty = 0;
+        unsigned long lastDmaBufferEmpty = 0xFFFF;
 
-        unsigned long readBufferUnknown = 0;
-        unsigned long lastReadBufferUnknown = 0xFFFF;
-        unsigned long readingBufferUnknown = 0;
-        unsigned long lastReadingBufferUnknown = 0xFFFF;
+        unsigned long priIndexRx = 0;
+        unsigned long lastPriIndexRx = 0xFFFF;
+        unsigned long altIndexRx = 0;
+        unsigned long lastAltIndexRx = 0xFFFF;
 
 
         void logDmaIrqChanges();

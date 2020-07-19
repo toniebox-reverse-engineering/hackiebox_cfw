@@ -7,7 +7,8 @@ void BoxAudioBufferTriple::init() {
         _bufferStruct[i].index = i;
         _bufferStruct[i].buffer = (uint16_t*)(_dataBuffer + 2*i*_bufferSize); //bytes
         _bufferStruct[i].size = _bufferSize; //words
-        _bufferStruct[i].state = BufferState::READY_FOR_WRITE;
+        for (uint16_t j = 0; j < _bufferStruct[i].size; j++)
+            _bufferStruct[i].buffer[j] = 0x00;
     }
 
     _emptyStruct.index = 3;
@@ -19,6 +20,13 @@ void BoxAudioBufferTriple::init() {
 
     for (uint16_t i = 0; i < _emptyStruct.size; i++)
         _emptyStruct.buffer[i] = random(INT8_MIN*4, INT8_MAX*4);
+
+    _bufferStruct[0].state = BufferState::READY_FOR_READ;
+    _bufferRead = _bufferStruct[0];
+    _bufferStruct[1].state = BufferState::READY_FOR_WRITE;
+    _bufferWrite = _bufferStruct[1];
+    _bufferStruct[2].state = BufferState::READY_FOR_WRITE;
+    _bufferWait = _bufferStruct[2];
     
 }
 void BoxAudioBufferTriple::logState() {
@@ -27,18 +35,32 @@ void BoxAudioBufferTriple::logState() {
         logState(_bufferStruct[i]);
 }
 
+bool BoxAudioBufferTriple::flip(BoxAudioBufferTriple::BufferType type) {
+    BufferStruct bufferTmp = _bufferWait;
+    if (type == BufferType::READ && bufferTmp.state == BufferState::READY_FOR_READ) {
+        _bufferRead.state = BufferState::READY_FOR_WRITE;
+        _bufferWait = _bufferRead;
+        _bufferRead = bufferTmp;
+        return true;
+    } else if (type == BufferType::WRITE && bufferTmp.state == BufferState::READY_FOR_WRITE) {
+        _bufferWrite.state = BufferState::READY_FOR_READ;
+        _bufferWait = _bufferWrite;
+        _bufferWrite = bufferTmp;
+        return true;
+    }
+    return false;
+}
+
 void BoxAudioBufferTriple::logState(BoxAudioBufferTriple::BufferStruct buffer) {
     Log.info(" [%i] buffer=%X, size=%X, state=%X", buffer.index, buffer.buffer, buffer.size, buffer.state);
 }
 
-BoxAudioBufferTriple::BufferStruct BoxAudioBufferTriple::getBuffer(BoxAudioBufferTriple::BufferState state) {
-    for (uint8_t i = 0; i < 3; i++) {
-        if (_bufferStruct[i].state == state)
-            return _bufferStruct[i];
+BoxAudioBufferTriple::BufferStruct BoxAudioBufferTriple::getBuffer(BoxAudioBufferTriple::BufferType type) {
+    switch (type) {
+    case BufferType::READ:
+        return _bufferRead;
+    case BufferType::WRITE:
+        return _bufferWrite;
     }
     return _emptyStruct;
-}
-void BoxAudioBufferTriple::setBufferState(BoxAudioBufferTriple::BufferState state, uint8_t index) {
-    if (index < 3)
-        _bufferStruct[index].state = state;
 }
