@@ -38,6 +38,7 @@ void BoxCLI::begin() {
     cmdLoad.setDescription(" Shows the current load of all threads");
     cmdLoad.addArg("n/ame", "");
     cmdLoad.addArg("p/ointer", 0);
+    cmdLoad.addFlagArg("r/eset");
 
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
@@ -264,6 +265,7 @@ void BoxCLI::execLoad() {
 
     String name = c.getArg("name").getValue();
     String pointerStr = c.getArg("pointer").getValue();
+    bool reset = c.getArg("reset").isSet();
     unsigned long pointer = parseNumber(pointerStr);
 
     if (name != "") {
@@ -273,6 +275,7 @@ void BoxCLI::execLoad() {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
             if (strncasecmp(name.c_str(), thread->ThreadName, name.length()) == 0) {
                 thread->logStats();
+                if (reset) thread->resetStats();
                 Log.println();
             }
         }
@@ -283,6 +286,7 @@ void BoxCLI::execLoad() {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
             if (pointer == thread->ThreadID) {
                 thread->logStats();
+                if (reset) thread->resetStats();
                 Log.println();
             }
         }
@@ -292,9 +296,12 @@ void BoxCLI::execLoad() {
         for (uint8_t i = 0; i < Box.threadController.size(); i++) {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
             thread->logStats();
+            if (reset) thread->resetStats();
             Log.println();
         }
     }
+
+    if (reset) Log.info("All stats of selected threads are reset.");
 }
 
 void BoxCLI::execI2S() {
