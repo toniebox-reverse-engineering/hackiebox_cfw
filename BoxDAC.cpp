@@ -68,7 +68,12 @@ void BoxDAC::begin() {
     UDMAInit();
     UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
     
+    writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
+    writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
+    audioBuffer.logState(writeBuffer);
+
     BoxAudioBufferTriple::BufferStruct* buffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::READ);
+    buffer->state = BoxAudioBufferTriple::BufferState::READING;
     audioBuffer.logState(buffer);
 
     SetupTransfer(
@@ -145,11 +150,7 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     uint32_t halfWavelength = (sampleRate / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
-    //while (timeout.isRunning()) {
-        if (writePosition == 0) {
-            writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
-            writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
-        }
+    while (timeout.isRunning()) {
         while(writePosition<writeBuffer->size && timeout.isRunning()) {
             if (count % halfWavelength == 0)
                 sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
@@ -164,14 +165,19 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             timeout.tick();
         }
         if (writePosition >= writeBuffer->size) {
-            if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE))
+            if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE)) {
                 writePosition = 0;
+                writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
+                writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
+                continue;
+            }
             /*
             Log.info("##reset writePosition");
             audioBuffer.logState(writeBuffer);
             audioBuffer.logState();*/
         }
-    //}
+        break;
+    }
 }
 
 void BoxDAC::dmaPingPingComplete() {
