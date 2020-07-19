@@ -97,6 +97,8 @@ void Hackiebox::setup() {
     //Workaround, as something seems to interfere / remove the irq.
     //But box now crashes!
     boxDAC.i2sStartMicros = micros();
+    
+    threadController.sortThreads();
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
