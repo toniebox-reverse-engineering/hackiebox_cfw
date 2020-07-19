@@ -154,7 +154,7 @@ void BoxDAC::loop() {
 
 void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     BoxTimer timeout;
-    uint32_t halfWavelength = (sampleRate / frequency);
+    uint32_t halfWavelength = (sampleRate / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
     if (writePosition == 0) {
@@ -180,7 +180,8 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             i2sElmCount++;
             timeout.tick();
         }
-        if (writePosition >= writeBuffer.size) {
+        if (writePosition >= writeBuffer.size
+                && audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE).state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_READ, writeBuffer.index);
             writePosition = 0;
             /*
