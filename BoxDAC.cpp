@@ -181,22 +181,13 @@ void BoxDAC::dmaPingPingComplete() {
     
     dmaIRQcount++;
     if (intStatus & 0x20) { //TX IRQ I2S_INT_XDMA?
-        /*
-        tDMAControlTable *pControlTable;
-        pControlTable = (tDMAControlTable*)MAP_uDMAControlBaseGet();
-        unsigned long ulPrimaryIndexRx = 0x5;
-        unsigned long ulAltIndexRx = 0x25;
-        */
-
         unsigned long channelModePri = MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT);
         unsigned long channelModeAlt = MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT);
 
         unsigned long channel = 0x00;
-        //if((pControlTable[ulPrimaryIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
         if (channelModePri == UDMA_MODE_STOP) {
             channel = UDMA_CH5_I2S_TX;
             priIndexRx++;
-        //} else if((pControlTable[ulAltIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
         } else if (channelModeAlt == UDMA_MODE_STOP) {
             channel = UDMA_CH5_I2S_TX|UDMA_ALT_SELECT;
             altIndexRx++;
@@ -212,8 +203,6 @@ void BoxDAC::dmaPingPingComplete() {
             MAP_uDMAChannelTransferSet(channel, UDMA_MODE_PINGPONG, (void *)readBuffer->buffer, (void *)I2S_TX_DMA_PORT, readBuffer->size);
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         }
-    } else {
-        //Log.error("Unintended intStatus=%X", intStatus);
     }
 }
 
