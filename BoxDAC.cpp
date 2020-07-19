@@ -190,24 +190,24 @@ void BoxDAC::dmaPingPingComplete() {
         unsigned long channelModePri = MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT);
         unsigned long channelModeAlt = MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_ALT_SELECT);
 
-        unsigned long mode = 0x00;
+        unsigned long channel = 0x00;
         //if((pControlTable[ulPrimaryIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
         if (channelModePri == UDMA_MODE_STOP) {
-            mode = UDMA_CH5_I2S_TX;
+            channel = UDMA_CH5_I2S_TX;
             priIndexRx++;
         //} else if((pControlTable[ulAltIndexRx].ulControl & UDMA_CHCTL_XFERMODE_M) == 0) {
         } else if (channelModeAlt == UDMA_MODE_STOP) {
-            mode = UDMA_CH5_I2S_TX|UDMA_ALT_SELECT;
+            channel = UDMA_CH5_I2S_TX|UDMA_ALT_SELECT;
             altIndexRx++;
         }
-        if (mode) {
+        if (channel) {
             if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::READ)) {
                 dmaBufferFilled++;
             } else {
                 dmaBufferEmpty++;
             }
             BoxAudioBufferTriple::BufferStruct readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::READ);
-            MAP_uDMAChannelTransferSet(UDMA_CH5_I2S_TX, UDMA_MODE_PINGPONG, (void *)readBuffer.buffer, (void *)I2S_TX_DMA_PORT, readBuffer.size);
+            MAP_uDMAChannelTransferSet(channel, UDMA_MODE_PINGPONG, (void *)readBuffer.buffer, (void *)I2S_TX_DMA_PORT, readBuffer.size);
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         }
     } else {
