@@ -14,7 +14,8 @@ class BoxAudioBufferTriple {
         };
         enum class BufferType {
             READ = 0x01,
-            WRITE = 0x02
+            WRITE = 0x02,
+            WAIT = 0x03
         };
         struct BufferStruct {
             uint8_t index;
@@ -25,22 +26,22 @@ class BoxAudioBufferTriple {
 
         void init();
         void logState();
-        void logState(BoxAudioBufferTriple::BufferStruct buffer);
+        void logState(BoxAudioBufferTriple::BufferStruct* buffer);
 
         uint16_t getBufferSize();
 
-        BufferStruct getBuffer(BoxAudioBufferTriple::BufferType type);
+        BufferStruct* getBuffer(BoxAudioBufferTriple::BufferType type);
 
         bool flip(BoxAudioBufferTriple::BufferType type);
 
     private:
         
         BufferStruct _bufferStruct[4];
-        BufferStruct _emptyStruct;
-
-        BufferStruct _bufferRead;
-        BufferStruct _bufferWrite;
-        BufferStruct _bufferWait;
+        
+        BufferStruct* _bufferRead;
+        BufferStruct* _bufferWrite;
+        BufferStruct* _bufferWait;
+        BufferStruct* _emptyStruct;
 
         uint8_t
             _indexReadBuffer,
@@ -49,8 +50,9 @@ class BoxAudioBufferTriple {
 
         uint16_t _bufferSize;
 
+        const static uint16_t _dataBufferSize = 0x4000;
         uint8_t* _dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
-        uint16_t _dataBufferSize = 0x4000;
+        //uint8_t __attribute__((section(".blsec"))) _dataBuffer[_dataBufferSize];
 
         const static uint16_t _emptyBufferSize = 0x100; //0xAAA crash, 0xAA9 crash, 0xAA8 crash, 0x200 ok, 0x800 ok, 0x1000 ok
         uint16_t _emptyBuffer[_emptyBufferSize];

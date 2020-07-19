@@ -56,7 +56,7 @@ class BoxDAC : public EnhancedThread  {
         unsigned long i2sElmCount = 0;
         unsigned long i2sStartMicros = 0;
 
-        BoxAudioBufferTriple::BufferStruct writeBuffer;
+        BoxAudioBufferTriple::BufferStruct* writeBuffer;
         uint16_t writePosition = 0;
 
 
