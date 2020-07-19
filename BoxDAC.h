@@ -52,7 +52,7 @@ class BoxDAC : public EnhancedThread  {
         const int16_t amplitude = 500; // amplitude of square wave
         const uint32_t sampleRate = 16000; // sample rate in Hz
         int16_t sample = amplitude; // current sample value
-        int count = 0;
+        uint32_t count = 0;
         unsigned long i2sElmCount = 0;
         unsigned long i2sStartMicros = 0;
 
