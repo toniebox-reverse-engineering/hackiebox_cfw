@@ -157,36 +157,43 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     uint32_t halfWavelength = (sampleRate / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
-    if (writePosition == 0) {
-        writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE);
-        if (writeBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
-            audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::WRITING, writeBuffer.index);
-            writeBuffer.state = BoxAudioBufferTriple::BufferState::WRITING;
+    while (timeout.isRunning()) {
+        if (writePosition == 0) {
+            writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE);
+            if (writeBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
+                audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::WRITING, writeBuffer.index);
+                writeBuffer.state = BoxAudioBufferTriple::BufferState::WRITING;
+            }
         }
-    }
-    if (writeBuffer.state == BoxAudioBufferTriple::BufferState::WRITING) {
-        while(writePosition<writeBuffer.size-1 && timeout.isRunning()) {
-            if (count % halfWavelength == 0)
-                sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
-            if (count % (2*halfWavelength) == 0) 
-                count = 0;
-            
-            writeBuffer.buffer[writePosition++] = sample;
-            writeBuffer.buffer[writePosition++] = sample;
-            
-            count++;
-            i2sElmCount++;
-            timeout.tick();
+        if (writeBuffer.state == BoxAudioBufferTriple::BufferState::WRITING) {
+            while(writePosition<writeBuffer.size-1 && timeout.isRunning()) {
+                if (count % halfWavelength == 0)
+                    sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
+                if (count % (2*halfWavelength) == 0) 
+                    count = 0;
+                
+                writeBuffer.buffer[writePosition++] = sample;
+                writeBuffer.buffer[writePosition++] = sample;
+                
+                count++;
+                i2sElmCount++;
+                timeout.tick();
+            }
+            if (writePosition >= writeBuffer.size) {
+                BoxAudioBufferTriple::BufferStruct tmpBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE);
+                if (tmpBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
+                    audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_READ, writeBuffer.index);
+                    writePosition = 0;
+                    writeBuffer = tmpBuffer;
+                }
+                /*
+                Log.info("##reset writePosition");
+                audioBuffer.logState(writeBuffer);
+                audioBuffer.logState();*/
+            }
         }
-        if (writePosition >= writeBuffer.size
-                && audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE).state == BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) {
-            audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_READ, writeBuffer.index);
-            writePosition = 0;
-            /*
-            Log.info("##reset writePosition");
-            audioBuffer.logState(writeBuffer);
-            audioBuffer.logState();*/
-        }
+        if (writeBuffer.state != BoxAudioBufferTriple::BufferState::READY_FOR_WRITE) 
+            break;
     }
 }
 
@@ -200,17 +207,20 @@ void BoxDAC::dmaPingPingComplete() {
         BoxAudioBufferTriple::BufferStruct readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READY_FOR_READ);
         BoxAudioBufferTriple::BufferStruct readingBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::READING);
         
+        if (readBuffer.state == BoxAudioBufferTriple::BufferState::READY_FOR_READ)
+            dmaBufferFilled++;
+
         if (readBuffer.state == BoxAudioBufferTriple::BufferState::UNKNOWN) { //If not available reuse old read buffer
             readBuffer = readingBuffer;
             readBufferUnknown++;
+            if (readingBuffer.state == BoxAudioBufferTriple::BufferState::UNKNOWN) {
+                readingBufferUnknown++;
+            }
         } else if (readingBuffer.state == BoxAudioBufferTriple::BufferState::READING) {
             audioBuffer.setBufferState(BoxAudioBufferTriple::BufferState::READY_FOR_WRITE, readingBuffer.index);
-            readingBufferUnknown++;
         }
         //readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferState::UNKNOWN);
 
-        if (readBuffer.size > 0)
-            dmaBufferFilled++;
 
         tDMAControlTable *pControlTable;
         pControlTable = (tDMAControlTable*)MAP_uDMAControlBaseGet();
