@@ -48,6 +48,10 @@ void BoxCLI::begin() {
     cmdI2S.addFlagArg("l/og");
     cmdI2S.addArg("t/est", 0);
     cmdI2S.addArg("f/requency", 0);
+
+    cmdSay = cli.addCmd("say");
+    cmdSay.setDescription(" Generate speech with SAM");
+    cmdSay.addPosArg("text");
 }
 
 void BoxCLI::loop() {
@@ -82,6 +86,8 @@ void BoxCLI::parse() {
             execLoad();
         } else if (lastCmd == cmdI2S) {
             execI2S();
+        } else if (lastCmd == cmdSay) {
+            execSay();
         }
     }
 
@@ -326,6 +332,13 @@ void BoxCLI::execI2S() {
         }
     }
 
+}
+
+void BoxCLI::execSay() {
+    Command c = lastCmd;
+    String text = c.getArg("text").getValue();
+    if (text != "")
+        Box.boxDAC.samSay(text.c_str());
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {

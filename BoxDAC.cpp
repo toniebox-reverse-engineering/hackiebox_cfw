@@ -7,9 +7,6 @@
 #include <driverlib/rom_map.h>
 #include <udma_if.h>
 
-#include "AudioOutputCC3200I2S.h"
-#include <ESP8266SAM.h>
-
 #include "Hackiebox.h"
 
 
@@ -122,23 +119,17 @@ void BoxDAC::begin() {
 
     //beepTest();
 
-    /*
-    AudioOutputCC3200I2S *out = NULL;
-    out = new AudioOutputCC3200I2S();
-    out->begin();
-    ESP8266SAM *sam = new ESP8266SAM;
-    sam->Say(out, "Can you hear me now?");
-    delay(500);
-    sam->Say(out, "I can't hear you!");
-    delete sam;*/
-
     setInterval(0);
 
     setVolume(current_volume);
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
+    audioOutput = new AudioOutputCC3200I2S(&audioBuffer);
+
     Log.info("...initialized");
+
+    //samSay("Hackiebox by Team Revvox!");
 }
 
 void BoxDAC::loop() { 
@@ -171,10 +162,6 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
                 writeBuffer->position = 0;
                 continue;
             }
-            /*
-            Log.info("##reset writePosition");
-            audioBuffer.logState(writeBuffer);
-            audioBuffer.logState();*/
         }
         break;
     }
@@ -333,6 +320,13 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
 void BoxDAC::beep() {
     //beepRaw(0x30FC, 0x7642, 0x640);
     beepMidi(84, 1000, false);
+}
+
+void BoxDAC::samSay(const char *text) {
+    ESP8266SAM* sam = new ESP8266SAM();
+    sam->Say(audioOutput, text);
+    delete sam;
+    //audioOutput->flush();
 }
 
 bool BoxDAC::send(uint8_t target_register, uint8_t data) {

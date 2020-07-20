@@ -3,8 +3,10 @@
 
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
-//#include "circ_buff.h"
+
 #include "BoxAudioBufferTriple.h"
+#include "AudioOutputCC3200I2S.h"
+#include <ESP8266SAM.h>
 
 class BoxDAC : public EnhancedThread  { 
     public:
@@ -19,6 +21,8 @@ class BoxDAC : public EnhancedThread  {
         void beepMidi(uint8_t midiId, uint16_t lengthMs, bool async=false);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
+
+        void samSay(const char *text);
 
         void dmaPingPingComplete();
         BoxAudioBufferTriple audioBuffer;
@@ -46,6 +50,8 @@ class BoxDAC : public EnhancedThread  {
         unsigned long i2sStartMicros = 0;
 
         BoxAudioBufferTriple::BufferStruct* writeBuffer;
+
+        AudioOutputCC3200I2S* audioOutput;
 
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
         const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
