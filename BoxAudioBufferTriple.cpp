@@ -20,11 +20,13 @@ void BoxAudioBufferTriple::init() {
         _bufferStruct[i].index = i;
         _bufferStruct[i].buffer = (uint16_t*)(_dataBuffer + 2*i*_bufferSize); //bytes
         _bufferStruct[i].size = _bufferSize; //words
+        _bufferStruct[i].position = 0;
     }
 
     _emptyStruct->index = 3;
     _emptyStruct->buffer = _emptyBuffer;
     _emptyStruct->size = _emptyBufferSize;
+    _emptyStruct->position = 0;
     _emptyStruct->state = BufferState::UNKNOWN;
 
     for (uint16_t i = 0; i < _emptyStruct->size; i++)

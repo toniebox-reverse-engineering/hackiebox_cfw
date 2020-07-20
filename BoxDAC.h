@@ -21,15 +21,7 @@ class BoxDAC : public EnhancedThread  {
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
 
         void dmaPingPingComplete();
-        const static uint16_t I2S_PACKET_SIZE = 2 * 256; //TODO
-        const static uint16_t I2S_PACKET_ELEMENTS = I2S_PACKET_SIZE / 2;
-        const static uint16_t PLAY_BUFFER_SIZE = 32*I2S_PACKET_SIZE; //0x4000
-
-        uint8_t* aZeroBuffer[I2S_PACKET_SIZE] {};
-        //const static uint16_t PLAY_WATERMARK = 30*1024;
-        //unsigned int playWaterMark = 0;
-        //tCircularBuffer* pPlayBuffer;
-        //tCircularBuffer playBuffer;
+        const static uint16_t I2S_MAX_ELEMENTS = 1024;
         BoxAudioBufferTriple audioBuffer;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
@@ -44,10 +36,8 @@ class BoxDAC : public EnhancedThread  {
         unsigned long altIndexRx = 0;
         unsigned long lastAltIndexRx = 0xFFFF;
 
-
         void logDmaIrqChanges();
 
-        
         uint32_t frequency = 440; // frequency of square wave in Hz
         const int16_t amplitude = 500; // amplitude of square wave
         const uint32_t sampleRate = 16000; // sample rate in Hz
@@ -57,8 +47,6 @@ class BoxDAC : public EnhancedThread  {
         unsigned long i2sStartMicros = 0;
 
         BoxAudioBufferTriple::BufferStruct* writeBuffer;
-        uint16_t writePosition = 0;
-
 
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
         const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB

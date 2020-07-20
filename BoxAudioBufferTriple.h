@@ -21,6 +21,7 @@ class BoxAudioBufferTriple {
             uint8_t index;
             uint16_t* buffer;
             uint16_t size;
+            uint16_t position;
             BufferState state;
         };
 
@@ -54,7 +55,7 @@ class BoxAudioBufferTriple {
         uint8_t* _dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
         //uint8_t __attribute__((section(".blsec"))) _dataBuffer[_dataBufferSize];
 
-        const static uint16_t _emptyBufferSize = 0x100; //0xAAA crash, 0xAA9 crash, 0xAA8 crash, 0x200 ok, 0x800 ok, 0x1000 ok
+        const static uint16_t _emptyBufferSize = 0x400;
         uint16_t _emptyBuffer[_emptyBufferSize];
 };
 

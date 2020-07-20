@@ -79,7 +79,7 @@ void BoxDAC::begin() {
     SetupTransfer(
         UDMA_CH5_I2S_TX,
         UDMA_MODE_PINGPONG,
-        I2S_PACKET_ELEMENTS,
+        I2S_MAX_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
         (void *)buffer->buffer,
@@ -90,7 +90,7 @@ void BoxDAC::begin() {
     SetupTransfer(
         UDMA_CH5_I2S_TX|UDMA_ALT_SELECT,
         UDMA_MODE_PINGPONG,
-        I2S_PACKET_ELEMENTS,
+        I2S_MAX_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
         (void *)buffer->buffer,
@@ -151,24 +151,24 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
-        while(writePosition<writeBuffer->size && timeout.isRunning()) {
+        while(writeBuffer->position<writeBuffer->size && timeout.isRunning()) {
             if (count % halfWavelength == 0)
                 sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
             if (count % (2*halfWavelength) == 0) 
                 count = 0;
             
-            writeBuffer->buffer[writePosition++] = sample;
-            writeBuffer->buffer[writePosition++] = sample;
+            writeBuffer->buffer[writeBuffer->position++] = sample;
+            writeBuffer->buffer[writeBuffer->position++] = sample;
             
             count++;
             i2sElmCount++;
             timeout.tick();
         }
-        if (writePosition >= writeBuffer->size) {
+        if (writeBuffer->position >= writeBuffer->size) {
             if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE)) {
-                writePosition = 0;
                 writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
                 writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
+                writeBuffer->position = 0;
                 continue;
             }
             /*
@@ -206,7 +206,13 @@ void BoxDAC::dmaPingPingComplete() {
             }
             BoxAudioBufferTriple::BufferStruct* readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::READ);
             readBuffer->state = BoxAudioBufferTriple::BufferState::READING;
-            MAP_uDMAChannelTransferSet(channel, UDMA_MODE_PINGPONG, (void *)readBuffer->buffer, (void *)I2S_TX_DMA_PORT, readBuffer->size);
+
+            MAP_uDMAChannelTransferSet(channel,
+                UDMA_MODE_PINGPONG,
+                (void *)readBuffer->buffer,
+                (void *)I2S_TX_DMA_PORT,
+                I2S_MAX_ELEMENTS
+            );
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         }
     }
