@@ -2,6 +2,7 @@
 
 void BoxAudioBufferTriple::init() {
     _bufferSize = ((_dataBufferSize / 3) / 8) * 4; // -> 0xAAA crashes, 0xAA8 not?!
+    _bufferSize = 0x400;
 
     for (uint16_t i = 0; i < _dataBufferSize; i++)
         _dataBuffer[i] = 0x00;
