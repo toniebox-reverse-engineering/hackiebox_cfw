@@ -59,6 +59,17 @@ void Hackiebox::setup() {
     boxPower.setName("Power");
     boxWiFi.setName("WiFi");
     webServer.setName("Webserver");
+    
+    boxDAC.priority = 0;
+    boxRFID.priority = 1;
+    boxAccel.priority = 2;
+    boxLEDs.priority = 3;
+    boxEars.priority = 4;
+    webServer.priority = 5;
+    boxPower.priority = 10;
+    boxWiFi.priority = 50;
+    boxBattery.priority = 100;
+    boxCLI.priority = 100;
 
     threadController = ThreadController();
     threadController.add(&boxAccel);
@@ -110,16 +121,19 @@ void Hackiebox::delayTask(uint16_t millis) {
         timer.setTimer(millis);
 
         //Work start
-        boxDAC.fillBuffer(millis);
+        while (timer.isRunning()) {
+            delayTaskWork(timer.getTimeTillEnd());
+            timer.tick();
+        }
         //Work end
 
-        timer.tick();
-        delay(timer.getTimeTillEnd());
-        //Log.info("delayTask(%i), restDelay=%i", millis, timer.getTimeTillEnd());
         inDelayTask = false;
     } else {
         delay(millis);
     }
+}
+void Hackiebox::delayTaskWork(uint16_t millis) {
+    boxDAC.fillBuffer(millis);
 }
 
 void Hackiebox::loop() {

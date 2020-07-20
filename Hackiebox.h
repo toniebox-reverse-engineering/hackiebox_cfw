@@ -46,6 +46,7 @@ class Hackiebox {
 
         bool inDelayTask;
         void delayTask(uint16_t millis);
+        void delayTaskWork(uint16_t millis);
 
 
         ThreadController threadController;
