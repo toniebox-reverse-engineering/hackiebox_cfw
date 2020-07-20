@@ -46,6 +46,7 @@ void BoxCLI::begin() {
     cmdI2S = cli.addCmd("i2s");
     cmdI2S.setDescription(" I2S debug information");
     cmdI2S.addFlagArg("l/og");
+    cmdI2S.addArg("t/est", 0);
     cmdI2S.addArg("f/requency", 0);
 }
 
@@ -307,14 +308,24 @@ void BoxCLI::execLoad() {
 void BoxCLI::execI2S() {
     Command c = lastCmd;
     unsigned long freq = parseNumber(c.getArg("frequency").getValue());
+    unsigned long test = parseNumber(c.getArg("test").getValue());
     if (c.getArg("log").isSet()) {
         Box.boxDAC.audioBuffer.logState();
         Box.boxDAC.logDmaIrqChanges();
     }
     if (freq > 0) {
-        Log.info("Test frequency=%i", freq);
+        Log.info("Set test frequency=%i", freq);
         Box.boxDAC.frequency = freq;
     }
+    if (test > 0) {
+        Log.info("Run test for %ims", test);
+        Box.delayTask(test);
+        if (c.getArg("log").isSet()) {
+            Box.boxDAC.audioBuffer.logState();
+            Box.boxDAC.logDmaIrqChanges();
+        }
+    }
+
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {
