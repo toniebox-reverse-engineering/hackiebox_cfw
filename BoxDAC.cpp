@@ -79,7 +79,7 @@ void BoxDAC::begin() {
     SetupTransfer(
         UDMA_CH5_I2S_TX,
         UDMA_MODE_PINGPONG,
-        I2S_MAX_ELEMENTS,
+        BoxAudioBufferTriple::I2S_MAX_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
         (void *)buffer->buffer,
@@ -90,7 +90,7 @@ void BoxDAC::begin() {
     SetupTransfer(
         UDMA_CH5_I2S_TX|UDMA_ALT_SELECT,
         UDMA_MODE_PINGPONG,
-        I2S_MAX_ELEMENTS,
+        BoxAudioBufferTriple::I2S_MAX_ELEMENTS,
         UDMA_SIZE_16,
         UDMA_ARB_8,
         (void *)buffer->buffer,
@@ -211,7 +211,7 @@ void BoxDAC::dmaPingPingComplete() {
                 UDMA_MODE_PINGPONG,
                 (void *)readBuffer->buffer,
                 (void *)I2S_TX_DMA_PORT,
-                I2S_MAX_ELEMENTS
+                readBuffer->size
             );
             MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
         }

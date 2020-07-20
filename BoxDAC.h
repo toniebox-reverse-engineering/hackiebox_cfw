@@ -21,7 +21,6 @@ class BoxDAC : public EnhancedThread  {
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
 
         void dmaPingPingComplete();
-        const static uint16_t I2S_MAX_ELEMENTS = 1024;
         BoxAudioBufferTriple audioBuffer;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;

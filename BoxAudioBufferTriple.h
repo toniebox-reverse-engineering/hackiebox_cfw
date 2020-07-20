@@ -23,7 +23,11 @@ class BoxAudioBufferTriple {
             uint16_t size;
             uint16_t position;
             BufferState state;
+            BufferStruct* next;
         };
+
+        const static uint16_t I2S_MAX_ELEMENTS = 1024;
+        const static uint16_t I2S_MAX_BYTES = 2*I2S_MAX_ELEMENTS;
 
         void init();
         void logState();
@@ -37,26 +41,17 @@ class BoxAudioBufferTriple {
 
     private:
         
-        BufferStruct _bufferStruct[4];
-        
         BufferStruct* _bufferRead;
         BufferStruct* _bufferWrite;
-        BufferStruct* _bufferWait;
-        BufferStruct* _emptyStruct;
-
-        uint8_t
-            _indexReadBuffer,
-            _indexWriteBuffer,
-            _indexWaitBuffer;
-
-        uint16_t _bufferSize;
 
         const static uint16_t _dataBufferSize = 0x4000;
         uint8_t* _dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
         //uint8_t __attribute__((section(".blsec"))) _dataBuffer[_dataBufferSize];
 
-        const static uint16_t _emptyBufferSize = 0x400;
-        uint16_t _emptyBuffer[_emptyBufferSize];
+        const static uint16_t _bufferSize = I2S_MAX_ELEMENTS;
+        const static uint16_t _bufferCount = _dataBufferSize / I2S_MAX_BYTES;
+        
+        BufferStruct _bufferStruct[_bufferCount];
 };
 
 #endif
