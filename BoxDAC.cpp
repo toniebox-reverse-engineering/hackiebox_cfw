@@ -324,6 +324,7 @@ void BoxDAC::beep() {
 }
 
 void BoxDAC::samSay(const char *text) {
+    audioOutput->flush();
     ESP8266SAM* sam = new ESP8266SAM();
     sam->Say(audioOutput, text);
     delete sam;
