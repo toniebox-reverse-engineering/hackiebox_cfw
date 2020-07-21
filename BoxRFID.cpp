@@ -586,7 +586,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
       while (!readInterrupt() && timer.isRunning()) {
         Box.delayTask(0);
         timer.tick();
-        }
+      }
       if (!timer.isRunning()) {
         timeoutIRQ();
         Log.error("waitRxIRQ Timeout 2");
