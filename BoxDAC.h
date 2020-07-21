@@ -14,7 +14,9 @@ class BoxDAC : public EnhancedThread  {
             begin(),
             loop();
 
-        void fillBuffer(uint16_t timeoutMs);
+        void generateZeroAudio(uint16_t timeoutMs);
+
+        void generateFrequency(uint32_t frequency, uint16_t timeoutMs);
 
         void beepTest();
         void beep();
@@ -41,9 +43,7 @@ class BoxDAC : public EnhancedThread  {
 
         void logDmaIrqChanges();
 
-        uint32_t frequency = 1; // frequency of square wave in Hz
         const int16_t amplitude = 500; // amplitude of square wave
-        const uint32_t sampleRate = 16000; // sample rate in Hz
         int16_t sample = amplitude; // current sample value
         uint32_t count = 0;
         unsigned long i2sElmCount = 0;

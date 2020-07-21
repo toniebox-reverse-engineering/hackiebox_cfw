@@ -40,11 +40,7 @@ void dma_irq() {
 
 void BoxDAC::begin() {
     Log.info("Initialize DAC...");
-    audioBuffer.init();/*
-    audioBuffer.logState();
-    fillBuffer(25);
-    fillBuffer(25);
-    fillBuffer(25);*/
+    audioBuffer.init();
     audioBuffer.logState();
 
     MAP_PinTypeI2S(PIN_50, PIN_MODE_4); //I2S Data0 (DIN)
@@ -127,12 +123,12 @@ void BoxDAC::begin() {
 }
 
 void BoxDAC::loop() { 
-    fillBuffer(25);
+    generateZeroAudio(25);
 }
 
-void BoxDAC::fillBuffer(uint16_t timeoutMs) {
+void BoxDAC::generateFrequency(uint32_t frequency, uint16_t timeoutMs) {
     BoxTimer timeout;
-    uint32_t halfWavelength = (sampleRate / frequency) / 2;
+    uint32_t halfWavelength = (audioOutput->GetRate() / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
@@ -149,6 +145,27 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             i2sElmCount++;
             timeout.tick();
         }
+        if (writeBuffer->position >= writeBuffer->size) {
+            if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE)) {
+                writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
+                writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
+                continue;
+            }
+        }
+        break;
+    }
+}
+
+void BoxDAC::generateZeroAudio(uint16_t timeoutMs) {
+    BoxTimer timeout;
+    timeout.setTimer(timeoutMs);
+
+    while (timeout.isRunning()) {
+        while(writeBuffer->position<writeBuffer->size) {            
+            writeBuffer->buffer[writeBuffer->position++] = 0;
+            writeBuffer->buffer[writeBuffer->position++] = 0;
+        }
+        timeout.tick();
         if (writeBuffer->position >= writeBuffer->size) {
             if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE)) {
                 writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
@@ -354,7 +371,7 @@ void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t s
     sam->Say(audioOutput, text);
     audioOutput->flush();
     delete sam;
-    
+
     audioOutput->SetRate(samplerate);
 }
 

@@ -133,7 +133,7 @@ void Hackiebox::delayTask(uint16_t millis) {
     }
 }
 void Hackiebox::delayTaskWork(uint16_t millis) {
-    boxDAC.fillBuffer(millis);
+    boxDAC.generateZeroAudio(millis);
 }
 
 void Hackiebox::loop() {

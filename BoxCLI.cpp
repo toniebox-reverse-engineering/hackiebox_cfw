@@ -38,7 +38,7 @@ void BoxCLI::begin() {
     cmdLoad = cli.addCmd("load");
     cmdLoad.setDescription(" Shows the current load of all threads");
     cmdLoad.addArg("n/ame", "");
-    cmdLoad.addArg("p/ointer", 0);
+    cmdLoad.addArg("p/ointer", "0");
     cmdLoad.addFlagArg("r/eset");
 
     cmdHelp = cli.addSingleArgumentCommand("help");
@@ -48,16 +48,16 @@ void BoxCLI::begin() {
     cmdI2S.setDescription(" I2S debug information");
     cmdI2S.addFlagArg("l/og");
     cmdI2S.addArg("t/est", 0);
-    cmdI2S.addArg("f/requency", 0);
+    cmdI2S.addArg("f/requency", "440");
 
     cmdSay = cli.addCmd("say");
     cmdSay.setDescription(" Generate speech with SAM");
     cmdSay.addPosArg("t/ext");
-    cmdSay.addArg("v/oice", 0);
-    cmdSay.addArg("s/peed", 0);
-    cmdSay.addArg("p/itch", 0);
-    cmdSay.addArg("t/hroat", 0);
-    cmdSay.addArg("m/outh", 0);
+    cmdSay.addArg("v/oice", "0");
+    cmdSay.addArg("s/peed", "0");
+    cmdSay.addArg("p/itch", "0");
+    cmdSay.addArg("t/hroat", "0");
+    cmdSay.addArg("m/outh", "0");
     cmdSay.addFlagArg("sing");
     cmdSay.addFlagArg("p/hoentic");
 }
@@ -322,18 +322,21 @@ void BoxCLI::execLoad() {
 void BoxCLI::execI2S() {
     Command c = lastCmd;
     unsigned long freq = parseNumber(c.getArg("frequency").getValue());
-    unsigned long test = parseNumber(c.getArg("test").getValue());
+    unsigned long testTime = parseNumber(c.getArg("test").getValue());
     if (c.getArg("log").isSet()) {
         Box.boxDAC.audioBuffer.logState();
         Box.boxDAC.logDmaIrqChanges();
     }
-    if (freq > 0) {
-        Log.info("Set test frequency=%i", freq);
-        Box.boxDAC.frequency = freq;
-    }
-    if (test > 0) {
-        Log.info("Run test for %ims", test);
-        Box.delayTask(test);
+    if (testTime > 0 && freq > 0) {
+        Log.info("Run frequency test for %ims with %iHz", testTime, freq);
+        BoxTimer timer;
+        timer.setTimer(testTime);
+        while (timer.isRunning()) {
+            Box.boxDAC.generateFrequency(freq, timer.getTimeTillEnd());
+            timer.tick();
+        }
+        Box.boxDAC.audioOutput->flush();
+
         if (c.getArg("log").isSet()) {
             Box.boxDAC.audioBuffer.logState();
             Box.boxDAC.logDmaIrqChanges();
