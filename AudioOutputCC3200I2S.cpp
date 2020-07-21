@@ -41,8 +41,18 @@ AudioOutputCC3200I2S::~AudioOutputCC3200I2S()
 bool AudioOutputCC3200I2S::SetRate(int hz)
 {
   this->hertz = hz;
+
+  uint32_t clock; //(Num of bits * STEREO * sampling)
+  clock = 16*2*hz;//22050;
+
+  MAP_PRCMI2SClockFreqSet(clock);
+  MAP_I2SConfigSetExpClk(I2S_BASE, clock, clock, I2S_SLOT_SIZE_16|I2S_PORT_DMA);
+
   //TODO
   return true;
+}
+int AudioOutputCC3200I2S::GetRate() {
+  return this->hertz;
 }
 
 bool AudioOutputCC3200I2S::SetBitsPerSample(int bits)

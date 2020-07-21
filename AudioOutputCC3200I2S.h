@@ -24,6 +24,9 @@
 #include <AudioOutput.h>
 
 #include "BoxAudioBufferTriple.h"
+#include <driverlib/i2s.h>
+#include <driverlib/prcm.h>
+#include <driverlib/rom_map.h>
 
 class AudioOutputCC3200I2S : public AudioOutput
 {
@@ -39,8 +42,7 @@ class AudioOutputCC3200I2S : public AudioOutput
     
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
 
-    enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
-    enum : int { EXTERNAL_I2S = 0, INTERNAL_DAC = 1, INTERNAL_PDM = 2 };
+    int GetRate();
 
   protected:
     virtual int AdjustI2SRate(int hz) { return hz; }

@@ -47,9 +47,6 @@ void BoxDAC::begin() {
     fillBuffer(25);*/
     audioBuffer.logState();
 
-    uint32_t clock; //(Num of bits * STEREO * sampling)
-    clock = 16*2*16000;
-
     MAP_PinTypeI2S(PIN_50, PIN_MODE_4); //I2S Data0 (DIN)
     MAP_PinTypeI2S(PIN_53, PIN_MODE_2); //I2S ClockO (BCLK)
     MAP_PinTypeI2S(PIN_63, PIN_MODE_7); //I2S Frame Sync (WCLK)
@@ -57,6 +54,8 @@ void BoxDAC::begin() {
     Log.info("Clock");
     MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralReset(PRCM_I2S);
+
+    audioOutput = new AudioOutputCC3200I2S(&audioBuffer);
 
     initDACI2C();
 
@@ -101,13 +100,10 @@ void BoxDAC::begin() {
     MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
     MAP_I2SIntRegister(I2S_BASE, dma_irq);
     MAP_I2STxFIFOEnable(I2S_BASE, 8, 1);
-    MAP_PRCMI2SClockFreqSet(clock);
-
-    MAP_I2SConfigSetExpClk(I2S_BASE, clock, clock, I2S_SLOT_SIZE_16|I2S_PORT_DMA);
     MAP_I2SSerializerConfig(I2S_BASE, I2S_DATA_LINE_0, I2S_SER_MODE_TX, I2S_INACT_LOW_LEVEL);
-
+    MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
-    
+
 
     /*
     for (uint32_t i = 0; i<5; i++) {
@@ -124,8 +120,6 @@ void BoxDAC::begin() {
     setVolume(current_volume);
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
-
-    audioOutput = new AudioOutputCC3200I2S(&audioBuffer);
 
     Log.info("...initialized");
 
@@ -298,11 +292,29 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 }
 void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     //TODO Check boundaries!
-    uint16_t samplerate = 16000;
+    uint16_t samplerate = audioOutput->GetRate();
     int32_t freq = frequencyTable[midiId]; //fixed point /100
     int16_t sin = beepTable16000[midiId][0];
     int16_t cos = beepTable16000[midiId][1];
 
+    switch (samplerate) {
+        case 22050:
+            sin = beepTable22050[midiId][0];
+            cos = beepTable22050[midiId][1];
+            break;
+        case 32000:
+            sin = beepTable32000[midiId][0];
+            cos = beepTable32000[midiId][1];
+            break;
+        case 44100:
+            sin = beepTable44100[midiId][0];
+            cos = beepTable44100[midiId][1];
+            break;
+        case 48000:
+            sin = beepTable48000[midiId][0];
+            cos = beepTable48000[midiId][1];
+            break;
+    }
 
     int32_t cycles = 2*freq*lengthMs/1000/100;
     int32_t samples_opt = samplerate*(cycles)*100/freq/2;
