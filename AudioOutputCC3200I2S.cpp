@@ -110,7 +110,7 @@ bool AudioOutputCC3200I2S::writeEmptyBuffer() {
 
   bool bufferEmpty = (buffer->position == 0);
 
-  while (buffer->size <= buffer->position) {
+  while (buffer->size < buffer->position) {
     buffer->buffer[buffer->position++] = 0x00;
   }
   while (!audioBuffer->flip(BoxAudioBufferTriple::BufferType::WRITE)) {}
