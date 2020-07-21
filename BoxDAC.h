@@ -22,7 +22,7 @@ class BoxDAC : public EnhancedThread  {
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
 
-        void samSay(const char *text);
+        void samSay(const char *text, enum ESP8266SAM::SAMVoice voice = ESP8266SAM::SAMVoice::VOICE_SAM, uint8_t speed = 0, uint8_t pitch = 0, uint8_t throat = 0, uint8_t mouth = 0, bool sing = false, bool phoentic = false);
 
         void dmaPingPingComplete();
         BoxAudioBufferTriple audioBuffer;

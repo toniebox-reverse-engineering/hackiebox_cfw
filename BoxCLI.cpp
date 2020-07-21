@@ -2,6 +2,7 @@
 
 #include "Hackiebox.h"
 #include "BoxEvents.h"
+#include <ESP8266SAM.h>
 
 void BoxCLI::begin() {
     setInterval(50);
@@ -51,7 +52,14 @@ void BoxCLI::begin() {
 
     cmdSay = cli.addCmd("say");
     cmdSay.setDescription(" Generate speech with SAM");
-    cmdSay.addPosArg("text");
+    cmdSay.addPosArg("t/ext");
+    cmdSay.addArg("v/oice", 0);
+    cmdSay.addArg("s/peed", 0);
+    cmdSay.addArg("p/itch", 0);
+    cmdSay.addArg("t/hroat", 0);
+    cmdSay.addArg("m/outh", 0);
+    cmdSay.addFlagArg("sing");
+    cmdSay.addFlagArg("p/hoentic");
 }
 
 void BoxCLI::loop() {
@@ -337,8 +345,26 @@ void BoxCLI::execI2S() {
 void BoxCLI::execSay() {
     Command c = lastCmd;
     String text = c.getArg("text").getValue();
-    if (text != "")
-        Box.boxDAC.samSay(text.c_str());
+    ESP8266SAM::SAMVoice voice = (ESP8266SAM::SAMVoice)parseNumber(c.getArg("voice").getValue());
+    uint8_t speed = parseNumber(c.getArg("speed").getValue());
+    uint8_t pitch = parseNumber(c.getArg("pitch").getValue());
+    uint8_t throat = parseNumber(c.getArg("throat").getValue());
+    uint8_t mouth = parseNumber(c.getArg("mouth").getValue());
+    bool sing = c.getArg("sing").isSet();
+    bool phoentic = c.getArg("phoentic").isSet();
+
+    if (text != "") {
+        Box.boxDAC.samSay(
+            text.c_str(),
+            voice,
+            speed,
+            pitch,
+            throat,
+            mouth,
+            sing,
+            phoentic
+        );
+    }
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {
