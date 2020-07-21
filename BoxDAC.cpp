@@ -153,7 +153,6 @@ void BoxDAC::fillBuffer(uint16_t timeoutMs) {
             if (audioBuffer.flip(BoxAudioBufferTriple::BufferType::WRITE)) {
                 writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
                 writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
-                writeBuffer->position = 0;
                 continue;
             }
         }
@@ -353,8 +352,9 @@ void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t s
     sam->SetPhonetic(phoentic);
 
     sam->Say(audioOutput, text);
-    delete sam;
     audioOutput->flush();
+    delete sam;
+    
     audioOutput->SetRate(samplerate);
 }
 

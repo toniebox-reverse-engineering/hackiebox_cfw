@@ -33,6 +33,9 @@ class BoxAudioBufferTriple {
         void logState();
         void logState(BoxAudioBufferTriple::BufferStruct* buffer);
 
+        bool isFull();
+        bool isEmpty();
+
         uint16_t getBufferSize();
 
         BufferStruct* getBuffer(BoxAudioBufferTriple::BufferType type);

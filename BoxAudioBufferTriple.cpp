@@ -30,12 +30,14 @@ bool BoxAudioBufferTriple::flip(BoxAudioBufferTriple::BufferType type) {
         if (_bufferRead->next->state == BufferState::READY_FOR_READ) {
             _bufferRead->state = BufferState::READY_FOR_WRITE;
             _bufferRead = _bufferRead->next;
+            _bufferRead->position = 0;
             return true;
         }
     } else if (type == BufferType::WRITE) {
         if (_bufferWrite->next->state == BufferState::READY_FOR_WRITE) {
             _bufferWrite->state = BufferState::READY_FOR_READ;
             _bufferWrite = _bufferWrite->next;
+            _bufferWrite->position = 0;
             return true;
         }
     }
@@ -54,4 +56,18 @@ BoxAudioBufferTriple::BufferStruct* BoxAudioBufferTriple::getBuffer(BoxAudioBuff
         return _bufferWrite;
     }
     return NULL;
+}
+
+
+bool BoxAudioBufferTriple::isFull() {
+    if (_bufferWrite->next->state != BufferState::READY_FOR_WRITE) {
+        return true;
+    }
+    return false;
+}
+bool BoxAudioBufferTriple::isEmpty() {
+    if (_bufferRead->next->state != BufferState::READY_FOR_READ) {
+        return true;
+    }
+    return false;
 }
