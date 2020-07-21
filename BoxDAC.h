@@ -41,7 +41,7 @@ class BoxDAC : public EnhancedThread  {
 
         void logDmaIrqChanges();
 
-        uint32_t frequency = 440; // frequency of square wave in Hz
+        uint32_t frequency = 1; // frequency of square wave in Hz
         const int16_t amplitude = 500; // amplitude of square wave
         const uint32_t sampleRate = 16000; // sample rate in Hz
         int16_t sample = amplitude; // current sample value
