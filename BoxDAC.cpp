@@ -179,10 +179,10 @@ void BoxDAC::dmaPingPingComplete() {
 
         unsigned long channel = 0x00;
         if (channelModePri == UDMA_MODE_STOP) {
-            channel = UDMA_CH5_I2S_TX;
+            channel = UDMA_CH5_I2S_TX | UDMA_PRI_SELECT;
             priIndexRx++;
         } else if (channelModeAlt == UDMA_MODE_STOP) {
-            channel = UDMA_CH5_I2S_TX|UDMA_ALT_SELECT;
+            channel = UDMA_CH5_I2S_TX | UDMA_ALT_SELECT;
             altIndexRx++;
         }
         if (channel) {
@@ -194,13 +194,14 @@ void BoxDAC::dmaPingPingComplete() {
             BoxAudioBufferTriple::BufferStruct* readBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::READ);
             readBuffer->state = BoxAudioBufferTriple::BufferState::READING;
 
-            MAP_uDMAChannelTransferSet(channel,
+            MAP_uDMAChannelTransferSet(
+                channel,
                 UDMA_MODE_PINGPONG,
                 (void *)readBuffer->buffer,
                 (void *)I2S_TX_DMA_PORT,
                 readBuffer->size
             );
-            MAP_uDMAChannelEnable(UDMA_CH5_I2S_TX);
+            MAP_uDMAChannelEnable(channel);
         }
     }
 }
@@ -326,7 +327,7 @@ void BoxDAC::samSay(const char *text) {
     ESP8266SAM* sam = new ESP8266SAM();
     sam->Say(audioOutput, text);
     delete sam;
-    //audioOutput->flush();
+    audioOutput->flush();
 }
 
 bool BoxDAC::send(uint8_t target_register, uint8_t data) {
