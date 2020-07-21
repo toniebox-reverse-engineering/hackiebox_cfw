@@ -96,21 +96,23 @@ bool AudioOutputCC3200I2S::ConsumeSample(int16_t sample[2])
 
 void AudioOutputCC3200I2S::flush() {
   //Currently crashes?!
-  BoxAudioBufferTriple::BufferStruct* writeBuffer = audioBuffer->getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
-  while (writeBuffer->size <= writeBuffer->position) {
-    writeBuffer->buffer[writeBuffer->position++] = 0x00;
+  if (!writeEmptyBuffer()) {
+    writeEmptyBuffer();
   }
-  
-  while (!audioBuffer->flip(BoxAudioBufferTriple::BufferType::WRITE)) {}
-  writeBuffer = audioBuffer->getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
-
-  while (writeBuffer->size <= writeBuffer->position) {
-    writeBuffer->buffer[writeBuffer->position++] = 0x00;
-  }
-  
-  while (!audioBuffer->flip(BoxAudioBufferTriple::BufferType::WRITE)) {}
 }
 
 bool AudioOutputCC3200I2S::stop() {
-  //flush();
+  flush();
+}
+
+bool AudioOutputCC3200I2S::writeEmptyBuffer() {
+  BoxAudioBufferTriple::BufferStruct* buffer = audioBuffer->getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
+
+  bool bufferEmpty = (buffer->position == 0);
+
+  while (buffer->size <= buffer->position) {
+    buffer->buffer[buffer->position++] = 0x00;
+  }
+  while (!audioBuffer->flip(BoxAudioBufferTriple::BufferType::WRITE)) {}
+  return bufferEmpty;
 }

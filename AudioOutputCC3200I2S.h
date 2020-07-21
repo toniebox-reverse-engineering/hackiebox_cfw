@@ -54,6 +54,8 @@ class AudioOutputCC3200I2S : public AudioOutput
     uint32_t orig_ws;
 
     BoxAudioBufferTriple* audioBuffer;
+
+    bool writeEmptyBuffer();
 };
 
 #endif
