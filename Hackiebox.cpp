@@ -8,11 +8,13 @@ void Hackiebox::setup() {
         watchdog_stop();
         //reset box?!
     }
-
+    
+    inDelayTask = true;
     logStreamMulti.setSlot(&logStreamSd, 0);
     logStreamMulti.setSlot(&logStreamSse, 1);
     Log.init(LOG_LEVEL_VERBOSE, 115200, &logStreamMulti);
-    Log.info("Booting Hackiebox, Free MEM=%ib...", freeMemory());
+    Log.info("Booting Hackiebox...");
+    Box.boxPower.feedSleepTimer();
 
     Wire.begin();
     
@@ -36,7 +38,7 @@ void Hackiebox::setup() {
     boxLEDs.setAll(BoxLEDs::CRGB::Pink);
     boxRFID.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::Teal);
-    boxDAC.begin();
+    //boxDAC.begin();
     boxLEDs.setAll(BoxLEDs::CRGB::Fuchsia);
     
     boxCLI.begin();
@@ -47,16 +49,39 @@ void Hackiebox::setup() {
     webServer = WrapperWebServer();
     webServer.begin();
     
-    _threadController = ThreadController();
-    _threadController.add(&boxAccel);
-    _threadController.add(&boxBattery);
-    _threadController.add(&boxCLI);
-    _threadController.add(&boxRFID);
-    _threadController.add(&boxEars);
-    _threadController.add(&boxLEDs);
-    _threadController.add(&boxPower);
-    _threadController.add(&boxWiFi);
-    _threadController.add(&webServer);
+    boxAccel.setName("Accelerometer");
+    boxBattery.setName("Battery");
+    boxCLI.setName("CLI");
+    boxDAC.setName("DAC");
+    boxRFID.setName("RFID");
+    boxEars.setName("Ears");
+    boxLEDs.setName("LEDs");
+    boxPower.setName("Power");
+    boxWiFi.setName("WiFi");
+    webServer.setName("Webserver");
+    
+    boxDAC.priority = 0;
+    boxRFID.priority = 1;
+    boxAccel.priority = 2;
+    boxLEDs.priority = 3;
+    boxEars.priority = 4;
+    webServer.priority = 5;
+    boxPower.priority = 10;
+    boxWiFi.priority = 50;
+    boxBattery.priority = 100;
+    boxCLI.priority = 100;
+
+    threadController = ThreadController();
+    threadController.add(&boxAccel);
+    threadController.add(&boxBattery);
+    threadController.add(&boxCLI);
+    threadController.add(&boxDAC);
+    threadController.add(&boxRFID);
+    threadController.add(&boxEars);
+    threadController.add(&boxLEDs);
+    threadController.add(&boxPower);
+    threadController.add(&boxWiFi);
+    threadController.add(&webServer);
 
     Log.info("Config: %s", Config.getAsJson().c_str());
 
@@ -74,14 +99,46 @@ void Hackiebox::setup() {
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
  
-    boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
-    Log.info("Hackiebox started! Free MEM=%ib...", freeMemory());
+    boxLEDs.defaultIdleAnimation();
+    Log.info("Hackiebox started!");
+    Box.boxPower.feedSleepTimer();
+    inDelayTask = false;
+
+    boxDAC.begin();
+    //Workaround, as something seems to interfere / remove the irq.
+    //But box now crashes!
+    boxDAC.i2sStartMicros = micros();
+    
+    threadController.sortThreads();
 }
 
-void Hackiebox::loop() {  
+void Hackiebox::delayTask(uint16_t millis) {
+    if (millis == 0)
+        return;
+    if (!inDelayTask) {
+        inDelayTask = true;
+        BoxTimer timer;
+        timer.setTimer(millis);
+
+        //Work start
+        while (timer.isRunning()) {
+            delayTaskWork(timer.getTimeTillEnd());
+            timer.tick();
+        }
+        //Work end
+
+        inDelayTask = false;
+    } else {
+        delay(millis);
+    }
+}
+void Hackiebox::delayTaskWork(uint16_t millis) {
+    boxDAC.generateZeroAudio(millis);
+}
+
+void Hackiebox::loop() {
     watchdog_feed();
-    _threadController.run();
-    webServer.handle();
+    threadController.run();
 }
 
 bool Hackiebox::watchdog_isFed() {

@@ -1,5 +1,6 @@
 #include "BoxRFID.h"
 #include "Hackiebox.h"
+#include "BoxEvents.h"
 
 void rfid_irq() {
   Box.boxRFID.receivedInterrupt();
@@ -28,14 +29,16 @@ void BoxRFID::loop() {
   // The VCD should wait at least 1 ms after it activated the
   // powering field before sending the first request, to
   // ensure that the VICCs are ready to receive it. (ISO15693-3)
-  delay(20); //not 1 ms?!
+  Box.delayTask(20); //not 1 ms?!
   ISO15693_RESULT result;
   uint32_t knownPasswords[3] = { 0x7FFD6E5B, 0x0F0F0F0F, 0x00000000 };
 
   if (tagActive) {
     result = ISO15693_getRandomSlixL(NULL);
-      if (result != ISO15693_RESULT::GET_RANDOM_VALID)
+      if (result != ISO15693_RESULT::GET_RANDOM_VALID) {
         tagActive = false;
+        Events.handleTagEvent(TAG_EVENT::TAG_REMOVED);
+      }
   } else {
     for (uint8_t i = 0; i < 3; i++) {
       result = ISO15693_setPassSlixL(0x04, knownPasswords[i]); //reversed!
@@ -45,7 +48,7 @@ void BoxRFID::loop() {
       } else if (result == ISO15693_RESULT::SET_PASSWORD_INCORRECT) {
         Log.info("Password %X (i=%i) was incorrect", knownPasswords[i], i);
         writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
-        delay(20);
+        Box.delayTask(20);
         reinitRFID();
       } else {
         break;
@@ -56,14 +59,12 @@ void BoxRFID::loop() {
       reinitRFID();
       result = ISO15693_sendSingleSlotInventory(tagUid);
       if (result == ISO15693_RESULT::INVENTORY_VALID_RESPONSE) {
-        Log.info("RFID UID: ");
-        Log.print(" ");
-        for (uint8_t i = 0; i < 8; i++) {
-          Log.printf("%x ", tagUid[7-i]);
-        }
-        Log.println();
+        //TODO
+        tagActive = true;
+        Events.handleTagEvent(TAG_EVENT::TAG_PLACED);
+      } else {
+        tagActive = false;
       }
-      tagActive = true; 
     } else {
       tagActive = false;
       //Log.error("No tag? ISO15693_RESULT=%X", result);
@@ -315,6 +316,7 @@ void BoxRFID::sendRaw(uint8_t* buffer, uint8_t length) {
       BoxTimer timer;
       timer.setTimer(5);
       while (!readInterrupt() && timer.isRunning()) {
+        Box.delayTask(0);
         timer.tick();
       }
       if (!timer.isRunning()) {
@@ -396,7 +398,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid)
       Log.error("Error flag=%X while reading", trfStatus);
     }
 	} else {
-    //Log.error("Unexpected TRF_STATUS for inventory %X", trfStatus);
+    Log.error("Unexpected TRF_STATUS for inventory %X", trfStatus);
 	}
   return ISO15693_RESULT::INVENTORY_INVALID_RESPONSE; //TODO 
 }
@@ -495,7 +497,7 @@ void BoxRFID::reinitRFID() {
   trfRxLength = 0;
   trfStatus = TRF_STATUS::TRF_IDLE;
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  delay(20);
+  Box.delayTask(20);
 }
 
 uint8_t BoxRFID::readIrqRegister() {
@@ -547,6 +549,7 @@ void BoxRFID::waitTxIRQ(uint8_t txTimeout) {
     BoxTimer timer;
     timer.setTimer(txTimeout);
     while (!readInterrupt() && timer.isRunning()) {
+      Box.delayTask(0);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -570,6 +573,7 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
     BoxTimer timer;
     timer.setTimer(rxTimeout);
     while (!readInterrupt() && timer.isRunning()) {
+      Box.delayTask(0);
       timer.tick();
     }
     if (!timer.isRunning()) {
@@ -580,8 +584,9 @@ void BoxRFID::waitRxIRQ(uint8_t rxTimeout) {
       clearInterrupt();
       timer.setTimer(5); //from firmware example
       while (!readInterrupt() && timer.isRunning()) {
+        Box.delayTask(0);
         timer.tick();
-        }
+      }
       if (!timer.isRunning()) {
         timeoutIRQ();
         Log.error("waitRxIRQ Timeout 2");
@@ -610,7 +615,7 @@ void BoxRFID::resetRFID() {
   //Log.info("resetRFID();");
   sendCommand(DIRECT_COMMANDS::SOFT_INIT);
   sendCommand(DIRECT_COMMANDS::IDLING);
-  delay(1);
+  Box.delayTask(1);
   clearInterrupt();
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   trfOffset = 0;
@@ -653,4 +658,19 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
   sendRaw(&buffer[0], sendLen+5);
   TRF_STATUS status = waitRxData(15, 15); //15, 5 vs. 15, 15 (longer timeout for set password)
   return status;
+}
+
+void BoxRFID::getUID(uint8_t* uid) {
+  //size 24 (7 + 16 + 1)
+  sprintf(
+    (char*)uid,
+    "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+    tagUid[7], tagUid[6], tagUid[5], tagUid[4], tagUid[3], tagUid[2], tagUid[1], tagUid[0]
+  );
+}
+
+void BoxRFID::logUID() {
+  uint8_t uid[24];
+  getUID(uid);
+  Log.info("RFID UID: %s", uid);
 }

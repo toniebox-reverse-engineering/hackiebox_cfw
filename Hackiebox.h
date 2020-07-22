@@ -44,7 +44,13 @@ class Hackiebox {
             watchdog_feed(),
             watchdog_unfeed();
 
+        bool inDelayTask;
+        void delayTask(uint16_t millis);
+        void delayTaskWork(uint16_t millis);
 
+
+        ThreadController threadController;
+        
         BoxAccelerometer boxAccel;
         BoxBattery boxBattery;
         BoxButtonEars boxEars; 
@@ -68,7 +74,6 @@ class Hackiebox {
             watchdog_handler();*/
         
         bool _watchdog_fed;
-        ThreadController _threadController;
 };
 extern Hackiebox Box;
 

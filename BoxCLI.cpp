@@ -1,6 +1,8 @@
 #include "BoxCLI.h"
 
 #include "Hackiebox.h"
+#include "BoxEvents.h"
+#include <ESP8266SAM.h>
 
 void BoxCLI::begin() {
     setInterval(50);
@@ -15,21 +17,49 @@ void BoxCLI::begin() {
     cmdI2C.addArg("l/ength", "1");
     cmdI2C.addArg("o/utput", "B");
 
-    cmdRFID = cli.addCmd("rfid");
-    cmdRFID.setDescription(" Access RFID SPI");
-    cmdRFID.addFlagArg("re/ad");
-    cmdRFID.addFlagArg("wr/ite");
-    cmdRFID.addFlagArg("c/md,co/mmand");
-    cmdRFID.addArg("r/egister", "0");
-    cmdRFID.addArg("v/alue", "0");
+    cmdSpiRFID = cli.addCmd("spi-rfid");
+    cmdSpiRFID.setDescription(" Access RFID SPI");
+    cmdSpiRFID.addFlagArg("re/ad");
+    cmdSpiRFID.addFlagArg("wr/ite");
+    cmdSpiRFID.addFlagArg("c/md,co/mmand");
+    cmdSpiRFID.addArg("r/egister", "0");
+    cmdSpiRFID.addArg("v/alue", "0");
 
     cmdBeep = cli.addCmd("beep");
     cmdBeep.setDescription(" Beep with build-in DAC synthesizer");
     cmdBeep.addArg("m/idi-id", "60");
     cmdBeep.addArg("l/ength", "200");
 
+    cmdRFID = cli.addCmd("rfid");
+    cmdRFID.setDescription(" Access RFID");
+    cmdRFID.addFlagArg("u/id");
+    cmdRFID.addFlagArg("r/ead");
+    
+    cmdLoad = cli.addCmd("load");
+    cmdLoad.setDescription(" Shows the current load of all threads");
+    cmdLoad.addArg("n/ame", "");
+    cmdLoad.addArg("p/ointer", "0");
+    cmdLoad.addFlagArg("r/eset");
+
     cmdHelp = cli.addSingleArgumentCommand("help");
     cmdHelp.setDescription(" Show this screen");
+
+    cmdI2S = cli.addCmd("i2s");
+    cmdI2S.setDescription(" I2S debug information");
+    cmdI2S.addFlagArg("l/og");
+    cmdI2S.addArg("t/est", 0);
+    cmdI2S.addArg("f/requency", "440");
+
+    cmdSay = cli.addCmd("say");
+    cmdSay.setDescription(" Generate speech with SAM");
+    cmdSay.addPosArg("t/ext");
+    cmdSay.addArg("v/oice", "0");
+    cmdSay.addArg("s/peed", "0");
+    cmdSay.addArg("p/itch", "0");
+    cmdSay.addArg("t/hroat", "0");
+    cmdSay.addArg("m/outh", "0");
+    cmdSay.addFlagArg("sing");
+    cmdSay.addFlagArg("p/hoentic");
 }
 
 void BoxCLI::loop() {
@@ -54,10 +84,18 @@ void BoxCLI::parse() {
             Log.println(cli.toString().c_str());
         } else if (lastCmd == cmdI2C) {
             execI2C();
-        } else if (lastCmd == cmdRFID) {
-            execRFID();
+        } else if (lastCmd == cmdSpiRFID) {
+            execSpiRFID();
         } else if (lastCmd == cmdBeep) {
             execBeep();
+        } else if (lastCmd == cmdRFID) {
+            execRFID();
+        } else if (lastCmd == cmdLoad) {
+            execLoad();
+        } else if (lastCmd == cmdI2S) {
+            execI2S();
+        } else if (lastCmd == cmdSay) {
+            execSay();
         }
     }
 
@@ -154,7 +192,7 @@ void BoxCLI::execI2C() {
     }
 }
 
-void BoxCLI::execRFID() {
+void BoxCLI::execSpiRFID() {
     Command c = lastCmd;
     unsigned long tmpNum;
 
@@ -213,6 +251,123 @@ void BoxCLI::execBeep() {
     uint16_t length = (uint16_t)tmpNum;
 
     Box.boxDAC.beepMidi(id, length);
+}
+
+void BoxCLI::execRFID() {
+    Command c = lastCmd;
+
+    if (c.getArg("read").isSet()) {
+        if (Box.boxRFID.tagActive) {
+            Box.boxRFID.tagActive = false;
+            Events.handleTagEvent(BoxRFID::TAG_EVENT::TAG_REMOVED);
+        }
+        Box.boxRFID.loop();
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place");
+        }
+    } else if (c.getArg("uid").isSet()) {
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place, last known is shown");
+        }
+        Box.boxRFID.logUID();
+    } else {
+        Log.error("Nothing to do...");
+    }
+}
+
+void BoxCLI::execLoad() {
+    Command c = lastCmd;
+
+    String name = c.getArg("name").getValue();
+    String pointerStr = c.getArg("pointer").getValue();
+    bool reset = c.getArg("reset").isSet();
+    unsigned long pointer = parseNumber(pointerStr);
+
+    if (name != "") {
+        Log.info("Thread statistics for Threads starting with \"%s\"", name.c_str());
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            if (strncasecmp(name.c_str(), thread->ThreadName, name.length()) == 0) {
+                thread->logStats();
+                if (reset) thread->resetStats();
+                Log.println();
+            }
+        }
+    } else if (pointer > 0) {
+        Log.info("Thread statistics for Threads with pointer=%i", pointer);
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            if (pointer == thread->ThreadID) {
+                thread->logStats();
+                if (reset) thread->resetStats();
+                Log.println();
+            }
+        }
+    } else {
+        Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
+        Log.println("---");
+        for (uint8_t i = 0; i < Box.threadController.size(); i++) {
+            EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
+            thread->logStats();
+            if (reset) thread->resetStats();
+            Log.println();
+        }
+    }
+
+    if (reset) Log.info("All stats of selected threads are reset.");
+}
+
+void BoxCLI::execI2S() {
+    Command c = lastCmd;
+    unsigned long freq = parseNumber(c.getArg("frequency").getValue());
+    unsigned long testTime = parseNumber(c.getArg("test").getValue());
+    if (c.getArg("log").isSet()) {
+        Box.boxDAC.audioBuffer.logState();
+        Box.boxDAC.logDmaIrqChanges();
+    }
+    if (testTime > 0 && freq > 0) {
+        Log.info("Run frequency test for %ims with %iHz", testTime, freq);
+        BoxTimer timer;
+        timer.setTimer(testTime);
+        while (timer.isRunning()) {
+            Box.boxDAC.generateFrequency(freq, timer.getTimeTillEnd());
+            timer.tick();
+        }
+        Box.boxDAC.audioOutput->flush();
+
+        if (c.getArg("log").isSet()) {
+            Box.boxDAC.audioBuffer.logState();
+            Box.boxDAC.logDmaIrqChanges();
+        }
+    }
+
+}
+
+void BoxCLI::execSay() {
+    Command c = lastCmd;
+    String text = c.getArg("text").getValue();
+    ESP8266SAM::SAMVoice voice = (ESP8266SAM::SAMVoice)parseNumber(c.getArg("voice").getValue());
+    uint8_t speed = parseNumber(c.getArg("speed").getValue());
+    uint8_t pitch = parseNumber(c.getArg("pitch").getValue());
+    uint8_t throat = parseNumber(c.getArg("throat").getValue());
+    uint8_t mouth = parseNumber(c.getArg("mouth").getValue());
+    bool sing = c.getArg("sing").isSet();
+    bool phoentic = c.getArg("phoentic").isSet();
+
+    if (text != "") {
+        Box.boxDAC.samSay(
+            text.c_str(),
+            voice,
+            speed,
+            pitch,
+            throat,
+            mouth,
+            sing,
+            phoentic
+        );
+    }
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {

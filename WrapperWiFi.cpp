@@ -35,6 +35,7 @@ void WrapperWiFi::begin() {
       Log.info(" -%i: Name=%s", i, profiles[i].wifiName);
   }
   
+  setInterval(5000);
   reconnect();
 }
 

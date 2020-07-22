@@ -28,7 +28,7 @@ void BoxPower::loop() {
 void BoxPower::feedSleepTimer() {
     _lastFeed = millis();
     Box.watchdog_feed();
-    Log.verbose("Sleep timer reset, _lastFeed=%l, freeMEM=%i", _lastFeed, freeMemory());
+    Log.verbose("Sleep timer reset, _lastFeed=%l, freeStackMEM=%ib, freeHeapMEM=%ib, *Stack=%X, *Heap=%X", _lastFeed, freeStackMemory(), freeHeapMemory(), stackPointer()-0x20004000, heapPointer()-0x20004000);
 }
 
 void BoxPower::_preparePowerDown() {
@@ -68,9 +68,9 @@ void BoxPower::setOtherPower(bool power) {
         //RESET Chips
         pinMode(62, OUTPUT);
         digitalWrite(62, LOW);
-        delay(1);
+        Box.delayTask(1);
         digitalWrite(62, HIGH);
-        delay(10);
+        Box.delayTask(10);
     }
 }
 

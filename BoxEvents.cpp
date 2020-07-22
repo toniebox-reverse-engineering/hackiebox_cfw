@@ -60,9 +60,9 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
     if (pressType == BoxButtonEars::PressedType::PRESS) {
         if (pressLength == BoxButtonEars::PressedTime::SHORT) {
             if (earId == BoxButtonEars::EarButton::BIG) {
-                
+                Box.boxDAC.increaseVolume();
             } else if (earId == BoxButtonEars::EarButton::SMALL) {
-                
+                Box.boxDAC.decreaseVolume();
             } else if (earId == BoxButtonEars::EarButton::BOTH) {
                 
             }
@@ -81,7 +81,10 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
             } else if (earId == BoxButtonEars::EarButton::SMALL) {
                 
             } else if (earId == BoxButtonEars::EarButton::BOTH) {
-                if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_DOWN) {
+                if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_UP) {
+                    Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PULSE, BoxLEDs::CRGB::Blue);
+                    Box.boxWiFi.apMode();
+                } else if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_DOWN) {
                     Box.boxPower.reset();
                 } else if (Box.boxAccel.getOrientation() == BoxAccelerometer::Orientation::EARS_FRONT) {
                     //Prepare Hibernation
@@ -229,4 +232,24 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
         break;
     }
     Log.info("Box' orientation changed to %s", orientText);
+    Box.boxPower.feedSleepTimer();
+}
+
+void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
+    switch (event) { 
+    case BoxRFID::TAG_EVENT::TAG_PLACED:
+        Log.info("Tag placed", event);
+        Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
+        Box.boxRFID.logUID();
+
+        break;
+    case BoxRFID::TAG_EVENT::TAG_REMOVED:
+        Log.info("Tag removed", event);
+        Box.boxLEDs.defaultIdleAnimation();
+        break;
+    default:
+        Log.error("Unknown TAG_EVENT=%X", event);
+        break;
+    }
+    Box.boxPower.feedSleepTimer();
 }

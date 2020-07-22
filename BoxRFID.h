@@ -7,6 +7,12 @@
 
 class BoxRFID : public EnhancedThread { 
     public:
+        enum class TAG_EVENT {
+            TAG_PLACED,
+            TAG_REMOVED
+            //HAND_PLACED, //TODO IRQ_STATUS=0x02 - Collsion
+        };
+
         void
             begin(),
             loop();
@@ -18,6 +24,11 @@ class BoxRFID : public EnhancedThread {
             sendCommand(uint8_t command);
 
         void receivedInterrupt();
+
+        void logUID();
+        void getUID(uint8_t* uid);
+        uint8_t tagUid[8];
+        bool tagActive;
 
     private:
         enum class REG_CMD_WORD_BITS : uint8_t {
@@ -169,9 +180,6 @@ class BoxRFID : public EnhancedThread {
         void initRFID();
 
         TRF_STATUS sendDataTag(uint8_t *sendBuffer, uint8_t sendLen);
-
-        uint8_t tagUid[8];
-        bool tagActive;
 };
 
 #endif

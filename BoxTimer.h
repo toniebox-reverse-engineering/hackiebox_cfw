@@ -10,9 +10,11 @@ class BoxTimer {
         void tick();
         bool isRunning();
         bool wasRunning();
+        unsigned long getTimeTillEnd();
     private:
         bool _isRunning;
         bool _hasChanged;
+        unsigned long _currentMillis;
         unsigned long _endMillis;
 };
 

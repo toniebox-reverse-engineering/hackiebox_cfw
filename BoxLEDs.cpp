@@ -13,6 +13,9 @@ void BoxLEDs::begin() {
     _stateGreen = LED_PWM_MIN;
     _stateBlue = LED_PWM_MIN;
 }
+void BoxLEDs::defaultIdleAnimation() {
+    Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::RAINBOW, BoxLEDs::CRGB::White);
+}
 
 void BoxLEDs::loop() {
     _timer.tick();
@@ -166,7 +169,7 @@ void BoxLEDs::waitForAnimationToFinish() {
     while (hasActiveAnimation()) {
         runIfNeeded();
         Box.watchdog_feed();
-        delay(1);
+        Box.delayTask(1);
     }
 }
 
@@ -295,33 +298,33 @@ void BoxLEDs::testLEDs() {
     uint8_t ledB = getBlue();
 
     Log.info("Testing LEDs...");
-    delay(250);
+    Box.delayTask(250);
 
     Log.info(" Red");
     setAll(CRGB::Red);
-    delay(250);
+    Box.delayTask(250);
     setAll(0x7F, 0x00, 0x00);
-    delay(250);
+    Box.delayTask(250);
     Log.info(" Green");
     setAll(CRGB::Green);
-    delay(250);
+    Box.delayTask(250);
     setAll(0x00, 0x7F, 0x00);
-    delay(250);
+    Box.delayTask(250);
     Log.info(" Blue");
     setAll(CRGB::Blue);
-    delay(250);
+    Box.delayTask(250);
     setAll(0x00, 0x00, 0x7F);
-    delay(250);
+    Box.delayTask(250);
     Log.info(" RGB");
     setAll(CRGB::White);
-    delay(250);
+    Box.delayTask(250);
     setAll(0x7F, 0x7F, 0x7F);
-    delay(250);
+    Box.delayTask(250);
 
     Log.info(" Off");
     setAll(CRGB::Black);
 
-    delay(500);
+    Box.delayTask(500);
     Log.info(" Reset");
     setAll(ledR, ledG, ledB);
     Log.info(" Test finished.");

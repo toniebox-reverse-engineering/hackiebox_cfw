@@ -4,16 +4,90 @@
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
 
+#include "BoxAudioBufferTriple.h"
+#include "AudioOutputCC3200I2S.h"
+#include <ESP8266SAM.h>
+
 class BoxDAC : public EnhancedThread  { 
     public:
         void
             begin(),
             loop();
 
+        void generateZeroAudio(uint16_t timeoutMs);
+
+        void generateFrequency(uint32_t frequency, uint16_t timeoutMs);
+
         void beepTest();
         void beep();
         void beepMidi(uint8_t midiId, uint16_t lengthMs, bool async=false);
         void beepRaw(uint16_t sin, uint16_t cos, uint32_t length);
+        void beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume);
+
+        void samSay(const char *text, enum ESP8266SAM::SAMVoice voice = ESP8266SAM::SAMVoice::VOICE_SAM, uint8_t speed = 0, uint8_t pitch = 0, uint8_t throat = 0, uint8_t mouth = 0, bool sing = false, bool phoentic = false);
+
+        void dmaPingPingComplete();
+        BoxAudioBufferTriple audioBuffer;
+        unsigned long dmaIRQcount = 0;
+        unsigned long lastDmaIRQcount = 0xFFFF;
+
+        unsigned long dmaBufferFilled = 0;
+        unsigned long lastDmaBufferFilled = 0xFFFF;
+        unsigned long dmaBufferEmpty = 0;
+        unsigned long lastDmaBufferEmpty = 0xFFFF;
+
+        unsigned long priIndexRx = 0;
+        unsigned long lastPriIndexRx = 0xFFFF;
+        unsigned long altIndexRx = 0;
+        unsigned long lastAltIndexRx = 0xFFFF;
+
+        void logDmaIrqChanges();
+
+        const int16_t amplitude = 500; // amplitude of square wave
+        int16_t sample = amplitude; // current sample value
+        uint32_t count = 0;
+        unsigned long i2sElmCount = 0;
+        unsigned long i2sStartMicros = 0;
+
+        BoxAudioBufferTriple::BufferStruct* writeBuffer;
+
+        AudioOutputCC3200I2S* audioOutput;
+
+        const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
+        const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
+        const static uint8_t VOL_STEP = 0x06; //3dB
+        uint8_t current_volume = VOL_MIN;
+
+        //const static uint8_t VOL_BEEP_MIN = 0x2A; //0x2A=-40dB /min allowed value 0x3F=-61dB
+        //const static uint8_t VOL_BEEP_MAX = 0x00; //0x00=+02dB /max allowed value 0x00=+02dB
+
+        //0x2A
+        //0x27
+        //0x24
+        //0x21
+        //0x1E
+        //0x1B
+        //0x18
+        //0x14
+        //0x11
+        //0x0E
+        //0x0B
+        //0x08
+        //0x05
+        //0x02
+        //0x00
+
+
+
+
+        bool increaseVolume();
+        bool decreaseVolume();
+
+        void setVolume(uint8_t volume);
+        uint8_t convertDacVol2BeepVol(uint8_t dacVol);
+        void logVolume();
+        void logBeepVolume(uint8_t volume);
+
     
     private:
         enum class PAGE {
@@ -92,6 +166,8 @@ class BoxDAC : public EnhancedThread  {
             readByte(ADDR_P0_SERIAL source_register),
             readByte(ADDR_P1_DAC_OUT source_register),
             readByte(ADDR_P3_MCLK source_register);
+
+        void initDACI2C();
 
         uint32_t frequencyTable[128] = {
             818, 
@@ -604,6 +680,122 @@ class BoxDAC : public EnhancedThread  {
             { 0x7DBC, 0x17FC },
             { 0x7F47, 0xD95 },
             { 0x7FFA, 0x276 }
+        };
+
+        uint16_t beepTable22050[113][2] = {
+            { 0x4C, 0x8000 },
+            { 0x51, 0x8000 },
+            { 0x56, 0x8000 },
+            { 0x5B, 0x8000 },
+            { 0x60, 0x8000 },
+            { 0x66, 0x8000 },
+            { 0x6C, 0x8000 },
+            { 0x72, 0x8000 },
+            { 0x79, 0x8000 },
+            { 0x80, 0x8000 },
+            { 0x88, 0x8000 },
+            { 0x90, 0x8000 },
+            { 0x99, 0x8000 },
+            { 0xA2, 0x8000 },
+            { 0xAB, 0x8000 },
+            { 0xB6, 0x7FFF },
+            { 0xC0, 0x7FFF },
+            { 0xCC, 0x7FFF },
+            { 0xD8, 0x7FFF },
+            { 0xE5, 0x7FFF },
+            { 0xF2, 0x7FFF },
+            { 0x101, 0x7FFF },
+            { 0x110, 0x7FFF },
+            { 0x120, 0x7FFF },
+            { 0x131, 0x7FFF },
+            { 0x144, 0x7FFE },
+            { 0x157, 0x7FFE },
+            { 0x16B, 0x7FFE },
+            { 0x181, 0x7FFE },
+            { 0x198, 0x7FFD },
+            { 0x1B0, 0x7FFD },
+            { 0x1CA, 0x7FFD },
+            { 0x1E5, 0x7FFC },
+            { 0x202, 0x7FFC },
+            { 0x220, 0x7FFB },
+            { 0x240, 0x7FFB },
+            { 0x263, 0x7FFA },
+            { 0x287, 0x7FFA },
+            { 0x2AD, 0x7FF9 },
+            { 0x2D6, 0x7FF8 },
+            { 0x301, 0x7FF7 },
+            { 0x32F, 0x7FF6 },
+            { 0x360, 0x7FF5 },
+            { 0x393, 0x7FF3 },
+            { 0x3C9, 0x7FF2 },
+            { 0x403, 0x7FF0 },
+            { 0x440, 0x7FEE },
+            { 0x481, 0x7FEC },
+            { 0x4C5, 0x7FE9 },
+            { 0x50E, 0x7FE6 },
+            { 0x55B, 0x7FE3 },
+            { 0x5AC, 0x7FE0 },
+            { 0x602, 0x7FDC },
+            { 0x65E, 0x7FD7 },
+            { 0x6BF, 0x7FD2 },
+            { 0x725, 0x7FCD },
+            { 0x792, 0x7FC7 },
+            { 0x805, 0x7FC0 },
+            { 0x87F, 0x7FB8 },
+            { 0x900, 0x7FAF },
+            { 0x989, 0x7FA5 },
+            { 0xA19, 0x7F9A },
+            { 0xAB3, 0x7F8D },
+            { 0xB55, 0x7F7F },
+            { 0xC01, 0x7F70 },
+            { 0xCB7, 0x7F5E },
+            { 0xD78, 0x7F4A },
+            { 0xE45, 0x7F34 },
+            { 0xF1D, 0x7F1B },
+            { 0x1002, 0x7EFF },
+            { 0x10F4, 0x7EDF },
+            { 0x11F4, 0x7EBC },
+            { 0x1304, 0x7E94 },
+            { 0x1423, 0x7E68 },
+            { 0x1553, 0x7E36 },
+            { 0x1694, 0x7DFE },
+            { 0x17E8, 0x7DC0 },
+            { 0x194F, 0x7D79 },
+            { 0x1ACA, 0x7D2A },
+            { 0x1C5C, 0x7CD2 },
+            { 0x1E03, 0x7C6E },
+            { 0x1FC3, 0x7BFF },
+            { 0x219B, 0x7B82 },
+            { 0x238E, 0x7AF7 },
+            { 0x259B, 0x7A5A },
+            { 0x27C5, 0x79AA },
+            { 0x2A0C, 0x78E5 },
+            { 0x2C72, 0x7809 },
+            { 0x2EF8, 0x7712 },
+            { 0x319E, 0x75FE },
+            { 0x3465, 0x74C9 },
+            { 0x374E, 0x736F },
+            { 0x3A5A, 0x71ED },
+            { 0x3D89, 0x703D },
+            { 0x40DB, 0x6E5A },
+            { 0x444F, 0x6C40 },
+            { 0x47E5, 0x69E7 },
+            { 0x4B9B, 0x6749 },
+            { 0x4F6E, 0x6460 },
+            { 0x535D, 0x6122 },
+            { 0x5762, 0x5D88 },
+            { 0x5B79, 0x5989 },
+            { 0x5F9C, 0x551B },
+            { 0x63C1, 0x5035 },
+            { 0x67E0, 0x4ACC },
+            { 0x6BEB, 0x44D5 },
+            { 0x6FD4, 0x3E47 },
+            { 0x738A, 0x3717 },
+            { 0x76F7, 0x2F3D },
+            { 0x7A03, 0x26B0 },
+            { 0x7C93, 0x1D6B },
+            { 0x7E85, 0x136B },
+            { 0x7FB4, 0x8B1 }
         };
         
         uint16_t beepTable16000[108][2] = {
