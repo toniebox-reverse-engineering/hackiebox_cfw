@@ -97,7 +97,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
   } else if((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::COLLISION_ERROR) == IRQ_STATUS::COLLISION_ERROR) {
     resetRFID();
     initRFID();
-    readIrqRegister();
+    clearIrqRegister();
     trfStatus = TRF_STATUS::COLLISION_ERROR;
     Log.error("COLLISION_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
   } else if (irqStatus == (IRQ_STATUS)((uint8_t)IRQ_STATUS::RX_COMPLETE | (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW)) { 
@@ -166,10 +166,10 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
     if ((IRQ_STATUS)((uint8_t)irqStatus & (uint8_t)IRQ_STATUS::FIFO_HIGH_OR_LOW) == IRQ_STATUS::FIFO_HIGH_OR_LOW) {
       trfStatus = TRF_STATUS::RX_WAIT;
     } else {
+      Log.error("FRAMING_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
       resetRFID();
       initRFID();
       trfStatus = TRF_STATUS::PROTOCOL_ERROR;
-      Log.error("FRAMING_ERROR not handled IRQ_STATUS=%X", irqStatus); //TODO
     }
   } else if (irqStatus == IRQ_STATUS::IDLING) {
     trfStatus = TRF_STATUS::NO_RESPONSE_RECEIVED;
@@ -615,7 +615,7 @@ void BoxRFID::resetRFID() {
   //Log.info("resetRFID();");
   sendCommand(DIRECT_COMMANDS::SOFT_INIT);
   sendCommand(DIRECT_COMMANDS::IDLING);
-  Box.delayTask(1);
+  delay(1); //Box.delayTask(1) --> crashes!
   clearInterrupt();
   sendCommand(DIRECT_COMMANDS::RESET_FIFO);
   trfOffset = 0;
