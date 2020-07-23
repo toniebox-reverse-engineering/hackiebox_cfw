@@ -126,6 +126,8 @@ void BoxBattery::startBatteryTest() {
     _batteryTestStartMillis = millis();
     FileFs file;
     if (file.open(_batteryTestFilename, FA_CREATE_ALWAYS | FA_WRITE)) {
+        char* output;
+        
         file.writeString("Timestamp;");
         file.writeString("Charging;");
         file.writeString("ADC;");
@@ -135,10 +137,9 @@ void BoxBattery::startBatteryTest() {
         file.writeString("Comments");
         file.writeString("\r\n");
         file.writeString("0;;;;;;");
-        char* output;
         asprintf(&output, "vFactor=%u, vChargerFactor=%u;", _batteryVoltageFactor, _batteryVoltageChargerFactor);
-        free(output);
         file.writeString(output);
+        free(output);
         file.writeString("\r\n");
         file.close();
 
