@@ -97,8 +97,8 @@ void BoxBattery::_doBatteryTestStep() {
 
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
-        int voltageDec = getBatteryVoltage();
-        int voltageNum = voltageDec / 100;
+        uint16_t voltageDec = getBatteryVoltage();
+        uint8_t voltageNum = voltageDec / 100;
         voltageDec = voltageDec - voltageNum * 100;
         
         char* output;
