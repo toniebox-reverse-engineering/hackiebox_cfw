@@ -102,14 +102,15 @@ void BoxBattery::_doBatteryTestStep() {
         voltageDec = voltageDec - voltageNum * 100;
         
         char* output;
-        asprintf(&output, "%i;%i;%i;%i.%s%i;%i;%i;",
+        asprintf(&output, "%u;%s;%u;%u.%s%u;%s;%s;",
             (millis()-_batteryTestStartMillis) / (1000*60),
-            isChargerConnected() ? "true" : "false",
+            (isChargerConnected() ? "true" : "false"),
             getBatteryAdcRaw(),
             voltageNum, (voltageDec<10) ? "0": "", voltageDec,
-            isBatteryLow() ? "true" : "false",
-            isBatteryCritical() ? "true" : "false"
+            (isBatteryLow() ? "true" : "false"),
+            (isBatteryCritical() ? "true" : "false")
         );
+        Log.info(output);
         file.writeString(output);
         free(output);
 
@@ -158,7 +159,7 @@ void BoxBattery::stopBatteryTest() {
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
         char* output;
-        asprintf(&output, "%i;;;;;;stopped", (millis()-_batteryTestStartMillis) / (1000*60));
+        asprintf(&output, "%u;;;;;;stopped", (millis()-_batteryTestStartMillis) / (1000*60));
         file.writeString(output);
         free(output);
         file.writeString("\r\n");
