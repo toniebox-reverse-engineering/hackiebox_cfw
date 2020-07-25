@@ -344,7 +344,7 @@ bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_l
     file.close();
     return true;
   } else {
-    Log.error("Could not open %s", path);
+    Log.error("Could not open %s", path->c_str());
   }
   return false;
 }
@@ -376,7 +376,7 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
     SerFlash.close();
     return true;
   } else {
-    Log.error("Could not open %s, error %s", path, SerFlash.lastErrorString());
+    Log.error("Could not open %s, error %s", path->c_str(), SerFlash.lastErrorString());
   }
   return false;
 }
