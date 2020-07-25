@@ -104,11 +104,11 @@ void BoxBattery::_doBatteryTestStep() {
         char* output;
         asprintf(&output, "%i;%i;%i;%i.%s%i;%i;%i;",
             (millis()-_batteryTestStartMillis) / (1000*60),
-            isChargerConnected(),
+            isChargerConnected() ? "true" : "false",
             getBatteryAdcRaw(),
             voltageNum, (voltageDec<10) ? "0": "", voltageDec,
-            isBatteryLow(),
-            isBatteryCritical()
+            isBatteryLow() ? "true" : "false",
+            isBatteryCritical() ? "true" : "false"
         );
         file.writeString(output);
         free(output);
