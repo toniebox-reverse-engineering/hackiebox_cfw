@@ -165,7 +165,8 @@ void BoxBattery::stopBatteryTest() {
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
         char* output;
-        asprintf(&output, "%u;;;;;;stopped", (millis()-_batteryTestStartMillis) / (1000*60));
+        uint16_t timeRunning = (millis()-_batteryTestStartMillis) / (1000*60);
+        asprintf(&output, "%hu;;;;;;stopped", timeRunning);
         file.writeString(output);
         free(output);
         file.writeString("\r\n");
