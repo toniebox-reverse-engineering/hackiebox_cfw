@@ -100,15 +100,21 @@ void BoxBattery::_doBatteryTestStep() {
         uint16_t voltageDec = getBatteryVoltage();
         uint8_t voltageNum = voltageDec / 100;
         voltageDec = voltageDec - voltageNum * 100;
+
+        uint16_t timeRunning = (millis()-_batteryTestStartMillis) / (1000*60);
+        bool chargerConnected = isChargerConnected();
+        uint16_t batteryAdcRaw = getBatteryAdcRaw();
+        bool batteryLow = isBatteryLow();
+        bool batteryCritical = isBatteryCritical();
         
         char* output;
-        asprintf(&output, "%u;%s;%u;%u.%s%u;%s;%s;",
-            (millis()-_batteryTestStartMillis) / (1000*60),
-            (isChargerConnected() ? "true" : "false"),
-            getBatteryAdcRaw(),
+        asprintf(&output, "%hu;%s;%hu;%hu.%s%hu;%s;%s;",
+            timeRunning,
+            (chargerConnected ? "true" : "false"),
+            batteryAdcRaw,
             voltageNum, (voltageDec<10) ? "0": "", voltageDec,
-            (isBatteryLow() ? "true" : "false"),
-            (isBatteryCritical() ? "true" : "false")
+            (batteryLow ? "true" : "false"),
+            (batteryCritical ? "true" : "false")
         );
         Log.info(output);
         file.writeString(output);
