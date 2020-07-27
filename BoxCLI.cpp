@@ -60,6 +60,8 @@ void BoxCLI::begin() {
     cmdSay.addArg("m/outh", "0");
     cmdSay.addFlagArg("sing");
     cmdSay.addFlagArg("p/hoentic");
+
+    cmdPlay = cli.addCmd("play");
 }
 
 void BoxCLI::loop() {
@@ -96,6 +98,8 @@ void BoxCLI::parse() {
             execI2S();
         } else if (lastCmd == cmdSay) {
             execSay();
+        } else if (lastCmd == cmdPlay) {
+            execPlay();
         }
     }
 
@@ -368,6 +372,10 @@ void BoxCLI::execSay() {
             phoentic
         );
     }
+}
+
+void BoxCLI::execPlay() {
+    Box.boxDAC.opusTest();
 }
 
 unsigned long BoxCLI::parseNumber(String numberString) {

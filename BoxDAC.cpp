@@ -9,6 +9,7 @@
 
 #include "Hackiebox.h"
 
+//#include <libopus.h>
 
 void BoxDAC::logDmaIrqChanges() {
     if (lastDmaIRQcount != dmaIRQcount) {
@@ -120,6 +121,40 @@ void BoxDAC::begin() {
     Log.info("...initialized");
 
     //samSay("Hackiebox by Team Revvox!");
+}
+void BoxDAC::opusTest() {
+    /*
+    Log.info("Start mp3");
+
+    AudioGeneratorMP3 *mp3;
+    AudioFileSourceFatFs *file;
+
+    file = new AudioFileSourceFatFs("/pno-cs.mp3");
+    mp3 = new AudioGeneratorMP3();
+    mp3->begin(file, audioOutput);
+
+    while (mp3->isRunning()) {
+        if (!mp3->loop()) {
+            mp3->stop();
+            Log.error("MP3 Loop error, stopped!");
+        }
+    }
+    Log.info("Mp3 finished");
+    */
+    /*
+    OpusDecoder* decoder;
+    int error;
+    int channels = 2;
+
+    decoder = opus_decoder_create(16000, channels, &error);
+    if (error != OPUS_OK) {
+        Log.error("Could not create OPUS Decoder error=%i", error);
+        return;
+    }
+
+    opus_decoder_destroy(decoder);
+
+    //opus_decode(decoder, data, len, pcmout, frameSize, 0);*/
 }
 
 void BoxDAC::loop() { 

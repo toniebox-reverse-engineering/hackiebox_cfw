@@ -14,6 +14,8 @@ class BoxDAC : public EnhancedThread  {
             begin(),
             loop();
 
+        void opusTest();
+
         void generateZeroAudio(uint16_t timeoutMs);
 
         void generateFrequency(uint32_t frequency, uint16_t timeoutMs);

@@ -24,6 +24,7 @@ class BoxCLI : public EnhancedThread {
         Command cmdLoad;
         Command cmdI2S;
         Command cmdSay;
+        Command cmdPlay;
         
         void parse();
         unsigned long
@@ -38,7 +39,8 @@ class BoxCLI : public EnhancedThread {
             execRFID(),
             execLoad(),
             execI2S(),
-            execSay();
+            execSay(),
+            execPlay();
 };
 
 #endif
