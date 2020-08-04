@@ -10,4 +10,5 @@
 //#define WIFI_PASS "passw0rd"
 
 /*Feature Flags*/
-//#define FEATURE_FLAG_TEXT2SPEECH 
+#define FEATURE_FLAG_TEXT2SPEECH 
+#define FEATURE_FLAG_THREADSTATS
