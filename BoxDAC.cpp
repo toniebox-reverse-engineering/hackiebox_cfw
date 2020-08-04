@@ -387,27 +387,31 @@ void BoxDAC::beep() {
 }
 
 void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t speed, uint8_t pitch, uint8_t throat, uint8_t mouth, bool sing, bool phoentic) {
-    int samplerate = audioOutput->GetRate();
-    audioOutput->flush();
-    ESP8266SAM* sam = new ESP8266SAM();
+    #ifdef FEATURE_FLAG_TEXT2SPEECH
+        int samplerate = audioOutput->GetRate();
+        audioOutput->flush();
+        ESP8266SAM* sam = new ESP8266SAM();
 
-    sam->SetVoice(voice);
-    if (speed > 0) 
-        sam->SetSpeed(speed);
-    if (pitch > 0) 
-        sam->SetSpeed(pitch);
-    if (throat > 0) 
-        sam->SetSpeed(throat);
-    if (mouth > 0) 
-        sam->SetSpeed(mouth);
-    sam->SetSingMode(sing);
-    sam->SetPhonetic(phoentic);
+        sam->SetVoice(voice);
+        if (speed > 0) 
+            sam->SetSpeed(speed);
+        if (pitch > 0) 
+            sam->SetSpeed(pitch);
+        if (throat > 0) 
+            sam->SetSpeed(throat);
+        if (mouth > 0) 
+            sam->SetSpeed(mouth);
+        sam->SetSingMode(sing);
+        sam->SetPhonetic(phoentic);
 
-    sam->Say(audioOutput, text);
-    audioOutput->flush();
-    delete sam;
+        sam->Say(audioOutput, text);
+        audioOutput->flush();
+        delete sam;
 
-    audioOutput->SetRate(samplerate);
+        audioOutput->SetRate(samplerate);
+    #else
+        Log.error("Text-To-Speech is not active (FEATURE_FLAG_TEXT2SPEECH not set)");
+    #endif
 }
 
 bool BoxDAC::send(uint8_t target_register, uint8_t data) {
