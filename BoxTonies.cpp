@@ -32,20 +32,6 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                     uint8_t fieldId = buffer[cursor]>>3;
                     uint8_t fieldType = buffer[cursor]&0b00000111;
                     cursor++;
-                    /*
-                    switch (fieldId) {
-                    case 0: //Variant
-                        break;
-                    case 1: //Fixed64
-                        break;
-                    case 2: //Length-delimited
-                        break;
-                    case 5: //Fixed32
-                        break;
-                    
-                    default:
-                        break;
-                    }*/
 
                     if (fieldId == 1 && fieldType == 2) { //Audio data SHA-1 hash
                         uint64_t size = readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
@@ -85,8 +71,8 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                         //clear header
                         break;
                     }
-                    logTonieHeader();
                 }
+                logTonieHeader();
             } else {
                 Log.error("... unexpected beginning of file %X %X %X %X", buffer[0], buffer[1], buffer[2], buffer[3]);
             }
