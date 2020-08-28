@@ -7,6 +7,8 @@
 #include "BoxPower.h"
 #include "BoxRFID.h"
 
+#include "BoxTonies.h"
+
 class BoxEvents {
     public:
         enum class EventSource {

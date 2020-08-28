@@ -10,17 +10,25 @@ class BoxTonies {
             loadTonieByUid(uint8_t uid[8]),
             loadTonieByPath(uint8_t* path);
 
+        void logTonieHeader();
+
         struct TonieHeader {
-            uint8_t hash;
-            int64_t audioLength; //TODO check type len
-            int64_t audioId; //TODO check type len
-            uint64_t* audioChapters;//TODO check type len 
+            uint8_t hash[20];
+            uint32_t audioLength; //length in bytes
+            uint32_t audioId; //id, which is the unix time stamp of file creation
+            uint32_t* audioChapters; //Ogg page numbers for Chapters
+            uint8_t audioChapterCount;
         };
         
 
     private:
-        static const uint8_t* CONTENT_BASE = "/CONTENT/";
+        const char* CONTENT_BASE = "/CONTENT/";
         FileFs tonieFile;
+
+        TonieHeader header;
+
+        uint64_t readVariant(uint8_t* buffer, uint16_t length, uint8_t& readBytes);
+        
 };
 
 #endif

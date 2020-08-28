@@ -236,12 +236,14 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
 }
 
 void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
+    BoxTonies tonie;
+
     switch (event) { 
     case BoxRFID::TAG_EVENT::TAG_PLACED:
         Log.info("Tag placed", event);
         Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
         Box.boxRFID.logUID();
-
+        tonie.loadTonieByUid(Box.boxRFID.tagUid);
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:
         Log.info("Tag removed", event);
