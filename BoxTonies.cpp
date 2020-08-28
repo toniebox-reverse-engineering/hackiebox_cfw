@@ -50,10 +50,20 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                         header.audioId = (uint32_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
                         cursor += readBytes;
                     } else if (fieldId == 4 && fieldType == 2) { //[array of variant] Ogg page numbers for Chapters
-                        header.audioChapterCount = (uint8_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
+                        uint8_t blockEnd = (uint8_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
                         cursor += readBytes;
+                        blockEnd += cursor;
+                        uint16_t blockStart = cursor;
+
+                        header.audioChapterCount = 0;
+                        while(cursor<blockEnd) {
+                            uint32_t chapter = (uint32_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
+                            cursor += readBytes;
+                            header.audioChapterCount++;
+                        }
                         header.audioChapters = new uint32_t[header.audioChapterCount]; //TODO! clear mem
-                        for (uint8_t i=0; i<header.audioChapterCount; i++) {
+                        cursor = blockStart; //reread
+                        for (uint8_t i = 0; i < header.audioChapterCount; i++) {
                             uint32_t chapter = (uint32_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
                             cursor += readBytes;
                             header.audioChapters[i] = chapter;
