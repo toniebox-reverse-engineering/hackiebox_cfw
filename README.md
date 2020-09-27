@@ -9,6 +9,8 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 - Webinterface with basic CLI and file upload/download
 - JSON configuration file 
 - Battery stamina test with csv log
+- Tonie file header decoder
+- WAV player
 ### Todo
 - Configuration of the WiFi credentials via a WiFi Hotspot.
 - OPUS decoding / playing tonie files
