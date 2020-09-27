@@ -112,6 +112,8 @@ void WrapperWebServer::handleSseSub(void) {
 void WrapperWebServer::handleAjax(void) {
   Box.boxPower.feedSleepTimer();
   String cmd = _server->arg("cmd");
+  
+  sampleMemory(0);
 
   if (cmd) {
     if (cmd.equals("get-config")) {
@@ -237,6 +239,7 @@ void WrapperWebServer::handleAjax(void) {
         size_t len = measureJson(jsonStats)+1;
         char json[len];
         serializeJson(jsonStats, json, len);
+        sampleMemory(5);
         _server->send(200, "text/json", json);
         return;
       }
@@ -257,6 +260,7 @@ void WrapperWebServer::handleAjax(void) {
         size_t len = measureJson(rfidStats)+1;
         char json[len];
         serializeJson(rfidStats, json, len);
+        sampleMemory(6);
         _server->send(200, "text/json", json);
         return;
       }
@@ -275,6 +279,7 @@ void WrapperWebServer::handleAjax(void) {
         while(Box.boxCLI.cli.available() || Box.boxCLI.cli.errored())
           Box.boxCLI.loop();
         Box.logStreamMulti.setSlot(NULL, 2);
+        sampleMemory(7);
         client.flush();
         client.stop();
         return;
@@ -341,10 +346,12 @@ bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_l
         break; //error*/
     }
 
+    sampleMemory(1);
+
     file.close();
     return true;
   } else {
-    Log.error("Could not open %s", path);
+    Log.error("Could not open %s", path->c_str());
   }
   return false;
 }
@@ -373,10 +380,11 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
         break; //error
     }
 
+    sampleMemory(2);
     SerFlash.close();
     return true;
   } else {
-    Log.error("Could not open %s, error %s", path, SerFlash.lastErrorString());
+    Log.error("Could not open %s, error %s", path->c_str(), SerFlash.lastErrorString());
   }
   return false;
 }
@@ -399,6 +407,7 @@ void WrapperWebServer::handleUploadFile() {
       filemode = FA_CREATE_ALWAYS | FA_WRITE;
 
     _uploadFileOpen = _uploadFile.open(filename, filemode);
+    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.seekSet(write_start);
       return;
@@ -406,11 +415,13 @@ void WrapperWebServer::handleUploadFile() {
     Log.error("File could not be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
+    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.write(upload.buf, upload.currentSize);
       return;
     }
   } else if (upload.status == UPLOAD_FILE_END) {
+    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.close();
       Log.info("handleUploadFile Size: %ikB", upload.totalSize / 1024);
@@ -432,6 +443,7 @@ void WrapperWebServer::sendEvent(char* eventname, char* content) {
     if (!(subscription[i].clientIP)) 
       continue;
     
+    sampleMemory(4);
     if (subscription[i].client.connected()) {
       clientConnected = true;
       subscription[i].client.print("data: { \"type\":\"");

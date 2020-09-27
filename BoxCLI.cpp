@@ -60,6 +60,11 @@ void BoxCLI::begin() {
     cmdSay.addArg("m/outh", "0");
     cmdSay.addFlagArg("sing");
     cmdSay.addFlagArg("p/hoentic");
+
+    cmdAudio = cli.addCmd("audio");
+    cmdAudio.setDescription(" Play/Pause audio files");
+    cmdAudio.addFlagArg("p/lay,pause");
+    cmdAudio.addArg("f/ile/name", "");
 }
 
 void BoxCLI::loop() {
@@ -96,6 +101,8 @@ void BoxCLI::parse() {
             execI2S();
         } else if (lastCmd == cmdSay) {
             execSay();
+        } else if (lastCmd == cmdAudio) {
+            execAudio();
         }
     }
 
@@ -367,6 +374,18 @@ void BoxCLI::execSay() {
             sing,
             phoentic
         );
+    }
+}
+
+void BoxCLI::execAudio() {
+    Command c = lastCmd;
+
+    String filenameStr = c.getArg("file").getValue();
+
+    if (c.getArg("file").isSet() && filenameStr != "") {
+        Box.boxDAC.playFile(filenameStr.c_str());
+    } else if (c.getArg("play").isSet()) { 
+        Box.boxDAC.audioPlaying = !Box.boxDAC.audioPlaying;
     }
 }
 

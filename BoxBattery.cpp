@@ -97,19 +97,26 @@ void BoxBattery::_doBatteryTestStep() {
 
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
-        int voltageDec = getBatteryVoltage();
-        int voltageNum = voltageDec / 100;
+        uint16_t voltageDec = getBatteryVoltage();
+        uint8_t voltageNum = voltageDec / 100;
         voltageDec = voltageDec - voltageNum * 100;
+
+        uint16_t timeRunning = (millis()-_batteryTestStartMillis) / (1000*60);
+        bool chargerConnected = isChargerConnected();
+        uint16_t batteryAdcRaw = getBatteryAdcRaw();
+        bool batteryLow = isBatteryLow();
+        bool batteryCritical = isBatteryCritical();
         
         char* output;
-        asprintf(&output, "%i;%i;%i;%i.%s%i;%i;%i;",
-            (millis()-_batteryTestStartMillis) / (1000*60),
-            isChargerConnected(),
-            getBatteryAdcRaw(),
+        asprintf(&output, "%hu;%s;%hu;%hu.%s%hu;%s;%s;",
+            timeRunning,
+            (chargerConnected ? "true" : "false"),
+            batteryAdcRaw,
             voltageNum, (voltageDec<10) ? "0": "", voltageDec,
-            isBatteryLow(),
-            isBatteryCritical()
+            (batteryLow ? "true" : "false"),
+            (batteryCritical ? "true" : "false")
         );
+        Log.info(output);
         file.writeString(output);
         free(output);
 
@@ -158,7 +165,8 @@ void BoxBattery::stopBatteryTest() {
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
         char* output;
-        asprintf(&output, "%i;;;;;;stopped", (millis()-_batteryTestStartMillis) / (1000*60));
+        uint16_t timeRunning = (millis()-_batteryTestStartMillis) / (1000*60);
+        asprintf(&output, "%hu;;;;;;stopped", timeRunning);
         file.writeString(output);
         free(output);
         file.writeString("\r\n");
@@ -181,7 +189,9 @@ BoxBattery::BatteryStats BoxBattery::getBatteryStats() {
     stats.adcRaw = _batteryAdcRaw;
     stats.voltage = getBatteryVoltage();
     stats.testActive = batteryTestActive();
-    stats.testActiveMinutes = (millis()-_batteryTestStartMillis) / (1000*60);
+    stats.testActiveMinutes = 0;
+    if (stats.testActive)
+        stats.testActiveMinutes = (millis()-_batteryTestStartMillis) / (1000*60);
 
     return stats;
 }

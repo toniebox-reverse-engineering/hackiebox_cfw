@@ -39,6 +39,7 @@ class AudioOutputCC3200I2S : public AudioOutput
     virtual bool ConsumeSample(int16_t sample[2]) override;
     virtual void flush() override;
     virtual bool stop() override;
+    virtual bool begin() override;
     
     bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
 

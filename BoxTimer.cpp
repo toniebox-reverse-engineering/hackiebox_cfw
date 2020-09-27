@@ -1,7 +1,8 @@
 #include "BoxTimer.h"
 
 void BoxTimer::setTimer(unsigned long milliseconds) { 
-    _endMillis = millis() + milliseconds;
+    _currentMillis = millis();
+    _endMillis = _currentMillis + milliseconds;
     _isRunning = true;
     _hasChanged = true;
 }

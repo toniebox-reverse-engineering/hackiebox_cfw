@@ -113,9 +113,7 @@ void Hackiebox::setup() {
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
-    if (millis == 0)
-        return;
-    if (!inDelayTask) {
+     if (!inDelayTask) {
         inDelayTask = true;
         BoxTimer timer;
         timer.setTimer(millis);
@@ -133,7 +131,11 @@ void Hackiebox::delayTask(uint16_t millis) {
     }
 }
 void Hackiebox::delayTaskWork(uint16_t millis) {
-    boxDAC.generateZeroAudio(millis);
+    //delay(millis);
+    boxDAC.loop(millis);
+    //if (millis > 100)
+    //    Log.debug("Delay %i", millis);
+    //boxDAC.generateZeroAudio(millis);
 }
 
 void Hackiebox::loop() {

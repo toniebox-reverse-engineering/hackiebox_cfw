@@ -1,6 +1,23 @@
 # hackiebox_cfw
 Custom firmware for the Toniebox WIP
 
+## State of development
+The custom bootloader is fully functional. The hackiebox custom firmware itself isn't ready as daily driver yet. 
+### Implemented features:
+- Custom (sd) bootloader
+- Hardware drivers (WiFi, AMP/DAC, RFID reader, accelleration sensor, battery/charger, SD, LEDs)
+- Webinterface with basic CLI and file upload/download
+- JSON configuration file 
+- Battery stamina test with csv log
+### Todo
+- Configuration of the WiFi credentials via a WiFi Hotspot.
+- OPUS decoding / playing tonie files
+- MP3 decoding (or other formats)
+- Remote WiFi speaker (chromecast or similar)
+- Custom (sd) bootloader that allows context sensitive firmware image switching for more complex features that don't fit into a single image
+### Known bugs
+- WiFi configuration is cleared and replaced with the credentials from the json config
+
 ## Compiling
 ### Preface
 Currently building only works with Windows. Linux doesn't work on a x64 only system.

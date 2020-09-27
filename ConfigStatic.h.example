@@ -8,3 +8,7 @@
 /* Wifi Settings to compile into CFW */
 //#define WIFI_SSID "SSID"
 //#define WIFI_PASS "passw0rd"
+
+/*Feature Flags*/
+#define FEATURE_FLAG_TEXT2SPEECH //PROGMEM=15216b + VARS=260b
+#define FEATURE_FLAG_THREADSTATS //PROGMEM=304b + VARS=1024b
