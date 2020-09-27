@@ -60,7 +60,7 @@ void BoxDAC::begin() {
 
     UDMAInit();
     UDMAChannelSelect(UDMA_CH5_I2S_TX, NULL);
-    
+
     writeBuffer = audioBuffer.getBuffer(BoxAudioBufferTriple::BufferType::WRITE);
     writeBuffer->state = BoxAudioBufferTriple::BufferState::WRITING;
     audioBuffer.logState(writeBuffer);
@@ -91,7 +91,7 @@ void BoxDAC::begin() {
         (void *)I2S_TX_DMA_PORT,
         UDMA_DST_INC_NONE
     );
-    
+
 
     Log.info("I2S");
     MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
@@ -141,24 +141,96 @@ void BoxDAC::opusTest() {
     }
     Log.info("Mp3 finished");
     */
+    //AudioGeneratorTonie *opus;
+    AudioFileSourceFatFs *file;
+
+    //file = new AudioFileSourceFatFs("/gs-16b-2c-44100hz.opus");
+    /*file = new AudioFileSourceFatFs("/CONTENT/6977960C/500304E0");
+    opus = new AudioGeneratorTonie();
+    opus->begin(file, audioOutput);
+    while (opus->isRunning()) {
+        if (!opus->loop())
+            opus->stop();
+    }
+    free(file);
+    free(opus);
+    Log.info("Opus done");
+    */
+
+    playFile("/piano2.wav");
+    //file = new AudioFileSourceFatFs("/LRMonoPhase4.wav");
+    //file = new AudioFileSourceFatFs("/organfinale.wav");
+    //file = new AudioFileSourceFatFs("/piano2.wav");
+
     /*
     OpusDecoder* decoder;
     int error;
     int channels = 2;
 
+    Box.boxPower.feedSleepTimer();
+    Log.info("Needed heap %ib", opus_decoder_get_size(channels));
     decoder = opus_decoder_create(16000, channels, &error);
     if (error != OPUS_OK) {
         Log.error("Could not create OPUS Decoder error=%i", error);
         return;
     }
-
+    Box.boxPower.feedSleepTimer();
     opus_decoder_destroy(decoder);
 
     //opus_decode(decoder, data, len, pcmout, frameSize, 0);*/
 }
 
-void BoxDAC::loop() { 
-    generateZeroAudio(25);
+void BoxDAC::loop() {
+    loop(50);
+}
+void BoxDAC::loop(uint16_t timeoutMs) {
+    if (audioPlaying) {
+        if (!audioGenerator || !audioSource) {
+            audioPlaying = false;
+            return;
+        }
+
+        BoxTimer timeout;
+        timeout.setTimer(timeoutMs);
+
+        while (timeout.isRunning() && audioGenerator->isRunning()) {
+            if (!audioGenerator->loop())
+                audioGenerator->stop();
+            timeout.tick();
+        }
+        if (!audioGenerator->isRunning())
+            audioPlaying = false;
+    } else {
+        generateZeroAudio(timeoutMs);
+    }
+}
+
+bool BoxDAC::playFile(const char* path) {
+    Log.info("Start playing file %s...", path);
+
+    if (audioGenerator && audioGenerator->isRunning()) {
+        audioGenerator->stop();
+        free(audioGenerator);
+    }
+    if (audioSource && audioSource->isOpen()) {
+        audioSource->close();
+        free(audioSource);
+    }
+
+    audioPlaying = false;
+    return _playWAV(path);
+}
+bool BoxDAC::_playWAV(const char* path) {
+    audioGenerator = new AudioGeneratorWAV();
+    audioSource = new AudioFileSourceFatFs(path);
+    
+    if (!audioGenerator->begin(audioSource, audioOutput)) {
+        Log.error("Could not play wav?!");
+        return false;
+    }
+    Log.info("WAV file loaded...");
+    audioPlaying = true;
+    return true;
 }
 
 void BoxDAC::generateFrequency(uint32_t frequency, uint16_t timeoutMs) {
@@ -167,15 +239,15 @@ void BoxDAC::generateFrequency(uint32_t frequency, uint16_t timeoutMs) {
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
-        while(writeBuffer->position<writeBuffer->size && timeout.isRunning()) {
+        while (writeBuffer->position<writeBuffer->size && timeout.isRunning()) {
             if (count % halfWavelength == 0)
                 sample = -1 * sample; // invert the sample every half wavelength count multiple to generate square wave
-            if (count % (2*halfWavelength) == 0) 
+            if (count % (2*halfWavelength) == 0)
                 count = 0;
-            
+
             writeBuffer->buffer[writeBuffer->position++] = sample;
             writeBuffer->buffer[writeBuffer->position++] = sample;
-            
+
             count++;
             i2sElmCount++;
             timeout.tick();
@@ -196,7 +268,7 @@ void BoxDAC::generateZeroAudio(uint16_t timeoutMs) {
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
-        while(writeBuffer->position<writeBuffer->size) {            
+        while (writeBuffer->position<writeBuffer->size) {
             writeBuffer->buffer[writeBuffer->position++] = 0;
             writeBuffer->buffer[writeBuffer->position++] = 0;
         }
@@ -216,7 +288,7 @@ void BoxDAC::dmaPingPingComplete() {
     MAP_I2SIntClear(I2S_BASE, I2S_INT_XDMA);
 
     unsigned long intStatus = MAP_uDMAIntStatus();
-    
+
     dmaIRQcount++;
     if (intStatus & 0x20) { //TX IRQ I2S_INT_XDMA?
         unsigned long channelModePri = MAP_uDMAChannelModeGet(UDMA_CH5_I2S_TX | UDMA_PRI_SELECT);
@@ -335,11 +407,11 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 
     send(ADDR_P0_SERIAL::BEEP_R_GEN, 0x80);
     send(ADDR_P0_SERIAL::BEEP_L_GEN, 0x80|(volume&0x3F)); //enable beep generator with right channel volume,
-    
+
     //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x84);  //power up NDAC divider - Page 41 (but makes glitches?!)
 
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00); //unmute DACs optional
-    
+
 }
 void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     //TODO Check boundaries!
@@ -371,7 +443,7 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     int32_t samples_opt = samplerate*(cycles)*100/freq/2;
 
     //int32_t samples = lengthMs * samplerate / 1000; //check length
-    //Log.info("samplerate=%i, lengthMs=%i, freq=%i, sin=%i, cos=%i", samplerate, lengthMs, freq, sin, cos);
+    Log.info("samplerate=%i, lengthMs=%i, freq=%i, sin=%i, cos=%i", samplerate, lengthMs, freq, sin, cos);
     //Log.info("samples=%i, cycles=%i, samples_opt=%i", samples, cycles, samples_opt);
 
     beepRaw(sin, cos, samples_opt);
@@ -393,13 +465,13 @@ void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t s
         ESP8266SAM* sam = new ESP8266SAM();
 
         sam->SetVoice(voice);
-        if (speed > 0) 
+        if (speed > 0)
             sam->SetSpeed(speed);
-        if (pitch > 0) 
+        if (pitch > 0)
             sam->SetSpeed(pitch);
-        if (throat > 0) 
+        if (throat > 0)
             sam->SetSpeed(throat);
-        if (mouth > 0) 
+        if (mouth > 0)
             sam->SetSpeed(mouth);
         sam->SetSingMode(sing);
         sam->SetPhonetic(phoentic);
@@ -529,7 +601,7 @@ void BoxDAC::initDACI2C() {
     //Extracted from logic analyzer capture of box
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::SOFTWARE_RESET, 0x01);     //Self-clearing software reset for control register
-        
+
     send(ADDR_P0_SERIAL::CLOCKGEN_MUX, 0x07);       //0000:reserved, 01:PLL_CLKIN=BCLK, 11:CODEC_CLKIN=PLL_CLK 
     send(ADDR_P0_SERIAL::PLL_J_VAL, 0x20);          //00:reserved, 100000:PLL multiplier J=32 (0x20)
     send(ADDR_P0_SERIAL::PLL_D_VAL_MSB, 0x00);      //00:reserved, 000000:fraktional multiplier D-value = 0
@@ -541,7 +613,7 @@ void BoxDAC::initDACI2C() {
     send(ADDR_P0_SERIAL::DAC_DOSR_VAL_LSB, 0x00);   //00000000:DAC OSR LSB
 
     delay(10);            //w PLL Start-Up
-    
+
     send(ADDR_P0_SERIAL::CODEC_IF_CTRL1, 0x00);     //00:Codec IF=I2S, 00: Codec IF WL=16 bits, 0:BCLK=Input, 0:WCKL=Output, 0:reserved        // w IF statt INT
     send(ADDR_P0_SERIAL::DAC_PROC_BLOCK_SEL, 0x19); //000:reserved, 11001:DAC signal-processing block PRB_P25
 
@@ -560,12 +632,9 @@ void BoxDAC::initDACI2C() {
     send(ADDR_P0_SERIAL::INT1_CTRL_REG, 0x80);                //1:Headset-insertion detect IRQ INT1, 0:Button-press detect, ...., 0=INT1 is only one pulse 2ms
     send(ADDR_P0_SERIAL::GPIO1_INOUT_CTRL, 0x14);             //XX:reserved, 0101:GPIO1=INT1 output, X=GPIO1 input buffer value, GPIO1 Output=X
 
-    
-    
     //send(0x2E); Excel 161
 
     // PAUSE 0,2s
-    
     //read 0x18 addr
 
 
@@ -585,8 +654,7 @@ void BoxDAC::initDACI2C() {
     send(ADDR_P1_DAC_OUT::SPK_DRIVER, 0x00);    // SPK driver is muted
 
     send(ADDR_P1_DAC_OUT::SPK_DRIVER, 0x04);    // an TEST   gehört hier nicht hin
-    
-
+ 
     //PAUSE 50ms
     delay(50);            //w Ramp
 
@@ -599,7 +667,6 @@ void BoxDAC::initDACI2C() {
     //PAUSE 50ms
     delay(50);            //w Ramp
 
-    
     send(ADDR_P1_DAC_OUT::HPL_DRIVER, 0x06);  // HPL driver 0dB, not muted 
     send(ADDR_P1_DAC_OUT::HPR_DRIVER, 0x06); // HPR drvier 0dB, not muted
     //send(ADDR_P1_DAC_OUT::HP_DRIVERS, 0xC2); // Falscher Wert must 1
@@ -621,7 +688,6 @@ void BoxDAC::initDACI2C() {
     send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xF1);  // DAC power on, Left=left, Right=Right, DAC Softstep SPEAKER MONO
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xDC);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xDC);
-    
     //Excel 219
     // Extract END
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);

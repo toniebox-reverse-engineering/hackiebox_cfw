@@ -4,15 +4,24 @@
 #include "BaseHeader.h"
 #include <EnhancedThread.h>
 
+#include "AudioCustomLogger.h"
+
 #include "BoxAudioBufferTriple.h"
 #include "AudioOutputCC3200I2S.h"
 #include <ESP8266SAM.h>
+#include "AudioFileSourceFatFs.h"
+#include "AudioGeneratorTonie.h"
+#include <AudioGenerator.h>
+#include <AudioGeneratorWAV.h>
 
-class BoxDAC : public EnhancedThread  { 
+//#include "libopus/opus.h"
+
+class BoxDAC : public EnhancedThread { 
     public:
         void
             begin(),
-            loop();
+            loop(),
+            loop(uint16_t timeoutMs);
 
         void opusTest();
 
@@ -54,6 +63,12 @@ class BoxDAC : public EnhancedThread  {
         BoxAudioBufferTriple::BufferStruct* writeBuffer;
 
         AudioOutputCC3200I2S* audioOutput;
+        AudioFileSource* audioSource;
+        AudioGenerator* audioGenerator;
+        bool audioPlaying = false;
+
+        bool playFile(const char* path);
+        bool _playWAV(const char* path);
 
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
         const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
