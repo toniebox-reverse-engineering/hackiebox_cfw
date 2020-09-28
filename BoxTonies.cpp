@@ -1,6 +1,6 @@
 #include "BoxTonies.h"
 
-void BoxTonies::loadTonieByUid(uint8_t uid[8]) {
+bool BoxTonies::loadTonieByUid(uint8_t uid[8]) {
     uint8_t* path;
 
     asprintf(
@@ -10,10 +10,17 @@ void BoxTonies::loadTonieByUid(uint8_t uid[8]) {
         uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
     );
 
-    loadTonieByPath(path);
+    memcpy(currentUid, uid, 8);
+    if (loadTonieByPath(path)) {
+        return true;
+    }
+    return false;
 }
 
-void BoxTonies::loadTonieByPath(uint8_t* path) {
+bool BoxTonies::loadTonieByPath(uint8_t* path) {
+    bool ret = true;
+    clearHeader();
+
     Log.info("Loading Tonie from path %s...", path);
     
     if (tonieFile.open((char*)path, FA_OPEN_EXISTING | FA_READ)) {
@@ -41,6 +48,7 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                             cursor += size;
                         } else {
                             Log.error("... hash length should be 20 but is %i", size);
+                            ret = false;
                             break;
                         }
                     } else if (fieldId == 2 && fieldType == 0) { //Audio data length in bytes
@@ -61,7 +69,8 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                             cursor += readBytes;
                             header.audioChapterCount++;
                         }
-                        header.audioChapters = new uint32_t[header.audioChapterCount]; //TODO! clear mem
+                        free(header.audioChapters);
+                        header.audioChapters = new uint32_t[header.audioChapterCount];
                         cursor = blockStart; //reread
                         for (uint8_t i = 0; i < header.audioChapterCount; i++) {
                             uint32_t chapter = (uint32_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
@@ -72,12 +81,15 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                         uint64_t fillByteCount = readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
                         cursor += readBytes;
 
-                        if (fillByteCount + cursor != 4096)
+                        if (fillByteCount + cursor != 4096) {
                             Log.error("... Header length should be 4096 but is %i", fillByteCount + cursor);
+                            ret = false;
+                        }
                         
                         break; //everything read.
                     } else {
                         Log.error("... found unexpected protobuf field with id=%i and type=%i", fieldId, fieldType);
+                        ret = false;
                         //clear header
                         break;
                     }
@@ -85,14 +97,29 @@ void BoxTonies::loadTonieByPath(uint8_t* path) {
                 logTonieHeader();
             } else {
                 Log.error("... unexpected beginning of file %X %X %X %X", buffer[0], buffer[1], buffer[2], buffer[3]);
+            ret = false;
             }
         } else {
             Log.error("... could not data from file.");
+            ret = false;
         }
         tonieFile.close();
     } else {
         Log.error("... could not open Tonie.");
+        ret = false;
     }
+    if (!ret) {
+        clearHeader();
+    }
+    return ret;
+}
+
+void BoxTonies::clearHeader() {
+        //header.hash = {0}; //TODO
+        header.audioLength = 0;
+        header.audioId = 0;
+        free(header.audioChapters);
+        header.audioChapterCount = 0;
 }
 
 uint64_t BoxTonies::readVariant(uint8_t* buffer, uint16_t length, uint8_t& readBytes) {

@@ -206,12 +206,14 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
     switch (orient) {
     case BoxAccelerometer::Orientation::EARS_UP:
         orientText = "ears up";
+        Box.boxDAC.play();
         break;
     case BoxAccelerometer::Orientation::EARS_DOWN:
         orientText = "ears down";
         break;
     case BoxAccelerometer::Orientation::EARS_FRONT:
         orientText = "ears front";
+        Box.boxDAC.pause();
         break;
     case BoxAccelerometer::Orientation::EARS_BACK:
         orientText = "ears back";
@@ -236,18 +238,68 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
 }
 
 void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
-    BoxTonies tonie;
-
     switch (event) { 
     case BoxRFID::TAG_EVENT::TAG_PLACED:
         Log.info("Tag placed", event);
         Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
         Box.boxRFID.logUID();
-        tonie.loadTonieByUid(Box.boxRFID.tagUid);
+
+        if (!Box.boxDAC.hasStopped() && (memcmp(Box.boxRFID.tagUid, Box.boxTonie.currentUid, 8) == 0)) {
+            Log.info("Continue playing last file");
+            Box.boxDAC.play();
+        } else {
+            Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
+
+            uint8_t* path;
+            uint8_t* uid = Box.boxRFID.tagUid;
+            asprintf(
+                (char**)&path,
+                "%s%02X%02X%02X%02X%02X%02X%02X%02X",
+                Box.boxTonie.RCONTENT_BASE,
+                uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
+            );
+
+            DirFs dir; 
+            char* rcontent = "/rCONTENT";
+            if (!dir.openDir(rcontent)){
+                Log.info("Creating missing dir %s...", rcontent);
+                if (!FatFs.mkdir(rcontent)) {
+                    Log.info("...failed!");
+                }
+            }
+            if (!dir.openDir((char*)path)) {
+                Log.info("Creating missing dir %s...", path);
+                if (!FatFs.mkdir((char*)path)) {
+                    Log.info("...failed!");
+                }
+            } else {
+                bool foundFile = false;
+                while (dir.nextFile()) {
+                    if (!dir.isDir()) {
+                        foundFile = true;
+                        break;
+                    }
+                }
+                if (!foundFile) {
+                    Log.info("No file found to play.");
+                } else {
+                    uint8_t* filepath;
+                    asprintf(
+                        (char**)&filepath,
+                        "%s/%s",
+                        path,
+                        dir.fileName()
+                    );
+                    free(path);
+                    Box.boxDAC.playFile((const char*)filepath);
+                }
+            }
+        }
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:
         Log.info("Tag removed", event);
         Box.boxLEDs.defaultIdleAnimation();
+        Box.boxDAC.pause();
         break;
     default:
         Log.error("Unknown TAG_EVENT=%X", event);
