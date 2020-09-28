@@ -6,7 +6,7 @@
 
 class BoxTonies {
     public:
-        void
+        bool
             loadTonieByUid(uint8_t uid[8]),
             loadTonieByPath(uint8_t* path);
 
@@ -20,14 +20,18 @@ class BoxTonies {
             uint8_t audioChapterCount;
         };
         
+        uint8_t currentUid[8];
+        
+        const char* CONTENT_BASE = "/CONTENT/";
+        const char* RCONTENT_BASE = "/rCONTENT/";
 
     private:
-        const char* CONTENT_BASE = "/CONTENT/";
         FileFs tonieFile;
 
         TonieHeader header;
 
         uint64_t readVariant(uint8_t* buffer, uint16_t length, uint8_t& readBytes);
+        void clearHeader();
         
 };
 

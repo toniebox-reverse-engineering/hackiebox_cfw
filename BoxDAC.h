@@ -105,6 +105,11 @@ class BoxDAC : public EnhancedThread {
         void logVolume();
         void logBeepVolume(uint8_t volume);
 
+        void
+            play(),
+            pause(),
+            stop();
+        bool hasStopped();
     
     private:
         enum class PAGE {

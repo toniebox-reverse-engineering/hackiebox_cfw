@@ -205,6 +205,42 @@ void BoxDAC::loop(uint16_t timeoutMs) {
     }
 }
 
+void BoxDAC::play() {
+    audioPlaying = true;
+}
+void BoxDAC::pause() {
+    audioPlaying = false;
+}
+void BoxDAC::stop() {
+    audioPlaying = false;
+    if (audioSource && audioSource->isOpen())
+        audioSource->seek(0, SEEK_SET);
+}
+
+bool BoxDAC::hasStopped() {/*
+    if (audioGenerator)
+        Log.info("audioGenerator: %T", audioGenerator->isRunning());
+    if (audioSource)
+        Log.info("audioSource: %T", audioSource->isOpen());*/
+
+    if (!audioGenerator)
+        return true;
+    //Log.info("A");
+    if (!audioGenerator->isRunning())
+        return true;
+        /*
+    Log.info("B");
+    if (!audioSource); //Fails even when audioSource is not NULL above
+        return true;
+    Log.info("C");
+    if (!audioSource->isOpen());
+        return true;*/
+    
+    //Log.info("hasStopped: false!");
+
+    return false;
+}
+
 bool BoxDAC::playFile(const char* path) {
     Log.info("Start playing file %s...", path);
 
