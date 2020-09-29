@@ -261,7 +261,10 @@ bool BoxDAC::playFile(const char* path) {
     return _playWAV(path);
 }
 bool BoxDAC::_playWAV(const char* path) {
-    audioGenerator = new AudioGeneratorWAV();
+    AudioGeneratorWAV *ag = new AudioGeneratorWAV();
+    ag->SetBufferSize(128);
+
+    audioGenerator = ag;
     audioSource = new AudioFileSourceFatFs(path);
     
     if (!audioGenerator->begin(audioSource, audioOutput)) {
