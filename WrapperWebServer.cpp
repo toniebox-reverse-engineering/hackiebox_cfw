@@ -391,6 +391,7 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
 
 void WrapperWebServer::handleUploadFile() {
   Box.boxPower.feedSleepTimer();
+  Box.delayTask(0);
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
     String filepath = _server->arg("filepath");
@@ -434,6 +435,7 @@ void WrapperWebServer::handleUploadFile() {
 
 void WrapperWebServer::handleUploadFlashFile() {
   Box.boxPower.feedSleepTimer();
+  Box.delayTask(0);
   handleNotFound(); //TBD
 }
 
