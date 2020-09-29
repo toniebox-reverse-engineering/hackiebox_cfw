@@ -66,6 +66,7 @@ class BoxDAC : public EnhancedThread {
         AudioFileSource* audioSource;
         AudioGenerator* audioGenerator;
         bool audioPlaying = false;
+        uint16_t audioTimeoutMs = 40;
 
         bool playFile(const char* path);
         bool _playWAV(const char* path);

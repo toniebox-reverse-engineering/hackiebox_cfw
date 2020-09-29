@@ -181,7 +181,11 @@ void BoxDAC::opusTest() {
 }
 
 void BoxDAC::loop() {
-    loop(50);
+    if (audioPlaying) {
+        loop(audioTimeoutMs);
+    } else {
+        loop(10);
+    }
 }
 void BoxDAC::loop(uint16_t timeoutMs) {
     if (audioPlaying) {
@@ -428,7 +432,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optional
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
-    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
     //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider - Page 41 (but makes glitches?!)
 
     send(ADDR_P0_SERIAL::BEEP_LEN_MSB, (length>>16)&0xFF);
@@ -486,6 +490,7 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     if (!async) {
         while ((readByte(ADDR_P0_SERIAL::BEEP_L_GEN) & 0b10000000) == 0b10000000) {
             Box.watchdog_feed();
+            Box.delayTask(1);
         }
     }
 }
@@ -598,7 +603,7 @@ void BoxDAC::setVolume(uint8_t volume) {
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, volumeConv);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, volumeConv);
-    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
 }
 
 void BoxDAC::logVolume() {

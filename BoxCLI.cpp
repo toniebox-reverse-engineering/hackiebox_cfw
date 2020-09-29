@@ -65,6 +65,7 @@ void BoxCLI::begin() {
     cmdAudio.setDescription(" Play/Pause audio files");
     cmdAudio.addFlagArg("p/lay,pause");
     cmdAudio.addArg("f/ile/name", "");
+    cmdAudio.addArg("g/en-limit", "0");
 }
 
 void BoxCLI::loop() {
@@ -300,6 +301,7 @@ void BoxCLI::execLoad() {
                 if (reset) thread->resetStats();
                 Log.println();
             }
+            Box.delayTask(1);
         }
     } else if (pointer > 0) {
         Log.info("Thread statistics for Threads with pointer=%i", pointer);
@@ -312,6 +314,7 @@ void BoxCLI::execLoad() {
                 Log.println();
             }
         }
+        Box.delayTask(1);
     } else {
         Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
         Log.println("---");
@@ -320,6 +323,7 @@ void BoxCLI::execLoad() {
             thread->logStats();
             if (reset) thread->resetStats();
             Log.println();
+            Box.delayTask(1);
         }
     }
 
@@ -381,11 +385,16 @@ void BoxCLI::execAudio() {
     Command c = lastCmd;
 
     String filenameStr = c.getArg("file").getValue();
+    uint16_t genLimit = (uint16_t)parseNumber(c.getArg("gen-limit").getValue());
 
     if (c.getArg("file").isSet() && filenameStr != "") {
         Box.boxDAC.playFile(filenameStr.c_str());
     } else if (c.getArg("play").isSet()) { 
         Box.boxDAC.audioPlaying = !Box.boxDAC.audioPlaying;
+    } else {
+        if (genLimit > 0)
+            Box.boxDAC.audioTimeoutMs = genLimit;
+        Log.info("Generator time limit is set to %ims", Box.boxDAC.audioTimeoutMs);
     }
 }
 
