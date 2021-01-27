@@ -1,6 +1,6 @@
 /*
-  AudioOutputCC3200I2S
-  Base class for an I2S output port
+  AudioOutputResample
+  Adds additional bufferspace to the output chain
   
   Copyright (C) 2017  Earle F. Philhower, III
 
@@ -18,52 +18,37 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AUDIOOUTPUTCC3200I2S_H
-#define _AUDIOOUTPUTCC3200I2S_H
+#ifndef _AUDIOOUTPUTRESAMPLE_H
+#define _AUDIOOUTPUTRESAMPLE_H
 
 #include <AudioOutput.h>
+#include "AudioOutputCC3200I2S.h"
 
-#include "BoxAudioBufferTriple.h"
-#include <driverlib/i2s.h>
-#include <driverlib/prcm.h>
-#include <driverlib/rom_map.h>
-
-class AudioOutputCC3200I2S : public AudioOutput
+class AudioOutputResample : public AudioOutput
 {
   public:
-    AudioOutputCC3200I2S(BoxAudioBufferTriple* audioBuffer);
-    virtual ~AudioOutputCC3200I2S() override;
+    AudioOutputResample(uint32_t maxSampleRate, AudioOutputCC3200I2S *dest);
+    virtual ~AudioOutputResample() override;
     virtual bool SetRate(int hz) override;
     virtual bool SetBitsPerSample(int bits) override;
     virtual bool SetChannels(int channels) override;
-    virtual bool ConsumeSample(int16_t sample[2]) override;
-    virtual void flush() override;
-    virtual bool stop() override;
     virtual bool begin() override;
-    
-    bool SetOutputModeMono(bool mono);  // Force mono output no matter the input
+    virtual bool ConsumeSample(int16_t sample[2]) override;
+    virtual bool stop() override;
 
     int GetRate();
-
-    bool resample;
-    uint32_t resampleMaxRate;
-
+    uint32_t GetMaxRate();
+    void SetMaxRate(uint32_t hz);
+    
   protected:
-    virtual int AdjustI2SRate(int hz) { return hz; }
-    uint8_t portNo;
-    int output_mode;
-    bool mono;
-    bool i2sOn;
-    int dma_buf_count;
-    // We can restore the old values and free up these pins when in NoDAC mode
-    uint32_t orig_bck;
-    uint32_t orig_ws;
+    AudioOutputCC3200I2S *sink;
+    int32_t leftSample;
+    int32_t rightSample;
+    uint32_t maxSampleRate;
+    uint8_t resampleFactor;
+    uint8_t resampleCount;
 
-    BoxAudioBufferTriple* audioBuffer;
-
-    bool writeEmptyBuffer();
-
-    uint8_t resampleRate = 1;
+    uint32_t originalSampleRate;
 };
 
 #endif

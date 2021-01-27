@@ -248,8 +248,14 @@
         </div>
         <div id="main-fileupload">
           <h1>File Upload</h1>
-          <h2>SD card</h2>
-          <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverloayPost(event, '/api/upload/file');">
+          <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverloayPost(event, '/api/upload/');">
+            <div class="form-group">
+              <label for="file">Target</label>
+              <select id="uploadTarget" class="form-control" aria-label="Default select example">
+                <option value="file">SD</option>
+                <option value="flash-file">Flash</option>
+              </select>
+            </div>
             <div class="form-group">
               <label for="file">Local file</label>
               <input name="file" type="file" size="50" accept="*/*" class="form-control"> 
@@ -259,14 +265,13 @@
               <input name="overwrite" type="checkbox" class="form-control">
             </div>
             <div class="form-group">
-              <label for="filepath">SD path</label>
+              <label for="filepath">SD/Flash path</label>
               <input name="filepath" type="text" class="form-control">
             </div>
             <div class="form-group">
               <input type="submit" value="Upload" class="form-control">
             </div>
           </form>
-          <h2>Flash</h2>
         </div>
         <div id="main-console">
           <h1>Console</h1>
@@ -685,7 +690,7 @@
         return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
       }
       function submitOverloayPost(e, target) {
-        var action = "http://" + site.getDomainPort() + target + "?" + $(e.target).serialize();
+        var action = "http://" + site.getDomainPort() + target + document.getElementById("uploadTarget").value + "?" + $(e.target).serialize();
         $(e.target).attr("action", action);
       }
     </script>

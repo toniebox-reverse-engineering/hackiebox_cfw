@@ -50,6 +50,7 @@ class WrapperWebServer : public EnhancedThread {
         WebServer* _server;
         FileFs _uploadFile;
         bool _uploadFileOpen = false;
+        bool _uploadFlashFileOpen = false;
 
 };
 

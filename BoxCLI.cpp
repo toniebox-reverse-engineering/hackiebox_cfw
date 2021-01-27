@@ -65,6 +65,9 @@ void BoxCLI::begin() {
     cmdAudio.setDescription(" Play/Pause audio files");
     cmdAudio.addFlagArg("p/lay,pause");
     cmdAudio.addArg("f/ile/name", "");
+    cmdAudio.addArg("g/en-limit", "0");
+    cmdAudio.addArg("b/uffer", "-1");
+    cmdAudio.addArg("m/axSampleRate", "0");
 }
 
 void BoxCLI::loop() {
@@ -300,6 +303,7 @@ void BoxCLI::execLoad() {
                 if (reset) thread->resetStats();
                 Log.println();
             }
+            Box.delayTask(1);
         }
     } else if (pointer > 0) {
         Log.info("Thread statistics for Threads with pointer=%i", pointer);
@@ -312,6 +316,7 @@ void BoxCLI::execLoad() {
                 Log.println();
             }
         }
+        Box.delayTask(1);
     } else {
         Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
         Log.println("---");
@@ -320,6 +325,7 @@ void BoxCLI::execLoad() {
             thread->logStats();
             if (reset) thread->resetStats();
             Log.println();
+            Box.delayTask(1);
         }
     }
 
@@ -381,11 +387,44 @@ void BoxCLI::execAudio() {
     Command c = lastCmd;
 
     String filenameStr = c.getArg("file").getValue();
+    uint16_t genLimit = (uint16_t)parseNumber(c.getArg("gen-limit").getValue());
+
+    uint32_t resampleRate = (uint16_t)parseNumber(c.getArg("maxSampleRate").getValue());
+    String bufferStr = c.getArg("buffer").getValue();
+
+    int32_t buffer = -1;
+    if (bufferStr != "-1")
+        buffer = parseNumber(bufferStr);
+    if (bufferStr != "0" && buffer == 0)
+        buffer = -1;
 
     if (c.getArg("file").isSet() && filenameStr != "") {
         Box.boxDAC.playFile(filenameStr.c_str());
     } else if (c.getArg("play").isSet()) { 
         Box.boxDAC.audioPlaying = !Box.boxDAC.audioPlaying;
+    } else {
+        if (genLimit > 0)
+            Box.boxDAC.audioTimeoutMs = genLimit;
+        Log.info("Generator time limit is set to %ims", Box.boxDAC.audioTimeoutMs);
+
+        if (resampleRate > 0) {
+            Box.boxDAC.audioOutputResample->SetMaxRate(resampleRate);
+            Log.info("Max Samplerate is set to %ihz", Box.boxDAC.audioOutputResample->GetMaxRate());
+        }
+        if (buffer == 0) {
+            Log.info("Additional buffering disabled.");
+            Box.boxDAC.audioOutput = Box.boxDAC.audioOutputResample;
+        } else if (buffer > 0) {
+            if (buffer <= freeHeapMemory() / 2) {
+                Box.boxDAC.audioOutput = Box.boxDAC.audioOutputBuffer;
+                free(Box.boxDAC.audioOutputBuffer);
+                Box.boxDAC.audioOutputBuffer = new AudioOutputBuffer(buffer, Box.boxDAC.audioOutputResample);
+                Box.boxDAC.audioOutput = Box.boxDAC.audioOutputBuffer;
+                Log.info("Additional buffer set to %ib", buffer);
+            } else {
+                Log.error("Buffer should not use more than half of the HEAP (%ib)", freeHeapMemory());
+            }
+        }
     }
 }
 

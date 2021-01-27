@@ -52,7 +52,11 @@ void BoxDAC::begin() {
     MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralReset(PRCM_I2S);
 
-    audioOutput = new AudioOutputCC3200I2S(&audioBuffer);
+    Log.info("Output");
+    audioOutputI2S = new AudioOutputCC3200I2S(&audioBuffer);
+    //audioOutputResample = new AudioOutputResample(48000, audioOutputI2S);
+    //audioOutputBuffer = new AudioOutputBuffer(4096, audioOutputResample);
+    audioOutput = audioOutputI2S;
 
     initDACI2C();
 
@@ -181,7 +185,11 @@ void BoxDAC::opusTest() {
 }
 
 void BoxDAC::loop() {
-    loop(50);
+    if (audioPlaying) {
+        loop(audioTimeoutMs);
+    } else {
+        loop(10);
+    }
 }
 void BoxDAC::loop(uint16_t timeoutMs) {
     if (audioPlaying) {
@@ -257,7 +265,10 @@ bool BoxDAC::playFile(const char* path) {
     return _playWAV(path);
 }
 bool BoxDAC::_playWAV(const char* path) {
-    audioGenerator = new AudioGeneratorWAV();
+    AudioGeneratorWAV *ag = new AudioGeneratorWAV();
+    ag->SetBufferSize(128);
+
+    audioGenerator = ag;
     audioSource = new AudioFileSourceFatFs(path);
     
     if (!audioGenerator->begin(audioSource, audioOutput)) {
@@ -271,7 +282,7 @@ bool BoxDAC::_playWAV(const char* path) {
 
 void BoxDAC::generateFrequency(uint32_t frequency, uint16_t timeoutMs) {
     BoxTimer timeout;
-    uint32_t halfWavelength = (audioOutput->GetRate() / frequency) / 2;
+    uint32_t halfWavelength = (audioOutputI2S->GetRate() / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
@@ -428,7 +439,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x0C); //mute DACs //optional
     //f 30 26 xxx1xxx1 # wait for DAC gain flag to be set
-    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
     //send(ADDR_P0_SERIAL::DAC_NDAC_VAL, 0x02); //power down NDAC divider - Page 41 (but makes glitches?!)
 
     send(ADDR_P0_SERIAL::BEEP_LEN_MSB, (length>>16)&0xFF);
@@ -451,7 +462,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 }
 void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     //TODO Check boundaries!
-    uint16_t samplerate = audioOutput->GetRate();
+    uint16_t samplerate = audioOutputI2S->GetRate();
     int32_t freq = frequencyTable[midiId]; //fixed point /100
     int16_t sin = beepTable16000[midiId][0];
     int16_t cos = beepTable16000[midiId][1];
@@ -486,6 +497,7 @@ void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     if (!async) {
         while ((readByte(ADDR_P0_SERIAL::BEEP_L_GEN) & 0b10000000) == 0b10000000) {
             Box.watchdog_feed();
+            Box.delayTask(1);
         }
     }
 }
@@ -496,7 +508,7 @@ void BoxDAC::beep() {
 
 void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t speed, uint8_t pitch, uint8_t throat, uint8_t mouth, bool sing, bool phoentic) {
     #ifdef FEATURE_FLAG_TEXT2SPEECH
-        int samplerate = audioOutput->GetRate();
+        int samplerate = audioOutputI2S->GetRate();
         audioOutput->flush();
         ESP8266SAM* sam = new ESP8266SAM();
 
@@ -598,7 +610,7 @@ void BoxDAC::setVolume(uint8_t volume) {
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, volumeConv);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, volumeConv);
-    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { }
+    while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
 }
 
 void BoxDAC::logVolume() {

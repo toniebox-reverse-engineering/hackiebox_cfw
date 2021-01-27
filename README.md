@@ -12,11 +12,16 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 - Tonie file header decoder
 - WAV player (with cli + by wav file in /rCONTENT/<UIDREV>/)
 ### Todo
-- Configuration of the WiFi credentials via a WiFi Hotspot.
-- OPUS decoding / playing tonie files
+- [Configuration of the WiFi credentials via a WiFi Hotspot](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/10)
+- [Optimize "Threading" to play WAV without stuttering](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/14)
+- [OPUS decoding / playing tonie files](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/12)
 - MP3 decoding (or other formats)
 - Remote WiFi speaker (chromecast or similar)
 - Custom (sd) bootloader that allows context sensitive firmware image switching for more complex features that don't fit into a single image
+- Bootloader: Allow dynamic target address to allow direct starting of the OFW.
+- Bootloader: Dynamic patching of loaded firmwares by an addtitional file.
+- [Overcome limited include path of Energia](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/11)
+- [Set up buildchain without Energia / micropython dependencies](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/13)
 ### Known bugs
 - WiFi configuration is cleared and replaced with the credentials from the json config
 
