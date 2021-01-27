@@ -52,7 +52,11 @@ void BoxDAC::begin() {
     MAP_PRCMPeripheralClkEnable(PRCM_I2S, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralReset(PRCM_I2S);
 
-    audioOutput = new AudioOutputCC3200I2S(&audioBuffer);
+    Log.info("Output");
+    audioOutputI2S = new AudioOutputCC3200I2S(&audioBuffer);
+    //audioOutputResample = new AudioOutputResample(48000, audioOutputI2S);
+    //audioOutputBuffer = new AudioOutputBuffer(4096, audioOutputResample);
+    audioOutput = audioOutputI2S;
 
     initDACI2C();
 
@@ -278,7 +282,7 @@ bool BoxDAC::_playWAV(const char* path) {
 
 void BoxDAC::generateFrequency(uint32_t frequency, uint16_t timeoutMs) {
     BoxTimer timeout;
-    uint32_t halfWavelength = (audioOutput->GetRate() / frequency) / 2;
+    uint32_t halfWavelength = (audioOutputI2S->GetRate() / frequency) / 2;
     timeout.setTimer(timeoutMs);
 
     while (timeout.isRunning()) {
@@ -458,7 +462,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume
 }
 void BoxDAC::beepMidi(uint8_t midiId, uint16_t lengthMs, bool async) {
     //TODO Check boundaries!
-    uint16_t samplerate = audioOutput->GetRate();
+    uint16_t samplerate = audioOutputI2S->GetRate();
     int32_t freq = frequencyTable[midiId]; //fixed point /100
     int16_t sin = beepTable16000[midiId][0];
     int16_t cos = beepTable16000[midiId][1];
@@ -504,7 +508,7 @@ void BoxDAC::beep() {
 
 void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t speed, uint8_t pitch, uint8_t throat, uint8_t mouth, bool sing, bool phoentic) {
     #ifdef FEATURE_FLAG_TEXT2SPEECH
-        int samplerate = audioOutput->GetRate();
+        int samplerate = audioOutputI2S->GetRate();
         audioOutput->flush();
         ESP8266SAM* sam = new ESP8266SAM();
 

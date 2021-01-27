@@ -101,6 +101,7 @@ bool AudioOutputCC3200I2S::ConsumeSample(int16_t sample[2])
 
   writeBuffer->buffer[writeBuffer->position++] = ms[LEFTCHANNEL];
   writeBuffer->buffer[writeBuffer->position++] = ms[RIGHTCHANNEL];
+  return true;
 }
 
 void AudioOutputCC3200I2S::flush() {

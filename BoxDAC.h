@@ -8,6 +8,8 @@
 
 #include "BoxAudioBufferTriple.h"
 #include "AudioOutputCC3200I2S.h"
+#include "AudioOutputResample.h"
+#include <AudioOutputBuffer.h>
 #include <ESP8266SAM.h>
 #include "AudioFileSourceFatFs.h"
 #include "AudioGeneratorTonie.h"
@@ -62,7 +64,10 @@ class BoxDAC : public EnhancedThread {
 
         BoxAudioBufferTriple::BufferStruct* writeBuffer;
 
-        AudioOutputCC3200I2S* audioOutput;
+        AudioOutputCC3200I2S* audioOutputI2S;
+        AudioOutputBuffer* audioOutputBuffer;
+        AudioOutputResample* audioOutputResample;
+        AudioOutput* audioOutput;
         AudioFileSource* audioSource;
         AudioGenerator* audioGenerator;
         bool audioPlaying = false;
