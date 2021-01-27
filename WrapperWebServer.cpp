@@ -17,7 +17,7 @@ void WrapperWebServer::begin() {
   _server->on("/api/sse/sub", HTTP_GET, [&](){ WrapperWebServer::handleSseSub(); });
   _server->on("/api/ajax", HTTP_GET, [&](){ WrapperWebServer::handleAjax(); });
   _server->on("/api/upload/file", HTTP_POST, [&](){ }, [&](){ WrapperWebServer::handleUploadFile(); });
-  _server->on("/api/upload/flash-file", HTTP_POST, [&](){ WrapperWebServer::handleUploadFlashFile(); });
+  _server->on("/api/upload/flash-file", HTTP_POST, [&](){ }, [&](){ WrapperWebServer::handleUploadFlashFile(); });
   _server->begin();
 
   setInterval(1);
@@ -170,6 +170,16 @@ void WrapperWebServer::handleAjax(void) {
           return;
         }
       }
+    } else if (cmd.equals("delete-flash-file")) {
+      String filepath_str = _server->arg("filepath");
+      char* filepath = (char*)filepath_str.c_str();
+
+      Log.info("Deleting Flash %s", filepath);
+      if (SerFlash.del(filepath) == SL_FS_OK) {
+          sendJsonSuccess();
+          return;
+      }
+      Log.error("Could not del %s %s", filepath, SerFlash.lastErrorString());
     } else if (cmd.equals("create-dir")) {
       String dir_str = _server->arg("dir");
       char* dir = (char*)dir_str.c_str();
@@ -380,11 +390,11 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
         break; //error
     }
 
-    sampleMemory(2);
     SerFlash.close();
     return true;
   } else {
-    Log.error("Could not open %s, error %s", path->c_str(), SerFlash.lastErrorString());
+    Log.error("Could not open %s %s", path->c_str(), SerFlash.lastErrorString());
+    SerFlash.close();
   }
   return false;
 }
@@ -408,7 +418,6 @@ void WrapperWebServer::handleUploadFile() {
       filemode = FA_CREATE_ALWAYS | FA_WRITE;
 
     _uploadFileOpen = _uploadFile.open(filename, filemode);
-    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.seekSet(write_start);
       return;
@@ -416,13 +425,11 @@ void WrapperWebServer::handleUploadFile() {
     Log.error("File could not be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
-    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.write(upload.buf, upload.currentSize);
       return;
     }
   } else if (upload.status == UPLOAD_FILE_END) {
-    sampleMemory(3);
     if (_uploadFileOpen) {
       _uploadFile.close();
       Log.info("handleUploadFile Size: %ikB", upload.totalSize / 1024);
@@ -436,7 +443,48 @@ void WrapperWebServer::handleUploadFile() {
 void WrapperWebServer::handleUploadFlashFile() {
   Box.boxPower.feedSleepTimer();
   Box.delayTask(0);
-  handleNotFound(); //TBD
+  HTTPUpload& upload = _server->upload();
+  if (upload.status == UPLOAD_FILE_START) {
+    String filepath = _server->arg("filepath");
+    const char* filename = (const char*)filepath.c_str();
+    bool overwrite = false;
+    if (!_server->arg("overwrite").equals(""))
+      overwrite = true;
+    long write_start = _server->arg("start").toInt();
+
+    Log.info("handleUploadFlashFile Name: %s, overwrite: %T, start=%l", filename, overwrite, write_start);
+    int32_t mode;
+
+    if (overwrite) {
+      mode = FS_MODE_OPEN_WRITE;
+    } else {
+      mode = FS_MODE_OPEN_CREATE(32*1024, 0x0);
+    }
+    if (SerFlash.open(filename, mode) == SL_FS_OK) {
+      _uploadFlashFileOpen = true;
+      if (overwrite && write_start>0)
+        SerFlash.seek(write_start);
+      return;
+    }
+    Log.error("Could not open %s %s", filename, SerFlash.lastErrorString());
+    SerFlash.close();
+  } else if (upload.status == UPLOAD_FILE_WRITE) {
+    //Log.verbose("handleUploadFlashFile Data: %i", upload.currentSize);
+    
+    if (_uploadFlashFileOpen) {
+      SerFlash.write(upload.buf, upload.currentSize);
+      return;
+    }
+  } else if (upload.status == UPLOAD_FILE_END) {
+    if (_uploadFlashFileOpen) {
+      SerFlash.close();
+      _uploadFlashFileOpen = false;
+      Log.info("handleUploadFlashFile Size: %ikB", upload.totalSize / 1024);
+      sendJsonSuccess();
+      return;
+    }
+  }
+  handleNotFound();
 }
 
 void WrapperWebServer::sendEvent(char* eventname, char* content) {
