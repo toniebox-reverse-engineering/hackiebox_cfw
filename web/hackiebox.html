@@ -248,7 +248,7 @@
         </div>
         <div id="main-fileupload">
           <h1>File Upload</h1>
-          <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverloayPost(event, '/api/upload/');">
+          <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverlayPost(event, '/api/upload/');">
             <div class="form-group">
               <label for="file">Target</label>
               <select id="uploadTarget" class="form-control" aria-label="Default select example">
@@ -258,7 +258,7 @@
             </div>
             <div class="form-group">
               <label for="file">Local file</label>
-              <input name="file" type="file" size="50" accept="*/*" class="form-control"> 
+              <input id="file" name="file" type="file" size="50" accept="*/*" class="form-control" onchange="setFilesize();"> 
             </div>
             <div class="form-group">
               <label for="file">Overwrite</label></br>
@@ -269,6 +269,7 @@
               <input name="filepath" type="text" class="form-control">
             </div>
             <div class="form-group">
+              <input id="filesize" name="filesize" type="hidden" value="0">
               <input type="submit" value="Upload" class="form-control">
             </div>
           </form>
@@ -689,9 +690,16 @@
       function imageFormatter(value) {
         return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
       }
-      function submitOverloayPost(e, target) {
+      function submitOverlayPost(e, target) {
+        setFilesize();
         var action = "http://" + site.getDomainPort() + target + document.getElementById("uploadTarget").value + "?" + $(e.target).serialize();
         $(e.target).attr("action", action);
+      }
+      function setFilesize() {
+        var files = document.getElementById("file").files;
+        if(typeof files[0] !== 'undefined') {
+          document.getElementById("filesize").value = files[0].size;
+        }
       }
     </script>
   </body>

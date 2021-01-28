@@ -446,6 +446,7 @@ void WrapperWebServer::handleUploadFlashFile() {
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
     String filepath = _server->arg("filepath");
+    uint64_t flashsize = _server->arg("filesize").toInt();
     const char* filename = (const char*)filepath.c_str();
     bool overwrite = false;
     if (!_server->arg("overwrite").equals(""))
@@ -453,21 +454,24 @@ void WrapperWebServer::handleUploadFlashFile() {
     long write_start = _server->arg("start").toInt();
 
     Log.info("handleUploadFlashFile Name: %s, overwrite: %T, start=%l", filename, overwrite, write_start);
-    int32_t mode;
 
-    if (overwrite) {
-      mode = FS_MODE_OPEN_WRITE;
+    if (!overwrite || SerFlash.del(filepath) == SL_FS_OK) {
+      Log.info("Filesize %lB", flashsize);
+      if (flashsize % 512 != 0) {
+        flashsize = ((flashsize / 512) + 1) * 512;
+      }
+      Log.info("Flashsize %lB", flashsize);
+      if (SerFlash.open(filename, FS_MODE_OPEN_CREATE(flashsize, 0x0)) == SL_FS_OK) {
+        _uploadFlashFileOpen = true;
+        if (overwrite && write_start>0)
+          SerFlash.seek(write_start);
+        return;
+      }
+      Log.error("Could not open %s %s", filename, SerFlash.lastErrorString());
+      SerFlash.close();
     } else {
-      mode = FS_MODE_OPEN_CREATE(32*1024, 0x0);
+      Log.error("Could not delete %s %s", filename, SerFlash.lastErrorString());
     }
-    if (SerFlash.open(filename, mode) == SL_FS_OK) {
-      _uploadFlashFileOpen = true;
-      if (overwrite && write_start>0)
-        SerFlash.seek(write_start);
-      return;
-    }
-    Log.error("Could not open %s %s", filename, SerFlash.lastErrorString());
-    SerFlash.close();
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFlashFile Data: %i", upload.currentSize);
     
@@ -479,7 +483,7 @@ void WrapperWebServer::handleUploadFlashFile() {
     if (_uploadFlashFileOpen) {
       SerFlash.close();
       _uploadFlashFileOpen = false;
-      Log.info("handleUploadFlashFile Size: %ikB", upload.totalSize / 1024);
+      Log.info("handleUploadFlashFile Size: %iB", upload.totalSize);
       sendJsonSuccess();
       return;
     }
