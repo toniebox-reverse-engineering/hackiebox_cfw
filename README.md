@@ -1,6 +1,10 @@
 # hackiebox_cfw
 Custom firmware for the Toniebox WIP
 
+**This firmware is dropped for favour of the new [HackieboxNG Custom Firmware project](https://github.com/toniebox-reverse-engineering/hackiebox_cfw_ng)**
+
+***
+
 ## State of development
 The custom bootloader is fully functional. The hackiebox custom firmware itself isn't ready as daily driver yet. 
 ### Implemented features:
@@ -18,8 +22,8 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 - MP3 decoding (or other formats)
 - Remote WiFi speaker (chromecast or similar)
 - Custom (sd) bootloader that allows context sensitive firmware image switching for more complex features that don't fit into a single image
-- Bootloader: Allow dynamic target address to allow direct starting of the OFW.
-- Bootloader: Dynamic patching of loaded firmwares by an addtitional file.
+- [Bootloader: Allow dynamic target address to allow direct starting of the OFW.](https://github.com/toniebox-reverse-engineering/hackiebox_cfw_ng)
+- [Bootloader: Dynamic patching of loaded firmwares by an addtitional file.](https://github.com/toniebox-reverse-engineering/hackiebox_cfw_ng)
 - [Overcome limited include path of Energia](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/11)
 - [Set up buildchain without Energia / micropython dependencies](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/13)
 ### Known bugs
