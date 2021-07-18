@@ -259,11 +259,27 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
             );
 
+            //Needs tooo much heap memory?!
+            //if(/*Config.get()->misc.autodump*/) {
+                if (Box.boxRFID.dumpTagMemory(false)) {
+                //Box.boxDAC.beep();
+                //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 5);
+                //Box.boxLEDs.waitForAnimationToFinish();
+                }
+            //}
+            
             DirFs dir; 
             char* rcontent = "/rCONTENT";
-            if (!dir.openDir(rcontent)){
+            if (!dir.openDir(rcontent)) {
                 Log.info("Creating missing dir %s...", rcontent);
                 if (!FatFs.mkdir(rcontent)) {
+                    Log.info("...failed!");
+                }
+            }
+            char* rdump = "/rDUMP";
+            if (!dir.openDir(rdump)) {
+                Log.info("Creating missing dir %s...", rdump);
+                if (!FatFs.mkdir(rdump)) {
                     Log.info("...failed!");
                 }
             }
@@ -290,10 +306,11 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                         path,
                         dir.fileName()
                     );
-                    free(path);
                     Box.boxDAC.playFile((const char*)filepath);
+                    free(filepath);
                 }
             }
+            free(path);
         }
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:

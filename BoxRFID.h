@@ -30,6 +30,10 @@ class BoxRFID : public EnhancedThread {
         uint8_t tagUid[8];
         bool tagActive;
 
+        uint8_t readBlocks(uint8_t* data, uint8_t maxBlocks);
+        void logTagMemory();
+        bool dumpTagMemory(bool overwrite);
+
     private:
         enum class REG_CMD_WORD_BITS : uint8_t {
             COMMAND_B7 = 0b10000000,
@@ -121,7 +125,11 @@ class BoxRFID : public EnhancedThread {
 
             SET_PASSWORD_NO_RESPONSE = 0x30,
             SET_PASSWORD_CORRECT = 0x31,
-            SET_PASSWORD_INCORRECT = 0x32
+            SET_PASSWORD_INCORRECT = 0x32,
+
+            READ_SINGLE_BLOCK_NO_RESPONSE = 0x40,
+            READ_SINGLE_BLOCK_VALID_RESPONSE = 0x41,
+            READ_SINGLE_BLOCK_INVALID_RESPONSE = 0x42,
         };
 
         void
@@ -168,6 +176,7 @@ class BoxRFID : public EnhancedThread {
         ISO15693_RESULT ISO15693_sendSingleSlotInventory(uint8_t* uid);
         ISO15693_RESULT ISO15693_getRandomSlixL(uint8_t* random);
         ISO15693_RESULT ISO15693_setPassSlixL(uint8_t pass_id, uint32_t password);
+        ISO15693_RESULT ISO15693_readSingleBlock(uint8_t blockId, uint8_t* blockData);
 
         void reinitRFID();
 
@@ -180,6 +189,7 @@ class BoxRFID : public EnhancedThread {
         void initRFID();
 
         TRF_STATUS sendDataTag(uint8_t *sendBuffer, uint8_t sendLen);
+        TRF_STATUS sendDataTag(uint8_t *sendBuffer, uint8_t sendLen, uint8_t txTimeout, uint8_t rxTimeout);
 };
 
 #endif

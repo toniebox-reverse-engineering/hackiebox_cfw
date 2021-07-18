@@ -12,8 +12,10 @@ bool BoxTonies::loadTonieByUid(uint8_t uid[8]) {
 
     memcpy(currentUid, uid, 8);
     if (loadTonieByPath(path)) {
+        free(path);
         return true;
     }
+    free(path);
     return false;
 }
 

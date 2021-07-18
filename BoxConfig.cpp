@@ -73,7 +73,11 @@ String BoxConfig::getAsJson() {
     JsonObject logDoc = doc.createNestedObject("log");
     ConfigLog* logCfg = &_config.log;
     logDoc["sdLog"] = logCfg->sdLog;
-
+/*
+    JsonObject miscDoc = doc.createNestedObject("misc");
+    ConfigMisc* miscCfg = &_config.misc;
+    miscDoc["autodump"] = miscCfg->autodump;
+*/
     serializeJson(doc, json);
     return json;
 }
@@ -110,17 +114,31 @@ bool BoxConfig::setFromJson(String json) {
     ConfigLog* logCfg = &_config.log;
     logCfg->sdLog = logDoc["sdLog"].as<bool>();
 
+    /*
+    JsonObject miscDoc = doc["misc"];
+    ConfigMisc* miscCfg = &_config.misc;
+    miscCfg->autodump = logDoc["autodump"].as<bool>();
+    */
+
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
         switch (_config.version) {
         case 2:
             batteryCfg->criticalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
             batteryCfg->lowAdc = batteryCfg->criticalAdc + 100;
-            _config.version = CONFIG_ACTIVE_VERSION;
+            _config.version = 3;
+            write();
             break;
-        
+        /*
+        case 3:
+            miscCfg->autodump = false;
+            _config.version = 4;
+            write();
+            break;
+        */        
         default:
             _initializeConfig();
+            write();
             break;
         } 
     }
@@ -153,4 +171,7 @@ void BoxConfig::_initializeConfig() {
 
     ConfigLog* log = &_config.log;
     log->sdLog = false;
+
+    ConfigMisc* misc = &_config.misc;
+    misc->autodump = false;
 }

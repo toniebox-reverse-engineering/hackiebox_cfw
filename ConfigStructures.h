@@ -40,11 +40,16 @@ typedef struct {
 } ConfigLog;
 
 typedef struct {
+  bool autodump;
+} ConfigMisc;
+
+typedef struct {
   uint8_t version;
   ConfigBattery battery;
   ConfigButtonEars buttonEars;
   ConfigWifi wifi;
   ConfigLog log;
+  ConfigMisc misc;
 } ConfigStruct;
 
 #endif
