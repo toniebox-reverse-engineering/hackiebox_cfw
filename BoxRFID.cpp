@@ -360,6 +360,45 @@ void BoxRFID::sendRawSPI(uint8_t* buffer, uint8_t length, bool continuedSend) {
 
   spiDisable();
 }
+BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_readSingleBlock(uint8_t blockId, uint8_t* blockData) {
+  uint8_t offset = 0;
+
+	trfBuffer[offset++] = 0x02;		// ISO15693 flags - ISO15693_REQ_DATARATE_HIGH
+	trfBuffer[offset++] = 0x20;		// Read Single BLock
+  /*
+  bool withUid = true;
+  if (withUid) {
+    trfBuffer[0] = trfBuffer[0] || 0x20 || 0x10; // ISO15693_REQ_DATARATE_HIGH || ISO15693_REQ_ADDRESS || ISO15693_REQ_OPTION
+    for (uint8_t i= 0; i<8; i++) {
+      trfBuffer[offset++] = tagUid[i];
+    }
+  }*/
+	trfBuffer[offset++] = blockId;		// BlockId
+
+  trfStatus = sendDataTag(&trfBuffer[0], offset); 
+	if (trfStatus == TRF_STATUS::RX_COMPLETE) { // If data has been received
+		if (trfBuffer[0] == 0x00)	{	// Confirm "no error" in response flags byte
+      if (trfRxLength == 5) {
+        // data Starts at the 2rd received byte, length = 4
+        for (uint8_t i=0; i<4; i++) { 
+          blockData[i] = trfBuffer[i+1];
+        }
+        return ISO15693_RESULT::READ_SINGLE_BLOCK_VALID_RESPONSE;
+      } else {
+        Log.error("Received invalid answer. Length should be %i but is %i", 5, trfRxLength);
+        for (uint8_t i=0; i<trfRxLength; i++) {
+          Log.printf(" %x", trfBuffer[i]);
+        }
+        Log.println();
+      }
+		} else {
+      Log.error("Error flag=%X while reading", trfStatus);
+    }
+	} else {
+    Log.error("Unexpected TRF_STATUS=%X for read single block with id %i", trfStatus, blockId);
+	}
+  return ISO15693_RESULT::READ_SINGLE_BLOCK_INVALID_RESPONSE; //TODO 
+}
 
 BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid) {
   uint8_t g_ui8TagDetectedCount;
@@ -637,6 +676,9 @@ void BoxRFID::initRFID() {
 }
 
 BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
+  sendDataTag(sendBuffer, sendLen, 15, 15);  //15, 5 vs. 15, 15 (longer timeout for set password)
+}
+BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen, uint8_t txTimeout, uint8_t rxTimeout) {
   uint8_t buffer[sendLen+5];
   memcpy(&buffer[5], sendBuffer, sendLen);
 
@@ -656,7 +698,7 @@ BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
   Log.println();*/
 
   sendRaw(&buffer[0], sendLen+5);
-  TRF_STATUS status = waitRxData(15, 15); //15, 5 vs. 15, 15 (longer timeout for set password)
+  TRF_STATUS status = waitRxData(txTimeout, rxTimeout);
   return status;
 }
 
@@ -673,4 +715,84 @@ void BoxRFID::logUID() {
   uint8_t uid[24];
   getUID(uid);
   Log.info("RFID UID: %s", uid);
+}
+
+uint8_t BoxRFID::readBlocks(uint8_t* data, uint8_t maxBytes) {
+  BoxRFID::ISO15693_RESULT result;
+  uint8_t bytesRead = 0;
+
+  resetRFID();
+  initRFID();
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  Box.delayTask(20); //not 1 ms?!
+
+  for (uint8_t i=0; i<maxBytes/4; i++) {
+    result = ISO15693_readSingleBlock(i, &data[i*4]);
+    if (result != ISO15693_RESULT::READ_SINGLE_BLOCK_VALID_RESPONSE)
+      break;
+    bytesRead += 4;
+    reinitRFID();
+  }
+
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+  return bytesRead;
+}
+void BoxRFID::logTagMemory() {
+  uint8_t data[32];
+  uint8_t bytesRead;
+  bytesRead = Box.boxRFID.readBlocks(data, 32);
+  if (bytesRead == 32) {
+    Log.disableNewline(true);
+    Log.info("Reading %i bytes of memory:");
+    for (uint8_t i = 0; i < bytesRead; i++) {
+      Log.printf(" %x", data[i]);
+    }
+    Log.println();
+    Log.disableNewline(false);
+  } else {
+    Log.error("Expected 32 blocks but got %i...", bytesRead);
+  }
+}
+
+bool BoxRFID::dumpTagMemory(bool overwrite) {
+  FileFs dumpFile;
+  uint8_t data[32];
+  uint8_t bytesRead;
+  char* path = "rDUMP/0123456789ABCDEF";
+  sprintf(
+    (char *)path,
+    "rDUMP/%02x%02x%02x%02x%02x%02x%02x%02x",
+    tagUid[7], tagUid[6], tagUid[5], tagUid[4], tagUid[3], tagUid[2], tagUid[1], tagUid[0]
+  );
+  if (!overwrite && dumpFile.open((char*)path, FA_OPEN_EXISTING | FA_READ)) {
+    dumpFile.close();
+    Log.info("Dump %s exists, skip...", path);
+    return false;
+  }
+
+  bytesRead = Box.boxRFID.readBlocks(data, 32);
+  if (bytesRead == 32) {
+    Log.disableNewline(true);
+    Log.info("Reading %i bytes of memory:");
+    for (uint8_t i = 0; i < bytesRead; i++) {
+      Log.printf(" %x", data[i]);
+    }
+    Log.disableNewline(false);
+    Log.println();
+    uint8_t mode = FA_CREATE_NEW | FA_WRITE;
+    if (overwrite)
+      mode = FA_CREATE_ALWAYS | FA_WRITE;
+
+    if (dumpFile.open((char *)path, mode)) {
+      dumpFile.write(data, bytesRead);
+      dumpFile.close();
+      Log.info("Wrote dump to %s", path);
+      return true;
+    } else {
+      Log.error("Could not open %s for writing", path);
+    }
+  } else {
+    Log.error("Expected 32 blocks but got %i...", bytesRead);
+  }
+  return false;
 }

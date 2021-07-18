@@ -273,6 +273,22 @@ void WrapperWebServer::handleAjax(void) {
         sampleMemory(6);
         _server->send(200, "text/json", json);
         return;
+      } else if (sub.equals("memory")) {
+        StaticJsonDocument<512> memoryContent;  //Size from https://arduinojson.org/v6/assistant/
+        uint8_t data[32];
+        uint8_t bytesRead;
+        bytesRead = Box.boxRFID.readBlocks(data, 32);
+        if (bytesRead == 32) {
+          for (uint8_t i=0; i<bytesRead; i++) {
+            memoryContent[i] = data[i];
+          }
+          size_t len = measureJson(memoryContent)+1;
+          char json[len];
+          serializeJson(memoryContent, json, len);
+          sampleMemory(6);
+          _server->send(200, "text/json", json);
+          return;
+        }
       }
     } else if (cmd.equals("cli")) {
         _server->setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever

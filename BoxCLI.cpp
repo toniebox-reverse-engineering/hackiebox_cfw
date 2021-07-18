@@ -34,6 +34,9 @@ void BoxCLI::begin() {
     cmdRFID.setDescription(" Access RFID");
     cmdRFID.addFlagArg("u/id");
     cmdRFID.addFlagArg("r/ead");
+    cmdRFID.addFlagArg("m/emory");
+    cmdRFID.addFlagArg("d/ump");
+    cmdRFID.addFlagArg("o/verwrite");
     
     cmdLoad = cli.addCmd("load");
     cmdLoad.setDescription(" Shows the current load of all threads");
@@ -280,6 +283,18 @@ void BoxCLI::execRFID() {
             Log.error("No tag in place, last known is shown");
         }
         Box.boxRFID.logUID();
+    } else if (c.getArg("memory").isSet()) {
+        Box.boxRFID.loop();
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place");
+        }
+        Box.boxRFID.logTagMemory();
+    } else if (c.getArg("dump").isSet()) {
+        Box.boxRFID.loop();
+        if (!Box.boxRFID.tagActive) {
+            Log.error("No tag in place");
+        }
+        Box.boxRFID.dumpTagMemory(c.getArg("overwrite").isSet());
     } else {
         Log.error("Nothing to do...");
     }
