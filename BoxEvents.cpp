@@ -292,8 +292,10 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     );
                     free(path);
                     Box.boxDAC.playFile((const char*)filepath);
+                    free(filepath);
                 }
             }
+            free(path);
         }
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:
