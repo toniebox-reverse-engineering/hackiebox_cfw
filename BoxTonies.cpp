@@ -71,8 +71,6 @@ bool BoxTonies::loadTonieByPath(uint8_t* path) {
                             cursor += readBytes;
                             header.audioChapterCount++;
                         }
-                        free(header.audioChapters);
-                        header.audioChapters = new uint32_t[header.audioChapterCount];
                         cursor = blockStart; //reread
                         for (uint8_t i = 0; i < header.audioChapterCount; i++) {
                             uint32_t chapter = (uint32_t)readVariant(&buffer[cursor], bufferLen-cursor, readBytes);
@@ -120,8 +118,11 @@ void BoxTonies::clearHeader() {
         //header.hash = {0}; //TODO
         header.audioLength = 0;
         header.audioId = 0;
-        free(header.audioChapters);
         header.audioChapterCount = 0;
+        for (uint8_t i=0; i<99; i++) {
+            header.audioChapters[i] = 0;
+        }
+        
 }
 
 uint64_t BoxTonies::readVariant(uint8_t* buffer, uint16_t length, uint8_t& readBytes) {

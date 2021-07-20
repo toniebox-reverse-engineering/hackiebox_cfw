@@ -16,7 +16,7 @@ class BoxTonies {
             uint8_t hash[20];
             uint32_t audioLength; //length in bytes
             uint32_t audioId; //id, which is the unix time stamp of file creation
-            uint32_t* audioChapters; //Ogg page numbers for Chapters
+            uint32_t audioChapters[99]; //Ogg page numbers for Chapters
             uint8_t audioChapterCount;
         };
         
