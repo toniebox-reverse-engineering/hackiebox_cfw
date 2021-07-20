@@ -32,10 +32,10 @@ void BoxConfig::read() {
     }
 }
 void BoxConfig::write() { 
-    String json = getAsJson();
+    _json = getAsJson();
     FileFs file;
     if (file.open(CONFIG_SD_PATH, FA_CREATE_ALWAYS | FA_WRITE)) {
-        file.writeString((char*)json.c_str());
+        file.writeString((char*)_json.c_str());
         file.close();
     } else {
         Log.error("Couldn't write cfg file %", CONFIG_SD_PATH);
@@ -48,8 +48,6 @@ ConfigStruct* BoxConfig::get() {
 
 String BoxConfig::getAsJson() { 
     StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;
-    String json;
-
     doc["version"] = _config.version;
     
     JsonObject batteryDoc = doc.createNestedObject("battery");
@@ -78,8 +76,8 @@ String BoxConfig::getAsJson() {
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
 
-    serializeJson(doc, json);
-    return json;
+    serializeJson(doc, _json);
+    return _json;
 }
 bool BoxConfig::setFromJson(String json) { 
     StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;

@@ -22,6 +22,7 @@ class BoxConfig {
 
         ConfigStruct* get();
     private:
+        String _json;
         ConfigStruct _config;
 
         void _initializeConfig();
