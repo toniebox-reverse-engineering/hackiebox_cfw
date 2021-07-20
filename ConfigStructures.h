@@ -1,7 +1,7 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_ACTIVE_VERSION 3
+#define CONFIG_ACTIVE_VERSION 4
 
 typedef struct {
   uint32_t voltageFactor;

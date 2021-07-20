@@ -259,14 +259,17 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
             );
 
-            //Needs tooo much heap memory?!
-            //if(/*Config.get()->misc.autodump*/) {
+            if(Config.get()->misc.autodump) {
+                Log.info("Autodump...");
                 if (Box.boxRFID.dumpTagMemory(false)) {
-                //Box.boxDAC.beep();
-                //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 5);
-                //Box.boxLEDs.waitForAnimationToFinish();
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 2);
+                    Box.boxDAC.beepMidi(84, 100, false);
+                    Box.boxDAC.beepMidi(76, 100, false);
+                } else {
                 }
-            //}
+            } else {
+                Log.info("No Autodump");
+            }
             
             DirFs dir; 
             char* rcontent = "/rCONTENT";
