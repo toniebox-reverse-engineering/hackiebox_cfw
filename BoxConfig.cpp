@@ -123,8 +123,6 @@ bool BoxConfig::setFromJson(String json) {
             batteryCfg->criticalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
             batteryCfg->lowAdc = batteryCfg->criticalAdc + 100;
             _config.version = 3;
-            write();
-            break;
         case 3:
             miscCfg->autodump = false;
             _config.version = 4;
