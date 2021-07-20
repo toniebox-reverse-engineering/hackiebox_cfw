@@ -39,7 +39,7 @@ void BoxCLI::begin() {
     cmdRFID.addFlagArg("o/verwrite");
     
     cmdLoad = cli.addCmd("load");
-    cmdLoad.setDescription(" Shows the current load of all threads");
+    cmdLoad.setDescription(" Shows the load of all threads");
     cmdLoad.addArg("n/ame", "");
     cmdLoad.addArg("p/ointer", "0");
     cmdLoad.addFlagArg("r/eset");
@@ -145,14 +145,14 @@ void BoxCLI::execI2C() {
 
     tmpNum = parseNumber(saddress);
     if (tmpNum > 127) {
-        Log.error("address must be lower than 128");
+        Log.error("address must be <128");
         return;
     }
     addr = (uint8_t)tmpNum;
 
     tmpNum = parseNumber(sregister);
     if (tmpNum > 255) {
-        Log.error("register must be lower than 256");
+        Log.error("register must be <256");
         return;
     }
     regi = (uint8_t)tmpNum;
@@ -163,7 +163,7 @@ void BoxCLI::execI2C() {
     if (read) {
         String soutput = c.getArg("output").getValue();
         if (!(soutput == "x" || soutput == "X" || soutput == "i" || soutput == "b" || soutput == "B")) {
-            Log.error("Allowed values for output are: x, X, i, b, B");
+            Log.error("Allowed output values are: x, X, i, b, B");
             return;
         }
 
@@ -187,10 +187,10 @@ void BoxCLI::execI2C() {
             while(isspace((unsigned char)*value)) value++;
             tmpNum = parseNumber(value, &newVal);
             if (tmpNum > 255) {
-                Log.error("value must be lower than 256");
+                Log.error("value must be <256");
                 return;
             } else if (value == newVal) {
-                Log.error("Could not parse part \"%s\" of \"%s\"", value, svalue.c_str());
+                Log.error("Couldn't parse part \"%s\" of \"%s\"", value, svalue.c_str());
                 return;
             }
             uint8_t data = (uint8_t)tmpNum;
@@ -212,7 +212,7 @@ void BoxCLI::execSpiRFID() {
     String sregister = c.getArg("register").getValue();
     tmpNum = parseNumber(sregister);
     if (tmpNum > 255) {
-        Log.error("register must be lower than 256");
+        Log.error("register must be <256");
         return;
     }
     uint8_t regi = (uint8_t)tmpNum;
@@ -220,7 +220,7 @@ void BoxCLI::execSpiRFID() {
     String svalue = c.getArg("value").getValue();
     tmpNum = parseNumber(svalue);
     if (tmpNum > 255) {
-        Log.error("value/command must be lower than 256");
+        Log.error("value/command must be <256");
         return;
     }
     uint8_t value = (uint8_t)tmpNum;
@@ -250,7 +250,7 @@ void BoxCLI::execBeep() {
     String sid = c.getArg("midi-id").getValue();
     tmpNum = parseNumber(sid);
     if (tmpNum > 127) {
-        Log.error("midi-id must be lower than 128");
+        Log.error("midi-id must be <128");
         return;
     }
     uint8_t id = (uint8_t)tmpNum;
@@ -258,7 +258,7 @@ void BoxCLI::execBeep() {
     String slength = c.getArg("length").getValue();
     tmpNum = parseNumber(slength);
     if (tmpNum > 65535) {
-        Log.error("length must be lower than 65.536");
+        Log.error("length must be <65.536");
         return;
     }
     uint16_t length = (uint16_t)tmpNum;
@@ -309,7 +309,7 @@ void BoxCLI::execLoad() {
     unsigned long pointer = parseNumber(pointerStr);
 
     if (name != "") {
-        Log.info("Thread statistics for Threads starting with \"%s\"", name.c_str());
+        Log.info("Statistics for Threads starting with \"%s\"", name.c_str());
         Log.println("---");
         for (uint8_t i = 0; i < Box.threadController.size(); i++) {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
@@ -321,7 +321,7 @@ void BoxCLI::execLoad() {
             Box.delayTask(1);
         }
     } else if (pointer > 0) {
-        Log.info("Thread statistics for Threads with pointer=%i", pointer);
+        Log.info("Statistics for Threads with pointer=%i", pointer);
         Log.println("---");
         for (uint8_t i = 0; i < Box.threadController.size(); i++) {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
@@ -333,7 +333,7 @@ void BoxCLI::execLoad() {
         }
         Box.delayTask(1);
     } else {
-        Log.info("Thread statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
+        Log.info("Statistics for all %i Threads", Box.threadController.size(false)); //TODO ThreadController
         Log.println("---");
         for (uint8_t i = 0; i < Box.threadController.size(); i++) {
             EnhancedThread* thread = (EnhancedThread*)Box.threadController.get(i);
@@ -344,7 +344,7 @@ void BoxCLI::execLoad() {
         }
     }
 
-    if (reset) Log.info("All stats of selected threads are reset.");
+    if (reset) Log.info("All stats of selected threads reset.");
 }
 
 void BoxCLI::execI2S() {
@@ -427,7 +427,7 @@ void BoxCLI::execAudio() {
             Log.info("Max Samplerate is set to %ihz", Box.boxDAC.audioOutputResample->GetMaxRate());
         }
         if (buffer == 0) {
-            Log.info("Additional buffering disabled.");
+            Log.info("Additional buffering off");
             Box.boxDAC.audioOutput = Box.boxDAC.audioOutputResample;
         } else if (buffer > 0) {
             if (buffer <= freeHeapMemory() / 2) {

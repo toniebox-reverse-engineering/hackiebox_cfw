@@ -128,7 +128,7 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
 void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
     switch (state) {
     case BoxBattery::BatteryEvent::BAT_CRITICAL:
-        Log.info("Battery is critical, please connect the charger, hibernating!");
+        Log.info("Battery is critical, connect the charger, hibernating!");
         Box.boxBattery.stopBatteryTest();
         Box.boxBattery.logBatteryStatus();
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Orange, 3);
@@ -136,17 +136,17 @@ void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
         Box.boxPower.hibernate();
         break;
     case BoxBattery::BatteryEvent::BAT_LOW:
-        Log.info("Battery is low, please connect the charger!");
+        Log.info("Battery is low, connect the charger!");
         Box.boxBattery.logBatteryStatus();
         Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PULSE, BoxLEDs::CRGB::Orange);
         break;
     case BoxBattery::BatteryEvent::CHR_CONNECT:
-        Log.info("Charger was connected");
+        Log.info("Charger connected");
         Box.boxBattery.logBatteryStatus();
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::White, 3);
         break;
     case BoxBattery::BatteryEvent::CHR_DISCONNECT:
-        Log.info("Charger was disconnected");
+        Log.info("Charger disconnected");
         Box.boxBattery.logBatteryStatus();
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::DarkSlateGray, 3);
         break;
@@ -158,16 +158,16 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
     case WrapperWiFi::ConnectionState::WAIT_CONNECT:
         break;
     case WrapperWiFi::ConnectionState::WAIT_IP:
-        Log.info("WiFi connected successfully, waiting for ip...");
+        Log.info("WiFi connected, waiting for ip...");
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
         break;
     case WrapperWiFi::ConnectionState::CONNECTED:
-        Log.info("IP address: %s", WiFi.localIP().toString().c_str());
+        Log.info("IP: %s", WiFi.localIP().toString().c_str());
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
         //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
-        Log.info("WiFi connection lost");
+        Log.info("WiFi lost");
         break;
     
     default:
@@ -186,11 +186,11 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
         break;
     case BoxPower::PowerEvent::BOX_IDLE:
         if (Box.boxBattery.batteryTestActive()) {
-            Log.info("Box not used, but battery test is running, keep alive...");  
+            Log.info("Box unused, battery test running, keep alive...");  
             Box.boxPower.feedSleepTimer();
             return;
         }
-        Log.info("Box not used, powering off.");  
+        Log.info("Box unused, power off.");  
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
         Box.boxLEDs.waitForAnimationToFinish();
         Box.boxPower.hibernate();
@@ -248,8 +248,35 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
             Log.info("Continue playing last file");
             Box.boxDAC.play();
         } else {
-            Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
+            DirFs dir; 
+            if(Config.get()->misc.autodump) {
+                Log.info("Autodump...");
+                char* rdump = "/rDUMP";
+                if (!dir.openDir(rdump)) {
+                    Log.info("Create dir %s...", rdump);
+                    if (!FatFs.mkdir(rdump)) {
+                        Log.info("...fail!");
+                    }
+                }
+                if (Box.boxRFID.dumpTagMemory(false)) {
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 2);
+                    Box.boxDAC.beepMidi(84, 100, false);
+                    Box.boxDAC.beepMidi(76, 100, false);
+                } else {
+                }
+            } else {
+                Log.info("No Autodump");
+            }
+            
+            char* rcontent = "/rCONTENT";
+            if (!dir.openDir(rcontent)) {
+                Log.info("Create dir %s...", rcontent);
+                if (!FatFs.mkdir(rcontent)) {
+                    Log.info("...fail!");
+                }
+            }
 
+            Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
             uint8_t* path;
             uint8_t* uid = Box.boxRFID.tagUid;
             asprintf(
@@ -258,35 +285,10 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 Box.boxTonie.RCONTENT_BASE,
                 uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
             );
-
-            //Needs tooo much heap memory?!
-            //if(/*Config.get()->misc.autodump*/) {
-                if (Box.boxRFID.dumpTagMemory(false)) {
-                //Box.boxDAC.beep();
-                //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 5);
-                //Box.boxLEDs.waitForAnimationToFinish();
-                }
-            //}
-            
-            DirFs dir; 
-            char* rcontent = "/rCONTENT";
-            if (!dir.openDir(rcontent)) {
-                Log.info("Creating missing dir %s...", rcontent);
-                if (!FatFs.mkdir(rcontent)) {
-                    Log.info("...failed!");
-                }
-            }
-            char* rdump = "/rDUMP";
-            if (!dir.openDir(rdump)) {
-                Log.info("Creating missing dir %s...", rdump);
-                if (!FatFs.mkdir(rdump)) {
-                    Log.info("...failed!");
-                }
-            }
             if (!dir.openDir((char*)path)) {
-                Log.info("Creating missing dir %s...", path);
+                Log.info("Create dir %s...", path);
                 if (!FatFs.mkdir((char*)path)) {
-                    Log.info("...failed!");
+                    Log.info("...fail!");
                 }
             } else {
                 bool foundFile = false;
@@ -297,7 +299,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     }
                 }
                 if (!foundFile) {
-                    Log.info("No file found to play.");
+                    Log.info("No file play.");
                 } else {
                     uint8_t* filepath;
                     asprintf(

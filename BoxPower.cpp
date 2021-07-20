@@ -13,7 +13,7 @@ void BoxPower::begin() {
     _lastFeed = millis();
     setInterval(5000);
 
-    Log.info("Initialize BoxPower class, sleepMinutes=%i", _sleepMinutes);
+    Log.info("Init BoxPower class, sleepMinutes=%i", _sleepMinutes);
 }
 
 void BoxPower::loop() {

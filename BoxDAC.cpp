@@ -13,24 +13,24 @@
 
 void BoxDAC::logDmaIrqChanges() {
     if (lastDmaIRQcount != dmaIRQcount) {
-        Log.info("***dmaIRQcount=%i", dmaIRQcount);
+        Log.info("*dmaIRQcount=%i", dmaIRQcount);
         lastDmaIRQcount = dmaIRQcount;
     }
     if (lastPriIndexRx != priIndexRx) {
-        Log.info("***priIndexRx=%i", priIndexRx);
+        Log.info("*priIndexRx=%i", priIndexRx);
         lastPriIndexRx = priIndexRx;
     }
     if (lastAltIndexRx != altIndexRx) {
-        Log.info("***altIndexRx=%i", altIndexRx);
+        Log.info("*altIndexRx=%i", altIndexRx);
         lastAltIndexRx = altIndexRx;
     }
 
     if (lastDmaBufferFilled != dmaBufferFilled) {
-        Log.info("***dmaBufferFilled=%i", dmaBufferFilled);
+        Log.info("*dmaBufferFilled=%i", dmaBufferFilled);
         lastDmaBufferFilled = dmaBufferFilled;
     }
     if (lastDmaBufferEmpty != dmaBufferEmpty) {
-        Log.info("***dmaBufferEmpty=%i", dmaBufferEmpty);
+        Log.info("*dmaBufferEmpty=%i", dmaBufferEmpty);
         lastDmaBufferEmpty = dmaBufferEmpty;
     }
 }
@@ -40,7 +40,7 @@ void dma_irq() {
 }
 
 void BoxDAC::begin() {
-    Log.info("Initialize DAC...");
+    Log.info("Init DAC...");
     audioBuffer.init();
     audioBuffer.logState();
 
@@ -122,7 +122,7 @@ void BoxDAC::begin() {
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
-    Log.info("...initialized");
+    Log.info("...done");
 
     //samSay("Hackiebox by Team Revvox!");
 }
@@ -175,7 +175,7 @@ void BoxDAC::opusTest() {
     Log.info("Needed heap %ib", opus_decoder_get_size(channels));
     decoder = opus_decoder_create(16000, channels, &error);
     if (error != OPUS_OK) {
-        Log.error("Could not create OPUS Decoder error=%i", error);
+        Log.error("Couldn't create OPUS Decoder error=%i", error);
         return;
     }
     Box.boxPower.feedSleepTimer();
@@ -272,7 +272,7 @@ bool BoxDAC::_playWAV(const char* path) {
     audioSource = new AudioFileSourceFatFs(path);
     
     if (!audioGenerator->begin(audioSource, audioOutput)) {
-        Log.error("Could not play wav?!");
+        Log.error("Couldn't play wav?!");
         return false;
     }
     Log.info("WAV file loaded...");
@@ -530,7 +530,7 @@ void BoxDAC::samSay(const char *text, enum ESP8266SAM::SAMVoice voice, uint8_t s
 
         audioOutput->SetRate(samplerate);
     #else
-        Log.error("Text-To-Speech is not active (FEATURE_FLAG_TEXT2SPEECH not set)");
+        Log.error("Text-To-Speech off (FEATURE_FLAG_TEXT2SPEECH not set)");
     #endif
 }
 
@@ -581,7 +581,7 @@ bool BoxDAC::increaseVolume() {
         Box.delayTask(50);
         beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
         //beepMidi(84,50,true);
-        Log.info("Maximum volume reached.");
+        Log.info("Max volume reached");
     }
     logVolume();
     return result;
@@ -599,7 +599,7 @@ bool BoxDAC::decreaseVolume() {
         Box.delayTask(50);
         beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
         //beepMidi(62, 50, true);
-        Log.info("Minimal volume reached.");
+        Log.info("Min volume reached");
     }
     logVolume();
     return result;

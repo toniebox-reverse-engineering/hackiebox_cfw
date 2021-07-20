@@ -71,7 +71,7 @@ void WrapperWiFi::reconnect() { //TODO: LED Stuff
   _state = ConnectionState::NONE;
   Log.debug("WrapperWiFi(ssid=\"%s\", password=\"%s\")", _ssid, _password);
 
-  Log.info("Connecting to WiFi %s", _ssid);
+  Log.info("Connect to WiFi %s", _ssid);
   
   //stationary mode
   if (_ip[0] != 0) {

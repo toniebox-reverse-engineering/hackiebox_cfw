@@ -23,22 +23,22 @@ void BoxConfig::read() {
         }
         file.close();
         if (!setFromJson(json)) {
-            Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+            Log.error("Couldn't read cfg file %s, recreating it", CONFIG_SD_PATH);
             write();
         }
     } else {
-        Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+        Log.error("Couldn't read cfg file %s, recreating it", CONFIG_SD_PATH);
         write();
     }
 }
 void BoxConfig::write() { 
-    String json = getAsJson();
+    _json = getAsJson();
     FileFs file;
     if (file.open(CONFIG_SD_PATH, FA_CREATE_ALWAYS | FA_WRITE)) {
-        file.writeString((char*)json.c_str());
+        file.writeString((char*)_json.c_str());
         file.close();
     } else {
-        Log.error("Could not write config file %", CONFIG_SD_PATH);
+        Log.error("Couldn't write cfg file %", CONFIG_SD_PATH);
     }
 }
 
@@ -48,8 +48,6 @@ ConfigStruct* BoxConfig::get() {
 
 String BoxConfig::getAsJson() { 
     StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;
-    String json;
-
     doc["version"] = _config.version;
     
     JsonObject batteryDoc = doc.createNestedObject("battery");
@@ -73,13 +71,13 @@ String BoxConfig::getAsJson() {
     JsonObject logDoc = doc.createNestedObject("log");
     ConfigLog* logCfg = &_config.log;
     logDoc["sdLog"] = logCfg->sdLog;
-/*
+
     JsonObject miscDoc = doc.createNestedObject("misc");
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
-*/
-    serializeJson(doc, json);
-    return json;
+
+    serializeJson(doc, _json);
+    return _json;
 }
 bool BoxConfig::setFromJson(String json) { 
     StaticJsonDocument<BOXCONFIG_JSON_SIZE> doc;
@@ -114,11 +112,9 @@ bool BoxConfig::setFromJson(String json) {
     ConfigLog* logCfg = &_config.log;
     logCfg->sdLog = logDoc["sdLog"].as<bool>();
 
-    /*
     JsonObject miscDoc = doc["misc"];
     ConfigMisc* miscCfg = &_config.misc;
-    miscCfg->autodump = logDoc["autodump"].as<bool>();
-    */
+    miscCfg->autodump = miscDoc["autodump"].as<bool>();
 
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
@@ -127,15 +123,11 @@ bool BoxConfig::setFromJson(String json) {
             batteryCfg->criticalAdc = batteryDoc["minimalAdc"].as<uint16_t>();
             batteryCfg->lowAdc = batteryCfg->criticalAdc + 100;
             _config.version = 3;
-            write();
-            break;
-        /*
         case 3:
             miscCfg->autodump = false;
             _config.version = 4;
             write();
             break;
-        */        
         default:
             _initializeConfig();
             write();

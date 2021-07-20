@@ -75,7 +75,7 @@ void BoxBattery::logBatteryStatus() {
     int voltageNum = voltageDec / 100;
     voltageDec = voltageDec - voltageNum * 100;
 
-    Log.info("Battery Status:");
+    Log.info("Battery Stats:");
     Log.info(" Charging: %T", isChargerConnected());
     Log.info(" ADC Raw: %c", getBatteryAdcRaw());
     Log.info(" Estimated Voltage: %d.%s%dV", voltageNum, (voltageDec<10) ? "0": "", voltageDec);
@@ -123,11 +123,11 @@ void BoxBattery::_doBatteryTestStep() {
         file.writeString("\r\n");
         file.close();
     } else {
-        Log.error("Could not write battery logfile %", _batteryTestFilename);
+        Log.error("Couldn't write log %", _batteryTestFilename);
     }
 }
 void BoxBattery::startBatteryTest() {
-    Log.info("Starting battery test...");
+    Log.info("Start battery test...");
 
     _batteryTestThread.enabled = true;
     _batteryTestStartMillis = millis();
@@ -152,14 +152,14 @@ void BoxBattery::startBatteryTest() {
 
        _batteryTestThread.run();
     } else {
-        Log.error("Could not initialize battery logfile %s", _batteryTestFilename);
+        Log.error("Couldn't init battery log %s", _batteryTestFilename);
         _batteryTestThread.enabled = false;
     }
 }
 void BoxBattery::stopBatteryTest() {
     if (!_batteryTestThread.enabled)
         return;
-    Log.info("Stopping battery test...");
+    Log.info("Stop battery test...");
     _batteryTestThread.enabled = false;
     _doBatteryTestStep();
     FileFs file;
@@ -172,7 +172,7 @@ void BoxBattery::stopBatteryTest() {
         file.writeString("\r\n");
         file.close();
     } else {
-        Log.error("Could not write battery logfile %s", _batteryTestFilename);
+        Log.error("Couldn't write battery log %s", _batteryTestFilename);
         _batteryTestThread.enabled = false;
     }
 }
