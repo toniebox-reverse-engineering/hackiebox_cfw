@@ -273,20 +273,20 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
             if (!dir.openDir(rcontent)) {
                 Log.info("Create dir %s...", rcontent);
                 if (!FatFs.mkdir(rcontent)) {
-                    Log.info("...failed!");
+                    Log.info("...fail!");
                 }
             }
             char* rdump = "/rDUMP";
             if (!dir.openDir(rdump)) {
                 Log.info("Create dir %s...", rdump);
                 if (!FatFs.mkdir(rdump)) {
-                    Log.info("...failed!");
+                    Log.info("...fail!");
                 }
             }
             if (!dir.openDir((char*)path)) {
                 Log.info("Create dir %s...", path);
                 if (!FatFs.mkdir((char*)path)) {
-                    Log.info("...failed!");
+                    Log.info("...fail!");
                 }
             } else {
                 bool foundFile = false;
@@ -297,7 +297,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     }
                 }
                 if (!foundFile) {
-                    Log.info("No file found to play.");
+                    Log.info("No file play.");
                 } else {
                     uint8_t* filepath;
                     asprintf(
