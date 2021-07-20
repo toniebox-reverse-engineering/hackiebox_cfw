@@ -248,19 +248,16 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
             Log.info("Continue playing last file");
             Box.boxDAC.play();
         } else {
-            Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
-
-            uint8_t* path;
-            uint8_t* uid = Box.boxRFID.tagUid;
-            asprintf(
-                (char**)&path,
-                "%s%02X%02X%02X%02X%02X%02X%02X%02X",
-                Box.boxTonie.RCONTENT_BASE,
-                uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
-            );
-
+            DirFs dir; 
             if(Config.get()->misc.autodump) {
                 Log.info("Autodump...");
+                char* rdump = "/rDUMP";
+                if (!dir.openDir(rdump)) {
+                    Log.info("Create dir %s...", rdump);
+                    if (!FatFs.mkdir(rdump)) {
+                        Log.info("...fail!");
+                    }
+                }
                 if (Box.boxRFID.dumpTagMemory(false)) {
                     Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Yellow, 2);
                     Box.boxDAC.beepMidi(84, 100, false);
@@ -271,7 +268,6 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 Log.info("No Autodump");
             }
             
-            DirFs dir; 
             char* rcontent = "/rCONTENT";
             if (!dir.openDir(rcontent)) {
                 Log.info("Create dir %s...", rcontent);
@@ -279,13 +275,16 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     Log.info("...fail!");
                 }
             }
-            char* rdump = "/rDUMP";
-            if (!dir.openDir(rdump)) {
-                Log.info("Create dir %s...", rdump);
-                if (!FatFs.mkdir(rdump)) {
-                    Log.info("...fail!");
-                }
-            }
+
+            Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
+            uint8_t* path;
+            uint8_t* uid = Box.boxRFID.tagUid;
+            asprintf(
+                (char**)&path,
+                "%s%02X%02X%02X%02X%02X%02X%02X%02X",
+                Box.boxTonie.RCONTENT_BASE,
+                uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
+            );
             if (!dir.openDir((char*)path)) {
                 Log.info("Create dir %s...", path);
                 if (!FatFs.mkdir((char*)path)) {
