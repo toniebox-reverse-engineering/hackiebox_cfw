@@ -23,11 +23,11 @@ void BoxConfig::read() {
         }
         file.close();
         if (!setFromJson(json)) {
-            Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+            Log.error("Couldn't read cfg file %s, recreating it", CONFIG_SD_PATH);
             write();
         }
     } else {
-        Log.error("Could not read config file %s, try to recreate it.", CONFIG_SD_PATH);
+        Log.error("Couldn't read cfg file %s, recreating it", CONFIG_SD_PATH);
         write();
     }
 }
@@ -38,7 +38,7 @@ void BoxConfig::write() {
         file.writeString((char*)json.c_str());
         file.close();
     } else {
-        Log.error("Could not write config file %", CONFIG_SD_PATH);
+        Log.error("Couldn't write cfg file %", CONFIG_SD_PATH);
     }
 }
 

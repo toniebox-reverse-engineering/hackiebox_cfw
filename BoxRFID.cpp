@@ -6,7 +6,7 @@ void rfid_irq() {
   Box.boxRFID.receivedInterrupt();
 }
 void BoxRFID::begin() {
-    Log.info("Initialize RFID...");
+    Log.info("Init RFID...");
     setInterval(250);
 
     pinMode(16, OUTPUT);
@@ -17,7 +17,7 @@ void BoxRFID::begin() {
 
     resetRFID();
 
-    Log.info("...initialized");
+    Log.info("...done");
 }
 
 void BoxRFID::loop() {  
@@ -43,10 +43,10 @@ void BoxRFID::loop() {
     for (uint8_t i = 0; i < 3; i++) {
       result = ISO15693_setPassSlixL(0x04, knownPasswords[i]); //reversed!
       if (result == ISO15693_RESULT::SET_PASSWORD_CORRECT) {
-        Log.info("Password %X (i=%i) was correct", knownPasswords[i], i);
+        Log.info("Password %X (i=%i) was ok", knownPasswords[i], i);
         break;
       } else if (result == ISO15693_RESULT::SET_PASSWORD_INCORRECT) {
-        Log.info("Password %X (i=%i) was incorrect", knownPasswords[i], i);
+        Log.info("Password %X (i=%i) was wrong", knownPasswords[i], i);
         writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
         Box.delayTask(20);
         reinitRFID();
@@ -119,7 +119,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
         memmove(&trfBuffer[trfOffset], &trfBuffer[trfOffset+2], trfRxLength-2);
         trfRxLength -= 2;
       } else {
-        Log.print("No ghost bytes found @RX_COMPLETE|FIFO_HIGH_OR_LOW\r\n");
+        Log.print("No ghost bytes @RX_COMPLETE|FIFO_HIGH_OR_LOW\r\n");
       }
       
       trfOffset += trfRxLength;
@@ -147,7 +147,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
       memmove(&trfBuffer[trfOffset], &trfBuffer[trfOffset+2], trfRxLength-2);
       trfRxLength -= 2;
     } else {
-        Log.print("No ghost bytes found @RX_COMPLETE\r\n");
+        Log.print("No ghost bytes @RX_COMPLETE\r\n");
     }
     
     trfOffset += trfRxLength;
@@ -385,7 +385,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_readSingleBlock(uint8_t blockId, uint
         }
         return ISO15693_RESULT::READ_SINGLE_BLOCK_VALID_RESPONSE;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 5, trfRxLength);
+        Log.error("Invalid answer. Length should be %i but is %i", 5, trfRxLength);
         for (uint8_t i=0; i<trfRxLength; i++) {
           Log.printf(" %x", trfBuffer[i]);
         }
@@ -427,7 +427,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid)
         g_ui8TagDetectedCount = 1;
         return ISO15693_RESULT::INVENTORY_VALID_RESPONSE;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 10, trfRxLength);
+        Log.error("Invalid answer. Length should be %i but is %i", 10, trfRxLength);
         for (uint8_t i=0; i<trfRxLength; i++) {
           Log.printf(" %x", trfBuffer[i]);
         }
@@ -461,7 +461,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_getRandomSlixL(uint8_t* random) {
         //Log.info("Random number=%X", randomNum);
         return ISO15693_RESULT::GET_RANDOM_VALID;
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 3, trfRxLength);
+        Log.error("Invalid answer. Length should be %i but is %i", 3, trfRxLength);
         for (uint8_t i=0; i<trfRxLength; i++) {
           Log.printf(" %x", trfBuffer[i]);
         }
@@ -514,7 +514,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_
         //Log.info(" ...correct");
         return ISO15693_RESULT::SET_PASSWORD_CORRECT; //TODO
       } else {
-        Log.error("Received invalid answer. Length should be %i but is %i", 1, trfRxLength);
+        Log.error("Invalid answer. Length should be %i but is %i", 1, trfRxLength);
         for (uint8_t i=0; i<trfRxLength; i++) {
           Log.printf(" %x", trfBuffer[i]);
         }
@@ -747,8 +747,8 @@ void BoxRFID::logTagMemory() {
     for (uint8_t i = 0; i < bytesRead; i++) {
       Log.printf(" %x", data[i]);
     }
-    Log.println();
     Log.disableNewline(false);
+    Log.println();
   } else {
     Log.error("Expected 32 blocks but got %i...", bytesRead);
   }
@@ -773,7 +773,7 @@ bool BoxRFID::dumpTagMemory(bool overwrite) {
   bytesRead = Box.boxRFID.readBlocks(data, 32);
   if (bytesRead == 32) {
     Log.disableNewline(true);
-    Log.info("Reading %i bytes of memory:");
+    Log.info("Read %i bytes of memory:");
     for (uint8_t i = 0; i < bytesRead; i++) {
       Log.printf(" %x", data[i]);
     }
@@ -789,7 +789,7 @@ bool BoxRFID::dumpTagMemory(bool overwrite) {
       Log.info("Wrote dump to %s", path);
       return true;
     } else {
-      Log.error("Could not open %s for writing", path);
+      Log.error("Couldn't open %s for writing", path);
     }
   } else {
     Log.error("Expected 32 blocks but got %i...", bytesRead);

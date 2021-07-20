@@ -297,7 +297,7 @@ void BoxLEDs::testLEDs() {
     uint8_t ledG = getGreen();
     uint8_t ledB = getBlue();
 
-    Log.info("Testing LEDs...");
+    Log.info("Test LEDs...");
     Box.delayTask(250);
 
     Log.info(" Red");
@@ -327,7 +327,7 @@ void BoxLEDs::testLEDs() {
     Box.delayTask(500);
     Log.info(" Reset");
     setAll(ledR, ledG, ledB);
-    Log.info(" Test finished.");
+    Log.info(" finished");
 }
 
 BoxLEDs::CRGB BoxLEDs::_wheel(uint8_t wheelPos) {

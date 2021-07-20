@@ -23,7 +23,7 @@ bool BoxTonies::loadTonieByPath(uint8_t* path) {
     bool ret = true;
     clearHeader();
 
-    Log.info("Loading Tonie from path %s...", path);
+    Log.info("Load Tonie from path %s...", path);
     
     if (tonieFile.open((char*)path, FA_OPEN_EXISTING | FA_READ)) {
         uint8_t buffer[512]; //TODO: buffer >512 size may scramble the stream 4096 block needed
@@ -102,12 +102,12 @@ bool BoxTonies::loadTonieByPath(uint8_t* path) {
             ret = false;
             }
         } else {
-            Log.error("... could not data from file.");
+            Log.error("... couldn't data from file");
             ret = false;
         }
         tonieFile.close();
     } else {
-        Log.error("... could not open Tonie.");
+        Log.error("... couldn't open Tonie");
         ret = false;
     }
     if (!ret) {

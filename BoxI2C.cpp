@@ -6,7 +6,7 @@ void BoxI2C::begin() {
 
 bool BoxI2C::send_raw(uint8_t data) {
     if (!Wire.write(data)) {
-        Log.error("Could not write into I2C Buffer");
+        Log.error("Couldn't write into I2C Buffer");
         return false;
     }
     return true;
@@ -18,7 +18,7 @@ bool BoxI2C::send(uint8_t address, uint8_t target_register, uint8_t data) {
     
     uint8_t result = Wire.endTransmission(false);
     if (!result) return true;
-    Log.error("Could not send I2C buffer, error=%i", result);
+    Log.error("Couldn't send I2C buffer, error=%i", result);
 }
 
 uint8_t BoxI2C::readByte(uint8_t address, uint8_t source_register) {

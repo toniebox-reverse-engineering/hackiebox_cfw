@@ -179,7 +179,7 @@ void WrapperWebServer::handleAjax(void) {
           sendJsonSuccess();
           return;
       }
-      Log.error("Could not del %s %s", filepath, SerFlash.lastErrorString());
+      Log.error("Couldn't del %s %s", filepath, SerFlash.lastErrorString());
     } else if (cmd.equals("create-dir")) {
       String dir_str = _server->arg("dir");
       char* dir = (char*)dir_str.c_str();
@@ -377,7 +377,7 @@ bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_l
     file.close();
     return true;
   } else {
-    Log.error("Could not open %s", path->c_str());
+    Log.error("Couldn't open %s", path->c_str());
   }
   return false;
 }
@@ -409,7 +409,7 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
     SerFlash.close();
     return true;
   } else {
-    Log.error("Could not open %s %s", path->c_str(), SerFlash.lastErrorString());
+    Log.error("Couldn't open %s %s", path->c_str(), SerFlash.lastErrorString());
     SerFlash.close();
   }
   return false;
@@ -438,7 +438,7 @@ void WrapperWebServer::handleUploadFile() {
       _uploadFile.seekSet(write_start);
       return;
     }
-    Log.error("File could not be opened.");
+    Log.error("File Couldn't be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
     if (_uploadFileOpen) {
@@ -483,10 +483,10 @@ void WrapperWebServer::handleUploadFlashFile() {
           SerFlash.seek(write_start);
         return;
       }
-      Log.error("Could not open %s %s", filename, SerFlash.lastErrorString());
+      Log.error("Couldn't open %s %s", filename, SerFlash.lastErrorString());
       SerFlash.close();
     } else {
-      Log.error("Could not delete %s %s", filename, SerFlash.lastErrorString());
+      Log.error("Couldn't delete %s %s", filename, SerFlash.lastErrorString());
     }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //Log.verbose("handleUploadFlashFile Data: %i", upload.currentSize);

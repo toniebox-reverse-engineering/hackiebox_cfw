@@ -2,7 +2,7 @@
 
 void BoxSD::begin() { 
     _initialized = false;
-    Log.info("Initialize SD card");
+    Log.info("Init SD card");
     int result = FatFs.begin();
     if (!result) {
         Log.error("SD not mounted. Code %i", FatFs.error());
@@ -48,8 +48,8 @@ void BoxSD::webJsonListDir(WebServer* webServer, char* directory) {
         webServer->sendContent("]}");
     } else {
         StaticJsonDocument<299> doc; //Maximum 256 chars path length //https://arduinojson.org/v6/assistant/
-        doc["error"] = "Directory not found";
-        Log.error("Directory %s not found", directory);
+        doc["error"] = "Dir not found";
+        Log.error("Dir %s not found", directory);
 
         size_t len = measureJson(doc)+1;
         char json[len];

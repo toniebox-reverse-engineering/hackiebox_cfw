@@ -6,10 +6,10 @@ void BoxAccelerometer::begin() {
     digitalWrite(62, HIGH);
     
     setInterval(250);
-    Log.info("Initialize Accelerometer...");
+    Log.info("Init Accelerometer...");
 
     if (!_accel.begin())
-        Log.error("... not found!");
+        Log.error("...not found!");
 
     _accel.setupPL();
 
@@ -30,7 +30,7 @@ void BoxAccelerometer::begin() {
     _accel.writeRegister(CTRL_REG5, 0x40); //Original 0x40
     _accel.writeRegister(CTRL_REG1, 0x03); //Original 0x03
 
-    Log.info("... initialized");
+    Log.info("...done");
 }
 
 void BoxAccelerometer::loop() {  
