@@ -1,10 +1,10 @@
 #include "BoxTonies.h"
 
 bool BoxTonies::loadTonieByUid(uint8_t uid[8]) {
-    uint8_t* path;
+    uint8_t path[strlen(CONTENT_BASE)+16+1+1];
 
-    asprintf(
-        (char**)&path,
+    sprintf(
+        (char*)path,
         "%s%02X%02X%02X%02X/%02X%02X%02X%02X",
         CONTENT_BASE,
         uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
@@ -12,10 +12,8 @@ bool BoxTonies::loadTonieByUid(uint8_t uid[8]) {
 
     memcpy(currentUid, uid, 8);
     if (loadTonieByPath(path)) {
-        free(path);
         return true;
     }
-    free(path);
     return false;
 }
 

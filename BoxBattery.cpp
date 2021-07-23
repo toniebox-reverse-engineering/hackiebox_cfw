@@ -107,8 +107,8 @@ void BoxBattery::_doBatteryTestStep() {
         bool batteryLow = isBatteryLow();
         bool batteryCritical = isBatteryCritical();
         
-        char* output;
-        asprintf(&output, "%hu;%s;%hu;%hu.%s%hu;%s;%s;",
+        char output[5+1 +5+1 +5+1 +3+1+5+5+1 +5+1 +5+1 +1];
+        sprintf(output, "%hu;%s;%hu;%hu.%s%hu;%s;%s;",
             timeRunning,
             (chargerConnected ? "true" : "false"),
             batteryAdcRaw,
@@ -118,7 +118,6 @@ void BoxBattery::_doBatteryTestStep() {
         );
         Log.info(output);
         file.writeString(output);
-        free(output);
 
         file.writeString("\r\n");
         file.close();
@@ -133,7 +132,7 @@ void BoxBattery::startBatteryTest() {
     _batteryTestStartMillis = millis();
     FileFs file;
     if (file.open(_batteryTestFilename, FA_CREATE_ALWAYS | FA_WRITE)) {
-        char* output;
+        char output[26+10+10+1];
         
         file.writeString("Timestamp;");
         file.writeString("Charging;");
@@ -144,9 +143,8 @@ void BoxBattery::startBatteryTest() {
         file.writeString("Comments");
         file.writeString("\r\n");
         file.writeString("0;;;;;;");
-        asprintf(&output, "vFactor=%u, vChargerFactor=%u;", _batteryVoltageFactor, _batteryVoltageChargerFactor);
+        sprintf(output, "vFactor=%u, vChargerFactor=%u;", _batteryVoltageFactor, _batteryVoltageChargerFactor);
         file.writeString(output);
-        free(output);
         file.writeString("\r\n");
         file.close();
 
@@ -164,11 +162,10 @@ void BoxBattery::stopBatteryTest() {
     _doBatteryTestStep();
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
-        char* output;
+        char output[13+5+1];
         uint16_t timeRunning = (millis()-_batteryTestStartMillis) / (1000*60);
-        asprintf(&output, "%hu;;;;;;stopped", timeRunning);
+        sprintf(output, "%hu;;;;;;stopped", timeRunning);
         file.writeString(output);
-        free(output);
         file.writeString("\r\n");
         file.close();
     } else {
