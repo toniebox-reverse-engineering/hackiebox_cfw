@@ -164,6 +164,7 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
     case WrapperWiFi::ConnectionState::CONNECTED:
         Log.info("IP: %s", WiFi.localIP().toString().c_str());
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
+        Box.boxWiFi.mDnsAdvertiseSetup();
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
         //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
@@ -277,10 +278,10 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
             }
 
             Box.boxTonie.loadTonieByUid(Box.boxRFID.tagUid);
-            uint8_t* path;
+            uint8_t path[strlen(Box.boxTonie.RCONTENT_BASE)+16+1];
             uint8_t* uid = Box.boxRFID.tagUid;
-            asprintf(
-                (char**)&path,
+            sprintf(
+                (char*)path,
                 "%s%02X%02X%02X%02X%02X%02X%02X%02X",
                 Box.boxTonie.RCONTENT_BASE,
                 uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]
@@ -301,18 +302,16 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 if (!foundFile) {
                     Log.info("No file play.");
                 } else {
-                    uint8_t* filepath;
-                    asprintf(
-                        (char**)&filepath,
+                    uint8_t filepath[256];
+                    sprintf(
+                        (char*)filepath,
                         "%s/%s",
                         path,
                         dir.fileName()
                     );
                     Box.boxDAC.playFile((const char*)filepath);
-                    free(filepath);
                 }
             }
-            free(path);
         }
         break;
     case BoxRFID::TAG_EVENT::TAG_REMOVED:
