@@ -32,6 +32,8 @@ class WrapperWiFi : public EnhancedThread {
 
     WrapperWiFi::ConnectionState getStatus();
 
+    void mDnsAdvertiseSetup();
+
   private:
     const char* _ssid;
     const char* _password;

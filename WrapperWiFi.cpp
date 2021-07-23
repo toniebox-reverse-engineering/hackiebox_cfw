@@ -93,3 +93,38 @@ void WrapperWiFi::apMode() {
 WrapperWiFi::ConnectionState WrapperWiFi::getStatus() {
   return _state;
 }
+
+void WrapperWiFi::mDnsAdvertiseSetup() {
+  const char* service = "Hackiebox._api._tcp.local"; //max 64 bytes?
+  const char* text = "Hackiebox";
+
+  int16_t result = sl_NetAppMDNSUnRegisterService(0, 0);
+
+  if (result != 0)
+    Log.error("mDNS service unreg 1 failed=%i", result);
+
+  //Registering for the mDNS service.
+  result = sl_NetAppMDNSUnRegisterService(
+    (const signed char*)service,
+    (const unsigned char)strlen(service)
+  );
+
+  if (result != 0 && result != SL_NET_APP_DNS_NOT_EXISTED_SERVICE_ERROR)
+    Log.error("mDNS service unreg 2 failed=%i", result);
+  
+  result = sl_NetAppMDNSRegisterService(
+    (const signed char*)service, //Service
+    (const unsigned char)strlen(service), //ServiceLen
+    (const signed char*)text, //Text
+    (const unsigned char)strlen(text), //TextLen
+    80, //Port
+    2000, //TTL
+    1 //Options
+  );
+
+  if(result == 0) {
+      Log.info("mDNS service %s with %s enabled", service, text);
+  } else {
+      Log.error("mDNS service setup failed=%i", result);
+  }
+}

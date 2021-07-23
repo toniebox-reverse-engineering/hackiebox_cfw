@@ -164,6 +164,7 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
     case WrapperWiFi::ConnectionState::CONNECTED:
         Log.info("IP: %s", WiFi.localIP().toString().c_str());
         Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
+        Box.boxWiFi.mDnsAdvertiseSetup();
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
         //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
