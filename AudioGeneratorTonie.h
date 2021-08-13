@@ -23,10 +23,11 @@
 
 #include <AudioGenerator.h>
 //#include "libopus/opus.h"
-#include "opusfile/opusfile.h"
+//#include "opusfile/opusfile.h"
 
 class AudioGeneratorTonie : public AudioGenerator
 {
+  /*
   public:
     AudioGeneratorTonie();
     virtual ~AudioGeneratorTonie() override;
@@ -64,6 +65,7 @@ class AudioGeneratorTonie : public AudioGenerator
     int16_t *buff;
     uint32_t buffPtr;
     uint32_t buffLen;
+    */
 };
 
 #endif
