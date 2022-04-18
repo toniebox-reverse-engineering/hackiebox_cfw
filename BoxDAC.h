@@ -100,9 +100,6 @@ class BoxDAC : public EnhancedThread {
         //0x02
         //0x00
 
-
-
-
         bool increaseVolume();
         bool decreaseVolume();
 
