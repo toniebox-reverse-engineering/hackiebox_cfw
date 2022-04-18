@@ -105,17 +105,6 @@ void BoxDAC::begin() {
     MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
 
-
-    /*
-    for (uint32_t i = 0; i<5; i++) {
-        beep();
-        delay(200);
-        beep();
-        delay(100);
-    }*/
-
-    //beepTest();
-
     setInterval(0);
 
     setVolume(current_volume);
