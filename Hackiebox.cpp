@@ -48,6 +48,9 @@ void Hackiebox::setup() {
 
     webServer = WrapperWebServer();
     webServer.begin();
+
+    boxPlayer = BoxPlayer();
+    boxPlayer.begin();
     
     boxAccel.setName("Accelerometer");
     boxBattery.setName("Battery");

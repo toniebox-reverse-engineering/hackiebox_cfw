@@ -184,6 +184,7 @@ void BoxDAC::loop(uint16_t timeoutMs) {
     if (audioPlaying) {
         if (!audioGenerator || !audioSource) {
             audioPlaying = false;
+            Box.boxPlayer.songEnded();
             return;
         }
 
@@ -195,77 +196,32 @@ void BoxDAC::loop(uint16_t timeoutMs) {
                 audioGenerator->stop();
             timeout.tick();
         }
-        if (!audioGenerator->isRunning())
+        if (!audioGenerator->isRunning()) {
             audioPlaying = false;
+            Box.boxPlayer.songEnded();
+        }
     } else {
         generateZeroAudio(timeoutMs);
     }
     batteryTestLoop();
 }
 
+void BoxDAC::initBatteryTest() {
+    if (!Box.boxPlayer.playDir("/revvox/audio", BoxPlayer::PLAYER_FLAGS::LOOP)) {
+        Log.error("BatteryTest could not play audio, stopping...");
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 3);
+        Box.boxBattery.stopBatteryTest();
+    }
+}
 void BoxDAC::batteryTestLoop() {
     if (Box.boxBattery.batteryTestActive()) {
         if (current_volume != VOL_TEST)
-            setVolume(VOL_TEST);
-        /*
-        uint8_t midiId = (_batteryTestBeepState % 60) + 36; //36-96
-        uint16_t lengthMs = (midiId % 20)*10; //+ 250; 
-        beepMidi(midiId, lengthMs, true);
+            setVolume(VOL_TEST); //reset volume
 
-        if (_batteryTestBeepState<255) {
-            _batteryTestBeepState++;
-        } else {
-            _batteryTestBeepState = 0;
-        }*/
-        
         if (!audioPlaying) {
-            if (!hasStopped()/*audioSource && audioSource->isOpen()*/) {
-                Log.info("BatteryTest continue pause...");
-                play(); //continue
-            } else {
-                //next
-                DirFs dir;
-                uint8_t selectedFileId = 0;
-                uint8_t fileCount = 0;
-                if (dir.openDir("/revvox/audio")) {
-                    while (dir.nextFile()) {
-                        if (dir.isDir())
-                            continue;
-                        fileCount++;
-                    }
-                    dir.rewind();
-                    if (fileCount <= _batteryTestFileId)
-                        _batteryTestFileId = 0;
-
-                    while (dir.nextFile()) {
-                        if (dir.isDir())
-                            continue;
-
-                        if (_batteryTestFileId == selectedFileId) {
-                            Log.info("BatteryTest next song id %i...", _batteryTestFileId);
-                            char fullpath[strlen("/revvox/audio/")+strlen((const char*)dir.fileName())+1];
-                            sprintf(fullpath,"%s%s","/revvox/audio/", (const char*)dir.fileName());
-                            if (!playFile(fullpath)) {
-                                Log.error("BatteryTest file %s invalid...", fullpath);
-                                Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 4);
-                                Box.boxBattery.stopBatteryTest();
-                            }
-                            break;
-                        }
-                        selectedFileId++;
-                    }
-                    _batteryTestFileId++;
-                    dir.closeDir();
-                    if (fileCount == 0) {
-                        Log.error("BatteryTest dir /revvox/audio/ empty...");
-                        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 4);
-                        Box.boxBattery.stopBatteryTest();
-                    }
-                } else {
-                    Log.error("BatteryTest dir /revvox/audio/ not found...");
-                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 3);
-                    Box.boxBattery.stopBatteryTest();
-                }
+            if (!hasStopped()) {
+                Log.info("BatteryTest continue after pause...");
+                Box.boxPlayer.play(); //continue
             }
         }
     }

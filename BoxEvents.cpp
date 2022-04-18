@@ -247,7 +247,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
 
         if (!Box.boxDAC.hasStopped() && (memcmp(Box.boxRFID.tagUid, Box.boxTonie.currentUid, 8) == 0)) {
             Log.info("Continue playing last file");
-            Box.boxDAC.play();
+            Box.boxPlayer.play();
         } else {
             DirFs dir; 
             if(Config.get()->misc.autodump) {
@@ -292,25 +292,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     Log.info("...fail!");
                 }
             } else {
-                bool foundFile = false;
-                while (dir.nextFile()) {
-                    if (!dir.isDir()) {
-                        foundFile = true;
-                        break;
-                    }
-                }
-                if (!foundFile) {
-                    Log.info("No file play.");
-                } else {
-                    uint8_t filepath[256];
-                    sprintf(
-                        (char*)filepath,
-                        "%s/%s",
-                        path,
-                        dir.fileName()
-                    );
-                    Box.boxDAC.playFile((const char*)filepath);
-                }
+                Box.boxPlayer.playDir((const char*)path, BoxPlayer::PLAYER_FLAGS::NONE);
             }
         }
         break;

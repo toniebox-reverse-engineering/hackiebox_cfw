@@ -148,7 +148,8 @@ void BoxBattery::startBatteryTest() {
         file.writeString("\r\n");
         file.close();
 
-       _batteryTestThread.run();
+        _batteryTestThread.run();
+        Box.boxDAC.initBatteryTest();
     } else {
         Log.error("Couldn't init battery log %s", _batteryTestFilename);
         _batteryTestThread.enabled = false;

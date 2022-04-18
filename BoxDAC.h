@@ -41,6 +41,7 @@ class BoxDAC : public EnhancedThread {
 
         void dmaPingPingComplete();
 
+        void initBatteryTest();
         void batteryTestLoop();
 
         BoxAudioBufferTriple audioBuffer;

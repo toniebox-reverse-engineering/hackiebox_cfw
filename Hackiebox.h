@@ -18,6 +18,7 @@
 #include "BoxEvents.h"
 #include "BoxI2C.h"
 #include "BoxLEDs.h"
+#include "BoxPlayer.h"
 #include "BoxPower.h"
 #include "BoxRFID.h"
 #include "BoxSD.h"
@@ -60,6 +61,7 @@ class Hackiebox {
         BoxI2C boxI2C;
         BoxLEDs boxLEDs;
         BoxPower boxPower;
+        BoxPlayer boxPlayer;
         BoxRFID boxRFID;
         BoxSD boxSD;
         BoxTonies boxTonie;
