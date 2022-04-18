@@ -49,9 +49,53 @@ void BoxAccelerometer::loop() {
             Events.handleAccelerometerOrientationEvent(_orientation);
         }
 
-        byte tap = _accel.readTap();
+        uint8_t tap = _accel.readTap();
         if (tap) {
-            Log.verbose("Tap recieved %i", tap);
+            bool AxZ  = tap&0b1000000; //event on axis
+            bool AxY  = tap&0b0100000;
+            bool AxX  = tap&0b0010000;
+            bool DPE  = tap&0b0001000; //double
+            bool PolZ = tap&0b0000100; //0=positive 1=negative
+            bool PolY = tap&0b0000010;
+            bool PolX = tap&0b0000001;
+
+            //X+ = box bottom
+            //X- = box top
+            //Y+ = box back left (big ear)
+            //Y- = box front right (speaker, small ear)
+            //Z+ = box back right (small ear)
+            //Z- = box front left (speaker, big ear)
+
+            //Something wrong, only blinks red or greenyellow
+            TapOn tapOn = TapOn::NONE;
+            if (AxX) {
+                if (PolX) {
+                    tapOn = TapOn::BOTTOM;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 2);
+                } else {
+                    tapOn = TapOn::TOP;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Orange, 2);
+                }
+            }
+            if (AxY && AxZ) {
+                if (PolY && PolZ) {
+                    tapOn = TapOn::BACK;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 2);
+                } else if (!PolY && !PolZ) {
+                    tapOn = TapOn::FRONT;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Violet, 2);
+                } else if (PolY && !PolZ) {
+                    tapOn = TapOn::LEFT;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 2);
+                } else if (!PolY && PolZ) {
+                    tapOn = TapOn::RIGHT;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::GreenYellow, 2);
+                }
+            }
+
+            Log.verbose("Tap recieved %B, direction %X", tap, tapOn);
+
+            
         }
         
     }
