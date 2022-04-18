@@ -96,6 +96,7 @@ void Hackiebox::setup() {
     boxWiFi.onRun(ThreadCallbackHandler([&]() { boxWiFi.loop(); }));
     webServer.onRun(ThreadCallbackHandler([&]() { webServer.loop(); }));
 
+    //Dont refactor, otherwise box may crash
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
  
