@@ -31,7 +31,7 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 
 ## Compiling
 ### Preface
-Currently building only works with Windows. Linux doesn't work on a x64 only system.
+Building works on Windows, macOS and Linux.
 You should prepare the toniebox with the [sd bootloader](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/wiki/Custom-bootloader) to load the cfw from your sd card.
 ### Prerequisite
 #### Energia
@@ -47,7 +47,7 @@ The folder with the boards packages are located at:
 `~/.energia15/packages/energia/hardware/`
 ##### macOS
 `~/Library/Energia15/packages/hardware/`
-#### Additional libraries
+#### Additional libraries (Install lib via ZIP)
 [SimpleCLI](https://github.com/toniebox-reverse-engineering/SimpleCLI)
 [ESP8266Audio](https://github.com/toniebox-reverse-engineering/ESP8266Audio)
 [ESP8266SAM](https://github.com/toniebox-reverse-engineering/ESP8266SAM)
@@ -63,5 +63,5 @@ Reinsert the sd card and run the cfw once. Then shutdown the box again (put the 
 ## Firmware updates
 To update the firmware ota you can just use the hackiebox website und the box' ip address. (Expert->File Upload).
 ## Additional information for developers
-Keep in mind that connecting the RX Pin of the box to a serial interface blocks the big ear. For reading the log messages it is enough to have the TX Pin only connected (beside GND).
-[Trello Hackiebox Dev Board](https://trello.com/b/NcoJ9crt/hackiebox-cfw)
+Keep in mind that connecting the RX Pin of the box to a serial interface blocks the big ear. For reading the log messages it is enough to have the TX Pin only connected (beside GND). 
+In general there is something wrong with the firmware. If you start to refactor the firmware or make bigger changes, it may crash on startup. The reason is currently unknown. Could be a linker problem or some kind of overflow.
