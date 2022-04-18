@@ -12,7 +12,7 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 - Hardware drivers (WiFi, AMP/DAC, RFID reader, accelleration sensor, battery/charger, SD, LEDs)
 - Webinterface with basic CLI and file upload/download
 - JSON configuration file 
-- Battery stamina test with csv log
+- Battery stamina test with WAV-playback with csv log
 - Tonie file header decoder
 - WAV player (with cli + by wav file in /rCONTENT/<UIDREV>/)
 ### Todo
@@ -57,7 +57,7 @@ Open hackiebox_cfw.ino with energia and build the cfw. Remember the path where t
 ### Preface
 It is recommended to have a second copy of the cfw to be able to load the working image and update a broken cfw image over your backup cfw.
 ### Copy to sd
-First of all you need to create "/revvox/web" on your sd card (subdir revvox should be already there if you have successfully installed the sd bootloader) and copy over the content of the /web/ directory of this repository. In addition you have to copy your cfw image to your selected slot(s) on the sd card. (ex. "/revvox/boot/pre-img1.bin")
+First of all you need to create "/revvox/web" on your sd card (subdir revvox should be already there if you have successfully installed the sd bootloader) and copy over the content of the /web/ directory of this repository. The same applies to the "/revvox/audio" directory for WAV-playback during the battery test. In addition you have to copy your cfw image to your selected slot(s) on the sd card. (ex. "/revvox/boot/pre-img1.bin")
 ### First boot
 Reinsert the sd card and run the cfw once. Then shutdown the box again (put the box onto the front where the speaker/tonie logo is and press both ears for 10s). Then remove the sd card again and add your wifi credentials to the created "/revvox/hackiebox.config.json" config file. 
 ## Firmware updates

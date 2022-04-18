@@ -40,6 +40,9 @@ class BoxDAC : public EnhancedThread {
         void samSay(const char *text, enum ESP8266SAM::SAMVoice voice = ESP8266SAM::SAMVoice::VOICE_SAM, uint8_t speed = 0, uint8_t pitch = 0, uint8_t throat = 0, uint8_t mouth = 0, bool sing = false, bool phoentic = false);
 
         void dmaPingPingComplete();
+
+        void batteryTestLoop();
+
         BoxAudioBufferTriple audioBuffer;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
@@ -79,6 +82,7 @@ class BoxDAC : public EnhancedThread {
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
         const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
         const static uint8_t VOL_STEP = 0x06; //3dB
+        const static uint8_t VOL_TEST = VOL_MIN + 6*VOL_STEP;
         uint8_t current_volume;
 
         //const static uint8_t VOL_BEEP_MIN = 0x2A; //0x2A=-40dB /min allowed value 0x3F=-61dB
@@ -115,6 +119,8 @@ class BoxDAC : public EnhancedThread {
         bool hasStopped();
     
     private:
+        uint8_t _batteryTestFileId;
+
         enum class PAGE {
             SERIAL_IO = 0x00,
             DAC_OUT_VOL = 0x01,
