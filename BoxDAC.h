@@ -79,7 +79,7 @@ class BoxDAC : public EnhancedThread {
         const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
         const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
         const static uint8_t VOL_STEP = 0x06; //3dB
-        uint8_t current_volume = VOL_MIN;
+        uint8_t current_volume;
 
         //const static uint8_t VOL_BEEP_MIN = 0x2A; //0x2A=-40dB /min allowed value 0x3F=-61dB
         //const static uint8_t VOL_BEEP_MAX = 0x00; //0x00=+02dB /max allowed value 0x00=+02dB

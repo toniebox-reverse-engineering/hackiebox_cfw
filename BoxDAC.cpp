@@ -107,7 +107,7 @@ void BoxDAC::begin() {
 
     setInterval(0);
 
-    setVolume(current_volume);
+    setVolume(VOL_MIN);
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
@@ -560,8 +560,7 @@ uint8_t BoxDAC::readByte(ADDR_P3_MCLK source_register) {
 bool BoxDAC::increaseVolume() {
     bool result = false;
     if (current_volume < VOL_MAX) {
-        current_volume += VOL_STEP;
-        setVolume(current_volume);
+        setVolume(current_volume+VOL_STEP);
         beepRaw(0x278A, 0x79BD, 0x000140); //16kHz
         //beepMidi(78,50,true);
         result =  true;
@@ -578,8 +577,7 @@ bool BoxDAC::increaseVolume() {
 bool BoxDAC::decreaseVolume() {
     bool result = false;
     if (current_volume > VOL_MIN) {
-        current_volume -= VOL_STEP;
-        setVolume(current_volume);
+        setVolume(current_volume-VOL_STEP);
         beepRaw(0x18F5, 0x7D87, 0x000140); //16kHz
         //beepMidi(70, 50, true);
         result = true;
@@ -600,6 +598,7 @@ void BoxDAC::setVolume(uint8_t volume) {
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, volumeConv);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, volumeConv);
     while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
+    current_volume = volume;
 }
 
 void BoxDAC::logVolume() {
