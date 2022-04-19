@@ -30,11 +30,16 @@ void BoxRFID::loop() {
   uint32_t knownPasswords[3] = { 0x7FFD6E5B, 0x0F0F0F0F, 0x00000000 };
 
   if (tagActive) {
-    result = ISO15693_getRandomSlixL(NULL);
-      if (result != ISO15693_RESULT::GET_RANDOM_VALID) {
-        tagActive = false;
-        Events.handleTagEvent(TAG_EVENT::TAG_REMOVED);
-      }
+    for (uint8_t i=0; i<3; i++) {
+      result = ISO15693_getRandomSlixL(NULL);
+      if (result == ISO15693_RESULT::GET_RANDOM_VALID)
+        break;
+    }
+    
+    if (result != ISO15693_RESULT::GET_RANDOM_VALID) {
+      tagActive = false;
+      Events.handleTagEvent(TAG_EVENT::TAG_REMOVED);
+    }
   } else {
     for (uint8_t i = 0; i < 3; i++) {
       result = ISO15693_setPassSlixL(0x04, knownPasswords[i]); //reversed!
