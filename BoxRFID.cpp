@@ -796,7 +796,7 @@ void BoxRFID::turnFieldOn() {
   // The VCD should wait at least 1 ms after it activated the
   // powering field before sending the first request, to
   // ensure that the VICCs are ready to receive it. (ISO15693-3)
-  Box.delayTask(20); //not 1 ms?! 20ms works
+  Box.delayTask(10); //not 1 ms?! 20ms works
 }
 void BoxRFID::turnFieldOff() {
   writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
