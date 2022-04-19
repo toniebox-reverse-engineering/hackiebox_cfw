@@ -25,11 +25,7 @@ void BoxRFID::loop() {
   resetRFID();
   initRFID();
 
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  // The VCD should wait at least 1 ms after it activated the
-  // powering field before sending the first request, to
-  // ensure that the VICCs are ready to receive it. (ISO15693-3)
-  Box.delayTask(20); //not 1 ms?!
+  turnFieldOn();
   ISO15693_RESULT result;
   uint32_t knownPasswords[3] = { 0x7FFD6E5B, 0x0F0F0F0F, 0x00000000 };
 
@@ -47,7 +43,7 @@ void BoxRFID::loop() {
         break;
       } else if (result == ISO15693_RESULT::SET_PASSWORD_INCORRECT) {
         Log.info("Password %X (i=%i) was wrong", knownPasswords[i], i);
-        writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+        turnFieldOff();
         Box.delayTask(20);
         reinitRFID();
       } else {
@@ -71,7 +67,7 @@ void BoxRFID::loop() {
     }
   }
 
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+  turnFieldOff();
 }
 
 void BoxRFID::receivedInterrupt() {
@@ -535,8 +531,7 @@ void BoxRFID::reinitRFID() {
   trfOffset = 0;
   trfRxLength = 0;
   trfStatus = TRF_STATUS::TRF_IDLE;
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  Box.delayTask(20);
+  turnFieldOn();
 }
 
 uint8_t BoxRFID::readIrqRegister() {
@@ -723,8 +718,7 @@ uint8_t BoxRFID::readBlocks(uint8_t* data, uint8_t maxBytes) {
 
   resetRFID();
   initRFID();
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
-  Box.delayTask(20); //not 1 ms?!
+  turnFieldOn();
 
   for (uint8_t i=0; i<maxBytes/4; i++) {
     result = ISO15693_readSingleBlock(i, &data[i*4]);
@@ -734,7 +728,7 @@ uint8_t BoxRFID::readBlocks(uint8_t* data, uint8_t maxBytes) {
     reinitRFID();
   }
 
-  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
+  turnFieldOff();
   return bytesRead;
 }
 void BoxRFID::logTagMemory() {
@@ -795,4 +789,15 @@ bool BoxRFID::dumpTagMemory(bool overwrite) {
     Log.error("Expected 32b but got %ib", bytesRead);
   }
   return false;
+}
+
+void BoxRFID::turnFieldOn() {
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00100001); //turnRfOn();
+  // The VCD should wait at least 1 ms after it activated the
+  // powering field before sending the first request, to
+  // ensure that the VICCs are ready to receive it. (ISO15693-3)
+  Box.delayTask(20); //not 1 ms?! 20ms works
+}
+void BoxRFID::turnFieldOff() {
+  writeRegister(REGISTER::CHIP_STATUS_CONTROL, 0b00000001); //turnRfOff();
 }
