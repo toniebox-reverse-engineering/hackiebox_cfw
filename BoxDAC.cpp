@@ -280,7 +280,7 @@ bool BoxDAC::playFile(const char* path) {
 }
 bool BoxDAC::_playWAV(const char* path) {
     AudioGeneratorWAV *ag = new AudioGeneratorWAV();
-    ag->SetBufferSize(128);
+    ag->SetBufferSize(256); //128b works, too
 
     audioGenerator = ag;
     audioSource = new AudioFileSourceFatFs(path);
