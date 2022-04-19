@@ -200,6 +200,7 @@ void BoxDAC::loop(uint16_t timeoutMs) {
             audioPlaying = false;
             Box.boxPlayer.songEnded();
         }
+        Box.boxPower.feedSleepTimerSilent();
     } else {
         generateZeroAudio(timeoutMs);
     }

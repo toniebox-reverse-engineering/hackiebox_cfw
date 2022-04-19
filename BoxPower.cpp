@@ -26,9 +26,12 @@ void BoxPower::loop() {
 }
 
 void BoxPower::feedSleepTimer() {
+    feedSleepTimerSilent();
+    Log.verbose("Sleep timer reset, _lastFeed=%l, freeStackMEM=%ib, freeHeapMEM=%ib, *Stack=%X, *Heap=%X", _lastFeed, freeStackMemory(), freeHeapMemory(), stackPointer()-0x20004000, heapPointer()-0x20004000);
+}
+void BoxPower::feedSleepTimerSilent() {
     _lastFeed = millis();
     Box.watchdog_feed();
-    Log.verbose("Sleep timer reset, _lastFeed=%l, freeStackMEM=%ib, freeHeapMEM=%ib, *Stack=%X, *Heap=%X", _lastFeed, freeStackMemory(), freeHeapMemory(), stackPointer()-0x20004000, heapPointer()-0x20004000);
 }
 
 void BoxPower::_preparePowerDown() {
