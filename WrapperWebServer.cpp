@@ -416,10 +416,10 @@ bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long r
 }
 
 void WrapperWebServer::handleUploadFile() {
-  Box.boxPower.feedSleepTimer();
   Box.delayTask(0);
   HTTPUpload& upload = _server->upload();
   if (upload.status == UPLOAD_FILE_START) {
+    Box.boxPower.feedSleepTimer();
     String filepath = _server->arg("filepath");
     char* filename = (char*)filepath.c_str();
     bool overwrite = false;
@@ -440,12 +440,14 @@ void WrapperWebServer::handleUploadFile() {
     }
     Log.error("File Couldn't be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
+    Box.boxPower.feedSleepTimerSilent();
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
     if (_uploadFileOpen) {
       _uploadFile.write(upload.buf, upload.currentSize);
       return;
     }
   } else if (upload.status == UPLOAD_FILE_END) {
+    Box.boxPower.feedSleepTimer();
     if (_uploadFileOpen) {
       _uploadFile.close();
       Log.info("handleUploadFile Size: %ikB", upload.totalSize / 1024);
