@@ -44,10 +44,10 @@ void BoxRFID::loop() {
     for (uint8_t i = 0; i < 3; i++) {
       result = ISO15693_setPassSlixL(0x04, knownPasswords[i]); //reversed!
       if (result == ISO15693_RESULT::SET_PASSWORD_CORRECT) {
-        Log.info("Password %X (i=%i) was ok", knownPasswords[i], i);
+        Log.info("Password %X (i=%i) ok", knownPasswords[i], i);
         break;
       } else if (result == ISO15693_RESULT::SET_PASSWORD_INCORRECT) {
-        Log.info("Password %X (i=%i) was wrong", knownPasswords[i], i);
+        Log.info("Password %X (i=%i) wrong", knownPasswords[i], i);
         turnFieldOff();
         Box.delayTask(20);
         reinitRFID();
@@ -126,7 +126,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
       trfOffset += trfRxLength;
     } else {
         trfStatus == TRF_STATUS::PROTOCOL_ERROR;
-        Log.error("Read buffer to small, size=%i, count=%", FIFO_SIZE, (trfOffset+trfRxLength));
+        Log.error("Read buffer too small, size=%i, count=%", FIFO_SIZE, (trfOffset+trfRxLength));
         return;
     }
     trfStatus = TRF_STATUS::RX_WAIT_EXTENSION;
