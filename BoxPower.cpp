@@ -32,6 +32,11 @@ void BoxPower::feedSleepTimer() {
         freeStackMemory(), (uint32_t)stackStart()-0x20004000, (uint32_t)stackPointer()-0x20004000, (uint32_t)getFirstStackCanary()-0x20004000, (uint32_t)stackEnd()-0x20004000,
         freeHeapMemory(), (uint32_t)heapStart()-0x20004000, (uint32_t)heapPointer()-0x20004000, (uint32_t)getFirstHeapCanary()-0x20004000, (uint32_t)heapEnd()-0x20004000
     );
+    uint32_t stackCanaries = countStackCanaries();
+    uint32_t heapCanaries = countHeapCanaries();
+    if (stackCanaries < 10 || heapCanaries < 10) {
+        Log.error("!!! Canaries low !!! Stack=%l, Heap=%l", stackCanaries, heapCanaries);
+    }
 }
 void BoxPower::feedSleepTimerSilent() {
     _lastFeed = millis();
