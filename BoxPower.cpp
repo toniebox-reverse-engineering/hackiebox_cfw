@@ -13,7 +13,7 @@ void BoxPower::begin() {
     _lastFeed = millis();
     setInterval(5000);
 
-    Log.info("Init BoxPower class, sleepMinutes=%i", _sleepMinutes);
+    Log.info("Init BoxPower, sleepMinutes=%i", _sleepMinutes);
 }
 
 void BoxPower::loop() {
@@ -27,7 +27,7 @@ void BoxPower::loop() {
 
 void BoxPower::feedSleepTimer() {
     feedSleepTimerSilent();
-    Log.verbose("Sleep timer reset, _lastFeed=%l, Memory: free(start/ptr/canary/end) Stack: %ib(%X/%X/%X/%X), Heap: %ib(%X/%X/%X/%X)",
+    Log.verbose("Sleep timer rst, _lastFeed=%l, Mem: free(str/ptr/cny/end) Stack: %ib(%X/%X/%X/%X), Heap: %ib(%X/%X/%X/%X)",
         _lastFeed,
         freeStackMemory(), (uint32_t)stackStart()-0x20004000, (uint32_t)stackPointer()-0x20004000, (uint32_t)getFirstStackCanary()-0x20004000, (uint32_t)stackEnd()-0x20004000,
         freeHeapMemory(), (uint32_t)heapStart()-0x20004000, (uint32_t)heapPointer()-0x20004000, (uint32_t)getFirstHeapCanary()-0x20004000, (uint32_t)heapEnd()-0x20004000
