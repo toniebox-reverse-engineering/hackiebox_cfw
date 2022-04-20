@@ -438,7 +438,7 @@ void WrapperWebServer::handleUploadFile() {
       _uploadFile.seekSet(write_start);
       return;
     }
-    Log.error("File Couldn't be opened.");
+    Log.error("File couldn't be opened.");
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     Box.boxPower.feedSleepTimerSilent();
     //Log.verbose("handleUploadFile Data: %i", upload.currentSize);
