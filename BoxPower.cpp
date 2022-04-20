@@ -27,7 +27,11 @@ void BoxPower::loop() {
 
 void BoxPower::feedSleepTimer() {
     feedSleepTimerSilent();
-    Log.verbose("Sleep timer reset, _lastFeed=%l, freeStackMEM=%ib, freeHeapMEM=%ib, *Stack=%X, *Heap=%X", _lastFeed, freeStackMemory(), freeHeapMemory(), stackPointer()-0x20004000, heapPointer()-0x20004000);
+    Log.verbose("Sleep timer reset, _lastFeed=%l, Memory: free(start/ptr/canary/end) Stack: %ib(%X/%X/%X/%X), Heap: %ib(%X/%X/%X/%X)",
+        _lastFeed,
+        freeStackMemory(), (uint32_t)stackStart()-0x20004000, (uint32_t)stackPointer()-0x20004000, (uint32_t)getFirstStackCanary()-0x20004000, (uint32_t)stackEnd()-0x20004000,
+        freeHeapMemory(), (uint32_t)heapStart()-0x20004000, (uint32_t)heapPointer()-0x20004000, (uint32_t)getFirstHeapCanary()-0x20004000, (uint32_t)heapEnd()-0x20004000
+    );
 }
 void BoxPower::feedSleepTimerSilent() {
     _lastFeed = millis();

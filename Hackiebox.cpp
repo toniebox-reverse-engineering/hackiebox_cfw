@@ -8,6 +8,7 @@ void Hackiebox::setup() {
         watchdog_stop();
         //reset box?!
     }
+    setCanaries();
     
     inDelayTask = true;
     logStreamMulti.setSlot(&logStreamSd, 0);
