@@ -8,8 +8,8 @@ void Hackiebox::setup() {
         watchdog_stop();
         //reset box?!
     }
-    uint32_t stackCanary = getFirstStackCanary()-0x20004000;
-    uint32_t heapCanary = getFirstHeapCanary()-0x20004000;
+    uint32_t stackCanaries = countStackCanaries();
+    uint32_t heapCanaries = countHeapCanaries();
     setCanaries();
     
     inDelayTask = true;
@@ -19,7 +19,7 @@ void Hackiebox::setup() {
     Log.info("Booting Hackiebox...");
     Box.boxPower.feedSleepTimer();
     Log.info("  -sizes: stack=%X, heap=%X", stackStart()-stackEnd(), heapEnd()-heapStart());
-    Log.info("  -previous canaries: stack=%X, heap=%X", stackCanary, heapCanary);
+    Log.info("  -prev. canaries: stack=%ix, heap=%ix", stackCanaries, heapCanaries);
 
     Wire.begin();
     
