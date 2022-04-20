@@ -90,6 +90,7 @@ void Hackiebox::setup() {
     threadController.add(&boxPower);
     threadController.add(&boxWiFi);
     threadController.add(&webServer);
+    threadController.sortThreads();
 
     Log.info("Config: %s", Config.getAsJson().c_str());
 
@@ -117,8 +118,6 @@ void Hackiebox::setup() {
     //Workaround, as something seems to interfere / remove the irq.
     //But box now crashes!
     boxDAC.i2sStartMicros = micros();
-    
-    threadController.sortThreads();
 }
 
 void Hackiebox::delayTask(uint16_t millis) {
