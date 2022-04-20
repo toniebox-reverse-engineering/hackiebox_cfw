@@ -46,6 +46,8 @@ class BoxPlayer {
         uint8_t _currentSongId;
         uint8_t _dirSongCount;
 
+        bool _play(const char* path);
+
 };
 
 #endif

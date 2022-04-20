@@ -16,14 +16,17 @@ void BoxPlayer::loop() {
 void BoxPlayer::play() {
     Log.info("Player play");
     Box.boxDAC.play();
+    Box.boxPower.feedSleepTimer();
 }
 void BoxPlayer::pause() {
     Log.info("Player pause");
     Box.boxDAC.pause();
+    Box.boxPower.feedSleepTimer();
 }
 void BoxPlayer::stop() {
     Log.info("Player stop");
     Box.boxDAC.stop();
+    Box.boxPower.feedSleepTimer();
 }
 void BoxPlayer::rewind() {
     //TODO
@@ -64,11 +67,16 @@ void BoxPlayer::songEnded() {
             }
             dir.closeDir();
             if (songIndex > 0)
-                Box.boxDAC.playFile(songPath);
+                _play(songPath);
         } else {
             Log.error("Player could not open dir %s...", _dirPath);
         }
     }
+}
+
+bool BoxPlayer::_play(const char* path) {
+    Box.boxPower.feedSleepTimer();
+    return Box.boxDAC.playFile(path);
 }
 
 bool BoxPlayer::playDir(const char* path, PLAYER_FLAGS flags) {
@@ -94,7 +102,7 @@ bool BoxPlayer::playDir(const char* path, PLAYER_FLAGS flags) {
         }
         dir.closeDir();
         if (_dirSongCount > 0) {
-            return Box.boxDAC.playFile(songPath);
+            return _play(songPath);
         } else {
             Log.error("Player could not find songs to play...");
         }
@@ -106,7 +114,8 @@ bool BoxPlayer::playDir(const char* path, PLAYER_FLAGS flags) {
 bool BoxPlayer::playFile(const char* file, PLAYER_FLAGS flags) {
     _mode = PLAYER_MODE::FILE;
     _flags = flags;
-    return Box.boxDAC.playFile(file);
+    Log.info("Playing file %s", file);
+    return _play(file);
 }
 
 bool BoxPlayer::isPlaying() {
