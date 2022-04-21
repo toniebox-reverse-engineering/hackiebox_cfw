@@ -76,6 +76,7 @@ String BoxConfig::getAsJson() {
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
 
+    _json = "";
     serializeJson(doc, _json);
     return _json;
 }
