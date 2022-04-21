@@ -1,8 +1,33 @@
 #include "Hackiebox.h"
+#include "crashCallback.h"
 
 BoxConfig Config;
 BoxEvents Events;
 Hackiebox Box;
+
+void crash(crashSource source, uint32_t sp) {
+    Log.info("crashSource=%i, sp=%X", source, sp);
+
+    if (source == CRASH_TEST)
+      return;
+
+    FileFs _file;
+    bool _isOpen;
+    Log.info("Dumping SRAM 0x20004000-0x20040000 to /revvox/memdump...");
+    _isOpen = _file.open("/revvox/memdump", FA_CREATE_ALWAYS | FA_WRITE);
+    if (_isOpen) {
+        _file.write((void *)0x20004000, 0x3C000);
+        _file.close();
+    }
+    Log.info("...done");
+    Log.info("Dumping REGISTERS 0xE000E000-0xE000F000 to /revvox/memdump...");
+    _isOpen = _file.open("/revvox/regdump", FA_CREATE_ALWAYS | FA_WRITE);
+    if (_isOpen) {
+        _file.write((void *)0xE000E000, 0x1000);
+        _file.close();
+    }
+    Log.info("...done");
+}
 void Hackiebox::setup() {  
     if (!watchdog_start()) {
         watchdog_stop();
@@ -20,6 +45,9 @@ void Hackiebox::setup() {
     Box.boxPower.feedSleepTimer();
     Log.info("  -sizes: stack=%X, heap=%X", stackStart()-stackEnd(), heapEnd()-heapStart());
     Log.info("  -prev. canaries: stack=%ix, heap=%ix", stackCanaries, heapCanaries);
+
+    register_crash_callback(crash);
+    crashed(CRASH_TEST, 0);
 
     Wire.begin();
     
