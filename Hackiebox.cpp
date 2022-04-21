@@ -11,6 +11,8 @@ void crash(crashSource source, uint32_t sp) {
     if (source == CRASH_TEST)
       return;
 
+    Box.boxPower.feedSleepTimer();
+
     FileFs _file;
     bool _isOpen;
     Log.info("Dumping SRAM 0x20004000-0x20040000 to /revvox/memdump...");
