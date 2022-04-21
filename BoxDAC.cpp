@@ -111,6 +111,12 @@ void BoxDAC::begin() {
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
 
+    Log.info("Sources");
+    _srcSD = AudioFileSourceFatFs();
+
+    Log.info("Generators");
+    _genWAV = AudioGeneratorWAVStatic();
+
     Log.info("...done");
 
     //samSay("Hackiebox by Team Revvox!");
@@ -269,22 +275,18 @@ bool BoxDAC::playFile(const char* path) {
 
     if (audioGenerator && audioGenerator->isRunning()) {
         audioGenerator->stop();
-        free(audioGenerator);
     }
     if (audioSource && audioSource->isOpen()) {
         audioSource->close();
-        free(audioSource);
     }
 
     audioPlaying = false;
     return _playWAV(path);
 }
 bool BoxDAC::_playWAV(const char* path) {
-    AudioGeneratorWAV *ag = new AudioGeneratorWAV();
-    ag->SetBufferSize(256); //128b works, too
-
-    audioGenerator = ag;
-    audioSource = new AudioFileSourceFatFs(path);
+    audioGenerator = &_genWAV;
+    audioSource = &_srcSD;
+    audioSource->open(path);
     
     if (!audioGenerator->begin(audioSource, audioOutput)) {
         Log.error("Couldn't play wav?!");

@@ -14,7 +14,7 @@
 #include "AudioFileSourceFatFs.h"
 #include "AudioGeneratorTonie.h"
 #include <AudioGenerator.h>
-#include <AudioGeneratorWAV.h>
+#include "AudioGeneratorWAVStatic.h"
 
 //#include "libopus/opus.h"
 
@@ -121,6 +121,8 @@ class BoxDAC : public EnhancedThread {
     
     private:
         uint8_t _batteryTestFileId;
+        AudioGeneratorWAVStatic _genWAV;
+        AudioFileSourceFatFs _srcSD;
 
         enum class PAGE {
             SERIAL_IO = 0x00,
