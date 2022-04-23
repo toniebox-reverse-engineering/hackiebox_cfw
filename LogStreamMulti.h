@@ -15,9 +15,9 @@ class LogStreamMulti : public Stream {
 
         size_t write(uint8_t character);
         size_t write(const uint8_t *buffer, size_t size);
-        int available(){};
-        int read(){};
-        int peek(){};
+        int available() { return 0; };
+        int read() { return 0; };
+        int peek() { return 0; };
         void flush();
 
     private:

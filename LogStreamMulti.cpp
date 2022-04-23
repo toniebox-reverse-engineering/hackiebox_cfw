@@ -9,7 +9,7 @@ void LogStreamMulti::setSlot(Stream* stream, uint8_t id) {
 }
 
 size_t LogStreamMulti::write(uint8_t character) {
-    write(&character, 1);
+    return write(&character, 1);
 }
 size_t LogStreamMulti::write(const uint8_t *buffer, size_t size) {
     size_t position = 0;
