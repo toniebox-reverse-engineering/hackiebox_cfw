@@ -62,7 +62,7 @@ class BoxBattery : public EnhancedThread {
         uint16_t _batteryAdcRaw;
         uint16_t _batteryAdcLowRaw;
 
-        char* _batteryTestFilename = "/revvox/batteryTest.csv";
+        const char* _batteryTestFilename = "/revvox/batteryTest.csv";
         uint64_t _batteryTestStartMillis;
 };
 
