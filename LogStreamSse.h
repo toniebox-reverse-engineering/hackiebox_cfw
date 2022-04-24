@@ -13,12 +13,11 @@ class LogStreamSse : public Stream {
         int peek() { return 0; };
         void flush() { };
 
-        bool isLineFinished();
         void setSsePaused(bool paused);
 
     private:
-        bool _lineFinished = true;
         bool _ssePaused = true;
+        bool _tagIsOpen = false;
 };
 
 #endif

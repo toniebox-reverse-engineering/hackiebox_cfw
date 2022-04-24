@@ -5,8 +5,8 @@ BoxConfig Config;
 BoxEvents Events;
 Hackiebox Box;
 
-void crash(crashSource source, uint32_t sp) {
-    Log.info("crashSource=%i, sp=%X", source, sp);
+void crash(crashSource source, uint32_t* sp) {
+    Log.info("crashSource=%i, sp=%X, sp=%X", source, sp, (uint32_t)sp-0x20004000);
 
     if (source == CRASH_TEST)
       return;
@@ -138,6 +138,8 @@ void Hackiebox::setup() {
     //Dont refactor, otherwise box may crash
     boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
     boxBattery._batteryTestThread.enabled = false;
+
+    logStreamSse.setSsePaused(false);
  
     boxLEDs.defaultIdleAnimation();
     Log.info("Hackiebox started!");

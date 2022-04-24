@@ -35,7 +35,7 @@ size_t LogStreamMulti::println() {
     for (uint8_t i = 0; i < LOG_STREAM_MULTI_MAX_SIZE; i++) {
         if (_streams[i] == 0)
             continue;
-        result = _streams[i]->print("\r\n");
+        result = _streams[i]->println();//("\r\n");
     }
     flush();
     return 2;
@@ -46,6 +46,7 @@ void LogStreamMulti::flush() {
         if (_streams[i] == 0)
             continue;
         _streams[i]->write((const uint8_t*)&_buffer, _getBufferPosition());
+        _streams[i]->flush();
     }
     memset(_buffer, '\0', LOG_STREAM_MULTI_BUFFER_SIZE);
 }
