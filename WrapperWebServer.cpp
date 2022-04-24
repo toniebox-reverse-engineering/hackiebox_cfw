@@ -143,11 +143,13 @@ void WrapperWebServer::handleAjax(void) {
       if (commandGetFlashFile(&filename, read_start, read_length))
         return;
     } else if (cmd.equals("copy-file")) {
+      /*
       String source_str = _server->arg("source");
       String target_str = _server->arg("target");
       char* source = (char*)source_str.c_str();
       char* target = (char*)target_str.c_str();
-      //TBD
+      //TODO
+      */
     } else if (cmd.equals("move-file")) {
       String source_str = _server->arg("source");
       String target_str = _server->arg("target");
@@ -202,11 +204,13 @@ void WrapperWebServer::handleAjax(void) {
         }
       }
     } else if (cmd.equals("copy-dir")) {
+      /*
       String source_str = _server->arg("source");
       String target_str = _server->arg("target");
       char* source = (char*)source_str.c_str();
       char* target = (char*)target_str.c_str();
-      //TBD
+      //TODO
+      */
     } else if (cmd.equals("delete-dir")) {
       String dir_str = _server->arg("dir");
       char* dir = (char*)dir_str.c_str();
@@ -337,7 +341,7 @@ void WrapperWebServer::sendJsonSuccess() {
   _server->send(200, "text/json", "{ \"success\": true }");
 }
 
-bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_length, bool download) {
+bool WrapperWebServer::commandGetFile(String* path, uint32_t read_start, uint32_t read_length, bool download) {
   FileFs file;
   if (file.open((char*)path->c_str(), FA_OPEN_EXISTING | FA_READ)) {
     if (read_length == 0 || file.fileSize() < read_length) 
@@ -381,7 +385,7 @@ bool WrapperWebServer::commandGetFile(String* path, long read_start, long read_l
   }
   return false;
 }
-bool WrapperWebServer::commandGetFlashFile(String* path, long read_start, long read_length) {
+bool WrapperWebServer::commandGetFlashFile(String* path, uint32_t read_start, uint32_t read_length) {
   if (SerFlash.open((char*)path->c_str(), FS_MODE_OPEN_READ) == SL_FS_OK) {
     if (read_length == 0 || SerFlash.size() < read_length) 
       read_length = SerFlash.size();
@@ -509,7 +513,7 @@ void WrapperWebServer::handleUploadFlashFile() {
   handleNotFound();
 }
 
-void WrapperWebServer::sendEvent(char* eventname, char* content) {
+void WrapperWebServer::sendEvent(const char* eventname, const char* content) {
   bool clientConnected = false;
   for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
     if (!(subscription[i].clientIP)) 

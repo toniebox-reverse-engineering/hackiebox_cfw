@@ -141,7 +141,7 @@ void BoxDAC::opusTest() {
     Log.info("Mp3 finished");
     */
     //AudioGeneratorTonie *opus;
-    AudioFileSourceFatFs *file;
+    //AudioFileSourceFatFs *file;
 
     //file = new AudioFileSourceFatFs("/gs-16b-2c-44100hz.opus");
     /*file = new AudioFileSourceFatFs("/CONTENT/6977960C/500304E0");

@@ -19,6 +19,7 @@ bool BoxI2C::send(uint8_t address, uint8_t target_register, uint8_t data) {
     uint8_t result = Wire.endTransmission(false);
     if (!result) return true;
     Log.error("Couldn't send I2C buffer, error=%i", result);
+    return false;
 }
 
 uint8_t BoxI2C::readByte(uint8_t address, uint8_t source_register) {

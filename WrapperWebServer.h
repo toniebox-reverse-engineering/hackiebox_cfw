@@ -38,13 +38,13 @@ class WrapperWebServer : public EnhancedThread {
         void
             sseHandler(uint8_t channel),
             sseKeepAlive(),
-            sendEvent(char* eventname, char* content);
+            sendEvent(const char* eventname, const char* content);
             //sendEventJSON(char* eventname, xyzjsondoc jsonContent);
 
 
         bool 
-            commandGetFile(String* path, long read_start, long read_length, bool download),
-            commandGetFlashFile(String* path, long read_start, long read_length);
+            commandGetFile(String* path, uint32_t read_start, uint32_t read_length, bool download),
+            commandGetFlashFile(String* path, uint32_t read_start, uint32_t read_length);
 
         BoxTimer _sseTimer;
         WebServer* _server;

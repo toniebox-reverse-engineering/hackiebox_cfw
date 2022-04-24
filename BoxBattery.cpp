@@ -143,7 +143,7 @@ void BoxBattery::startBatteryTest() {
         file.writeString("Comments");
         file.writeString("\r\n");
         file.writeString("0;;;;;;");
-        sprintf(output, "vFactor=%u, vChargerFactor=%u;v2-wav", _batteryVoltageFactor, _batteryVoltageChargerFactor);
+        sprintf(output, "vFactor=%lu, vChargerFactor=%lu;v2-wav", _batteryVoltageFactor, _batteryVoltageChargerFactor);
         file.writeString(output);
         file.writeString("\r\n");
         file.close();

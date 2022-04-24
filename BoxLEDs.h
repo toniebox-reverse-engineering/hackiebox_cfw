@@ -26,6 +26,11 @@ class BoxLEDs : public EnhancedThread {
                 green = g;
                 blue = b;
             }
+            void setRGB(uint32_t colorcode) {
+                red = (colorcode >> 16) & 0xFF;
+                green = (colorcode >>  8) & 0xFF;
+                blue = (colorcode >>  0) & 0xFF;
+            }
 	        inline CRGB& operator= (const uint32_t colorcode) __attribute__((always_inline)) {
                 red = (colorcode >> 16) & 0xFF;
                 green = (colorcode >>  8) & 0xFF;
@@ -209,9 +214,10 @@ class BoxLEDs : public EnhancedThread {
             setRed(uint8_t intensity),
             setGreen(uint8_t intensity),
             setBlue(uint8_t intensity),
-            setAll(uint8_t intensity),
+            setWhite(uint8_t intensity),
             setAll(uint8_t red, uint8_t green, uint8_t blue),
-            setAll(CRGB crgb);
+            setAll(CRGB crgb),
+            setAll(uint32_t color);
 
         uint8_t
             getRed(),

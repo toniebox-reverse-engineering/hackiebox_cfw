@@ -113,6 +113,7 @@ void AudioOutputCC3200I2S::flush() {
 
 bool AudioOutputCC3200I2S::stop() {
   flush();
+  return true;
 }
 bool AudioOutputCC3200I2S::begin() {
   return true;

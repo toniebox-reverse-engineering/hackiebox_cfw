@@ -8,9 +8,9 @@ void BoxEvents::loop() {
 }
 
 void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::PressedType pressType, BoxButtonEars::PressedTime pressLength) {
-    char* nameEar;
-    char* nameType;
-    char* nameLength;
+    const char* nameEar;
+    const char* nameType;
+    const char* nameLength;
 
     switch (earId) {
     case BoxButtonEars::EarButton::SMALL:
@@ -203,7 +203,7 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
 }
 
 void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient) {
-    char* orientText;
+    const char* orientText;
     switch (orient) {
     case BoxAccelerometer::Orientation::EARS_UP:
         orientText = "ears up";
@@ -252,7 +252,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
             DirFs dir; 
             if(Config.get()->misc.autodump) {
                 Log.info("Autodump...");
-                char* rdump = "/rDUMP";
+                const char* rdump = "/rDUMP";
                 if (!dir.openDir(rdump)) {
                     Log.info("Create dir %s...", rdump);
                     if (!FatFs.mkdir(rdump)) {
@@ -269,7 +269,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 Log.info("No Autodump");
             }
             
-            char* rcontent = "/rCONTENT";
+            const char* rcontent = "/rCONTENT";
             if (!dir.openDir(rcontent)) {
                 Log.info("Create dir %s...", rcontent);
                 if (!FatFs.mkdir(rcontent)) {

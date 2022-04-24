@@ -6,7 +6,7 @@
 #include <Logging.h>
 
 size_t LogStreamSd::write(uint8_t character) {
-    write(&character, 1);
+    return write(&character, 1);
 }
 size_t LogStreamSd::write(const uint8_t *buffer, size_t size) {
     if (!Box.boxSD.isInitialized())

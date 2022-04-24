@@ -54,7 +54,7 @@ void BoxAccelerometer::loop() {
             bool AxZ  = tap&0b1000000; //event on axis
             bool AxY  = tap&0b0100000;
             bool AxX  = tap&0b0010000;
-            bool DPE  = tap&0b0001000; //double
+            //bool DPE  = tap&0b0001000; //double
             bool PolZ = tap&0b0000100; //0=positive 1=negative
             bool PolY = tap&0b0000010;
             bool PolX = tap&0b0000001;

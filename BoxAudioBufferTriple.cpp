@@ -54,6 +54,8 @@ BoxAudioBufferTriple::BufferStruct* BoxAudioBufferTriple::getBuffer(BoxAudioBuff
         return _bufferRead;
     case BufferType::WRITE:
         return _bufferWrite;
+    case BufferType::WAIT:
+        return NULL;
     }
     return NULL;
 }

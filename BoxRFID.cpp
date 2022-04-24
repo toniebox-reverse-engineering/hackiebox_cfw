@@ -125,7 +125,7 @@ void BoxRFID::processInterrupt(IRQ_STATUS irqStatus) {
       
       trfOffset += trfRxLength;
     } else {
-        trfStatus == TRF_STATUS::PROTOCOL_ERROR;
+        trfStatus = TRF_STATUS::PROTOCOL_ERROR;
         Log.error("Read buffer too small, size=%i, count=%", FIFO_SIZE, (trfOffset+trfRxLength));
         return;
     }
@@ -211,9 +211,10 @@ uint8_t BoxRFID::readRegister(uint8_t regi) {
   uint8_t data = regi & 0b00011111;
   data |= (uint8_t)REG_CMD_WORD_BITS::REGISTER_B7 | (uint8_t)REG_CMD_WORD_BITS::READ_B6;
 
-  uint8_t res1, res2;
+  //uint8_t res1;
+  uint8_t res2;
   spiEnable();
-  res1 = SPI.transfer(data);
+  SPI.transfer(data);
   SPI.setDataMode(SPI_SUB_MODE_1);
   res2 = SPI.transfer(0x00); //0xFF or 0x00? (Ghost bytes)
   SPI.setDataMode(SPI_SUB_MODE_0);
@@ -253,10 +254,10 @@ void BoxRFID::writeRegister(uint8_t regi, uint8_t value) {
   uint8_t data = regi & 0b00011111;
   data |= (uint8_t)REG_CMD_WORD_BITS::REGISTER_B7 | (uint8_t)REG_CMD_WORD_BITS::WRITE_B6;
   
-  uint8_t res1, res2;
+  //uint8_t res1, res2;
   spiEnable();
-  res1 = SPI.transfer(data);
-  res2 = SPI.transfer(value);
+  SPI.transfer(data);
+  SPI.transfer(value);
   spiDisable();
 
   //Log.info("Write register %i, data=%i, value=%i, res1=%i, res2=%i", regi, data, value, res1, res2);
@@ -268,10 +269,10 @@ void BoxRFID::sendCommand(uint8_t command) {
   uint8_t data = command & 0b00011111;
   data |= (uint8_t)REG_CMD_WORD_BITS::COMMAND_B7 | (uint8_t)REG_CMD_WORD_BITS::WRITE_B6;
 
-  uint8_t res1, res2;
+  //uint8_t res1, res2;
   spiEnable();
-  res1 = SPI.transfer(data);
-  res2 = SPI.transfer(0x00); //0xFF or 0x00? (Ghost bytes) //Dummy transfer, see TRF796xA SPI Design Tips (sloa140)
+  SPI.transfer(data);
+  SPI.transfer(0x00); //0xFF or 0x00? (Ghost bytes) //Dummy transfer, see TRF796xA SPI Design Tips (sloa140)
   spiDisable();
 
   //Log.info("Write command %i, data=%i, res1=%i, res2=%i", command, data, res1, res2);
@@ -402,7 +403,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_readSingleBlock(uint8_t blockId, uint
 }
 
 BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid) {
-  uint8_t g_ui8TagDetectedCount;
+  //uint8_t g_ui8TagDetectedCount;
   uint8_t ui8LoopCount = 0;
   uint8_t offset = 0;
   
@@ -425,7 +426,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid)
           Log.printf("%x ", uid[7-ui8LoopCount]);		// Send UID to host
         }
         Log.println();*/
-        g_ui8TagDetectedCount = 1;
+        //g_ui8TagDetectedCount = 1;
         return ISO15693_RESULT::INVENTORY_VALID_RESPONSE;
       } else {
         Log.error("Invalid length, should be %i but is %i", 10, trfRxLength);
@@ -444,7 +445,6 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_sendSingleSlotInventory(uint8_t* uid)
 }
 BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_getRandomSlixL(uint8_t* random) {
   uint8_t offset = 0;
-  uint16_t randomNum;
   
 	trfBuffer[offset++] = 0x02;		// ISO15693 flags - ISO15693_REQ_DATARATE_HIGH
 	trfBuffer[offset++] = 0xB2;		// ISO15693_CMD_NXP_GET_RANDOM_NUMBER
@@ -458,7 +458,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_getRandomSlixL(uint8_t* random) {
           random[0] = trfBuffer[1];
           random[1] = trfBuffer[2];
         }
-        randomNum = ((trfBuffer[1]<<8)|trfBuffer[2]);
+        //uint16_t randomNum = ((trfBuffer[1]<<8)|trfBuffer[2]);
         //Log.info("Random number=%X", randomNum);
         return ISO15693_RESULT::GET_RANDOM_VALID;
       } else {
@@ -492,7 +492,7 @@ BoxRFID::ISO15693_RESULT BoxRFID::ISO15693_setPassSlixL(uint8_t pass_id, uint32_
 	buffer[2] = (password>>16) & 0xFF;
 	buffer[3] = (password>>24) & 0xFF;
 
-	if(random) {
+	if (random[0] || random[1]) {
 		buffer[0] ^= random[0];
 		buffer[1] ^= random[1];
 		buffer[2] ^= random[0];
@@ -676,7 +676,7 @@ void BoxRFID::initRFID() {
 }
 
 BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen) {
-  sendDataTag(sendBuffer, sendLen, 15, 15);  //15, 5 vs. 15, 15 (longer timeout for set password)
+  return sendDataTag(sendBuffer, sendLen, 15, 15);  //15, 5 vs. 15, 15 (longer timeout for set password)
 }
 BoxRFID::TRF_STATUS BoxRFID::sendDataTag(uint8_t *sendBuffer, uint8_t sendLen, uint8_t txTimeout, uint8_t rxTimeout) {
   uint8_t buffer[sendLen+5];
@@ -757,7 +757,7 @@ bool BoxRFID::dumpTagMemory(bool overwrite) {
   FileFs dumpFile;
   uint8_t data[32];
   uint8_t bytesRead;
-  char* path = "rDUMP/0123456789ABCDEF";
+  char path[23];//= "rDUMP/0123456789ABCDEF";
   sprintf(
     (char *)path,
     "rDUMP/%02x%02x%02x%02x%02x%02x%02x%02x",

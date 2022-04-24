@@ -128,7 +128,7 @@ void BoxCLI::parse() {
 
 void BoxCLI::execI2C() {
     Command c = lastCmd;
-    int argNum = c.countArgs();
+    //int argNum = c.countArgs();
 
     unsigned long int tmpNum;
     uint8_t addr, regi;

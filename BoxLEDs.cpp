@@ -278,7 +278,7 @@ void BoxLEDs::setAllBool(bool red, bool green, bool blue) {
     setBlueBool(blue);
 }
 
-void BoxLEDs::setAll(uint8_t intensity) {
+void BoxLEDs::setWhite(uint8_t intensity) {
     setAll(intensity, intensity, intensity);
 }
 
@@ -290,6 +290,12 @@ void BoxLEDs::setAll(uint8_t red, uint8_t green, uint8_t blue) {
 
 void BoxLEDs::setAll(CRGB crgb) {
     setAll(crgb.red, crgb.green, crgb.blue);
+}
+
+void BoxLEDs::setAll(uint32_t color) {
+    CRGB crgb;
+    crgb.setRGB(color);
+    setAll(crgb);
 }
 
 void BoxLEDs::testLEDs() {
