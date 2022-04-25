@@ -90,6 +90,7 @@ void Hackiebox::setup() {
     
     boxAccel.setName("Accelerometer");
     boxBattery.setName("Battery");
+    boxBattery.batteryTestThread.setName("Battery.Test");
     boxCLI.setName("CLI");
     boxDAC.setName("DAC");
     boxRFID.setName("RFID");
@@ -108,11 +109,13 @@ void Hackiebox::setup() {
     boxPower.priority = 10;
     boxWiFi.priority = 50;
     boxBattery.priority = 100;
+    boxBattery.batteryTestThread.priority = 100;
     boxCLI.priority = 100;
 
     threadController = ThreadController();
     threadController.add(&boxAccel);
     threadController.add(&boxBattery);
+    threadController.add(&boxBattery.batteryTestThread);
     threadController.add(&boxCLI);
     threadController.add(&boxDAC);
     threadController.add(&boxEars);
@@ -127,6 +130,7 @@ void Hackiebox::setup() {
 
     boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
     boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));
+    boxBattery.batteryTestThread.onRun(ThreadCallbackHandler([&]() { boxBattery.doBatteryTestStep(); }));
     boxCLI.onRun(ThreadCallbackHandler([&]() { boxCLI.loop(); }));
     boxDAC.onRun(ThreadCallbackHandler([&]() { boxDAC.loop(); }));
     boxEars.onRun(ThreadCallbackHandler([&]() { boxEars.loop(); }));
@@ -135,10 +139,6 @@ void Hackiebox::setup() {
     boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
     boxWiFi.onRun(ThreadCallbackHandler([&]() { boxWiFi.loop(); }));
     webServer.onRun(ThreadCallbackHandler([&]() { webServer.loop(); }));
-
-    //Dont refactor, otherwise box may crash
-    boxBattery._batteryTestThread = EnhancedThread(ThreadCallbackHandler([&]() { boxBattery._doBatteryTestStep(); }), 10*60*1000);
-    boxBattery._batteryTestThread.enabled = false;
 
     logStreamSse.setSsePaused(false);
  

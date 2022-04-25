@@ -45,8 +45,8 @@ class BoxBattery : public EnhancedThread {
         void stopBatteryTest();
         bool batteryTestActive();
         
-        EnhancedThread _batteryTestThread;
-        void _doBatteryTestStep();
+        EnhancedThread batteryTestThread;
+        void doBatteryTestStep();
 
         BoxBattery::BatteryStats getBatteryStats();
 
