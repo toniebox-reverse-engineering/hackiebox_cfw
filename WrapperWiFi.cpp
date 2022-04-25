@@ -31,8 +31,10 @@ void WrapperWiFi::begin() {
   
   Log.info("Known WiFi Profiles:");
   for (uint8_t i=0; i<7; i++) {
-    if (strlen(profiles[i].wifiName)>0)
+    if (profiles[i].wifiNameLen>0) {
+      profiles[i].wifiName[profiles[i].wifiNameLen] = '\0';
       Log.info(" -%i: Name=%s", i, profiles[i].wifiName);
+    }
   }
   
   setInterval(5000);
