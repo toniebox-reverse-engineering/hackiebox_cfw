@@ -6,6 +6,7 @@ BoxEvents Events;
 Hackiebox Box;
 
 void crash(crashSource source, uint32_t* sp) {
+    Box.logStreamSse.setSsePaused(true);
     Log.info("crashSource=%i, sp=%X, sp=%X", source, sp, (uint32_t)sp-0x20004000);
 
     if (source == CRASH_TEST)
