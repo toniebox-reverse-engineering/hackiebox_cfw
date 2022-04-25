@@ -115,8 +115,8 @@ void Hackiebox::setup() {
     threadController.add(&boxBattery);
     threadController.add(&boxCLI);
     threadController.add(&boxDAC);
-    threadController.add(&boxRFID);
     threadController.add(&boxEars);
+    threadController.add(&boxRFID);
     threadController.add(&boxLEDs);
     threadController.add(&boxPower);
     threadController.add(&boxWiFi);
@@ -126,13 +126,13 @@ void Hackiebox::setup() {
     Log.info("Config: %s", Config.getAsJson().c_str());
 
     boxAccel.onRun(ThreadCallbackHandler([&]() { boxAccel.loop(); }));
+    boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));
     boxCLI.onRun(ThreadCallbackHandler([&]() { boxCLI.loop(); }));
     boxDAC.onRun(ThreadCallbackHandler([&]() { boxDAC.loop(); }));
-    boxRFID.onRun(ThreadCallbackHandler([&]() { boxRFID.loop(); }));
-    boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
-    boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
-    boxBattery.onRun(ThreadCallbackHandler([&]() { boxBattery.loop(); }));
     boxEars.onRun(ThreadCallbackHandler([&]() { boxEars.loop(); }));
+    boxRFID.onRun(ThreadCallbackHandler([&]() { boxRFID.loop(); }));
+    boxLEDs.onRun(ThreadCallbackHandler([&]() { boxLEDs.loop(); }));
+    boxPower.onRun(ThreadCallbackHandler([&]() { boxPower.loop(); }));
     boxWiFi.onRun(ThreadCallbackHandler([&]() { boxWiFi.loop(); }));
     webServer.onRun(ThreadCallbackHandler([&]() { webServer.loop(); }));
 
