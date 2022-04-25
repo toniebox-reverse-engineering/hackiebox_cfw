@@ -205,6 +205,7 @@ bool Hackiebox::watchdog_start() {
     MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
     MAP_WatchdogUnlock(WDT_BASE);
     MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
+    MAP_WatchdogStallEnable(WDT_BASE); //Allow Debugging
     MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
     MAP_WatchdogReloadSet(WDT_BASE, 80000000*5); //5s
     MAP_WatchdogEnable(WDT_BASE);
@@ -213,7 +214,7 @@ bool Hackiebox::watchdog_start() {
 }
 void Hackiebox::watchdog_stop() {  
     MAP_WatchdogUnlock(WDT_BASE);
-    MAP_WatchdogStallDisable(WDT_BASE);
+    MAP_WatchdogReloadSet(WDT_BASE, 0xFFFFFFFF); //set timer to high value
     MAP_WatchdogIntClear(WDT_BASE);
     MAP_WatchdogIntUnregister(WDT_BASE);
 }
