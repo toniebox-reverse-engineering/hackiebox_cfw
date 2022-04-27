@@ -79,8 +79,10 @@ void Hackiebox::setup() {
     
     boxCLI.begin();
 
+    Box.boxPower.feedSleepTimerSilent();
     boxWiFi = WrapperWiFi(config->wifi.ssid, config->wifi.password);
     boxWiFi.begin();
+    Box.boxPower.feedSleepTimerSilent();
 
     webServer = WrapperWebServer();
     webServer.begin();
