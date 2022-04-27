@@ -6,7 +6,7 @@ BoxEvents Events;
 Hackiebox Box;
 
 void crash(crashSource source, uint32_t* sp) {
-    Box.logStreamSse.setSsePaused(true);
+    //Box.logStreamSse.setSsePaused(true);
     Log.info("crashSource=%i, sp=%X, sp=%X", source, sp, (uint32_t)sp-0x20004000);
 
     if (source == CRASH_TEST)
@@ -142,7 +142,7 @@ void Hackiebox::setup() {
     boxWiFi.onRun(ThreadCallbackHandler([&]() { boxWiFi.loop(); }));
     webServer.onRun(ThreadCallbackHandler([&]() { webServer.loop(); }));
 
-    logStreamSse.setSsePaused(false);
+    //logStreamSse.setSsePaused(false);
  
     boxLEDs.defaultIdleAnimation();
     Log.info("Hackiebox started!");
