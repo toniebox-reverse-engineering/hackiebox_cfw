@@ -207,7 +207,7 @@ bool Hackiebox::watchdog_start() {
     MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
     MAP_WatchdogStallEnable(WDT_BASE); //Allow Debugging
     MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
-    MAP_WatchdogReloadSet(WDT_BASE, 80000000*5); //5s
+    MAP_WatchdogReloadSet(WDT_BASE, 80000000*10); //10s
     MAP_WatchdogEnable(WDT_BASE);
 
     return MAP_WatchdogRunning(WDT_BASE);
