@@ -105,22 +105,17 @@ void BoxDAC::begin() {
     MAP_I2SIntEnable(I2S_BASE, I2S_INT_XDATA);
     MAP_I2SEnable(I2S_BASE, I2S_MODE_TX_ONLY);
 
-
-    /*
-    for (uint32_t i = 0; i<5; i++) {
-        beep();
-        delay(200);
-        beep();
-        delay(100);
-    }*/
-
-    //beepTest();
-
     setInterval(0);
 
-    setVolume(current_volume);
+    setVolume(VOL_MIN);
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
     send(ADDR_P0_SERIAL::DAC_VOL_CTRL, 0x00);
+
+    Log.info("Sources");
+    _srcSD = AudioFileSourceFatFs();
+
+    Log.info("Generators");
+    _genWAV = AudioGeneratorWAVStatic();
 
     Log.info("...done");
 
@@ -146,7 +141,7 @@ void BoxDAC::opusTest() {
     Log.info("Mp3 finished");
     */
     //AudioGeneratorTonie *opus;
-    AudioFileSourceFatFs *file;
+    //AudioFileSourceFatFs *file;
 
     //file = new AudioFileSourceFatFs("/gs-16b-2c-44100hz.opus");
     /*file = new AudioFileSourceFatFs("/CONTENT/6977960C/500304E0");
@@ -195,6 +190,7 @@ void BoxDAC::loop(uint16_t timeoutMs) {
     if (audioPlaying) {
         if (!audioGenerator || !audioSource) {
             audioPlaying = false;
+            Box.boxPlayer.songEnded();
             return;
         }
 
@@ -206,10 +202,35 @@ void BoxDAC::loop(uint16_t timeoutMs) {
                 audioGenerator->stop();
             timeout.tick();
         }
-        if (!audioGenerator->isRunning())
+        if (!audioGenerator->isRunning()) {
             audioPlaying = false;
+            Box.boxPlayer.songEnded();
+        }
+        Box.boxPower.feedSleepTimerSilent();
     } else {
         generateZeroAudio(timeoutMs);
+    }
+    batteryTestLoop();
+}
+
+void BoxDAC::initBatteryTest() {
+    if (!Box.boxPlayer.playDir("/revvox/audio", BoxPlayer::PLAYER_FLAGS::LOOP)) {
+        Log.error("BatteryTest could not play audio, stopping...");
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 3);
+        Box.boxBattery.stopBatteryTest();
+    }
+}
+void BoxDAC::batteryTestLoop() {
+    if (Box.boxBattery.batteryTestActive()) {
+        if (current_volume != VOL_TEST)
+            setVolume(VOL_TEST); //reset volume
+
+        if (!audioPlaying) {
+            if (!hasStopped()) {
+                Log.info("BatteryTest continue after pause...");
+                Box.boxPlayer.play(); //continue
+            }
+        }
     }
 }
 
@@ -254,28 +275,24 @@ bool BoxDAC::playFile(const char* path) {
 
     if (audioGenerator && audioGenerator->isRunning()) {
         audioGenerator->stop();
-        free(audioGenerator);
     }
     if (audioSource && audioSource->isOpen()) {
         audioSource->close();
-        free(audioSource);
     }
 
     audioPlaying = false;
     return _playWAV(path);
 }
 bool BoxDAC::_playWAV(const char* path) {
-    AudioGeneratorWAV *ag = new AudioGeneratorWAV();
-    ag->SetBufferSize(128);
-
-    audioGenerator = ag;
-    audioSource = new AudioFileSourceFatFs(path);
+    audioGenerator = &_genWAV;
+    audioSource = &_srcSD;
+    audioSource->open(path);
     
     if (!audioGenerator->begin(audioSource, audioOutput)) {
         Log.error("Couldn't play wav?!");
         return false;
     }
-    Log.info("WAV file loaded...");
+    Log.info("WAV file loaded with samplerate=%i...", audioOutputI2S->GetRate());
     audioPlaying = true;
     return true;
 }
@@ -432,7 +449,7 @@ void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length) {
     beepRaw(sin, cos, length, convertDacVol2BeepVol(current_volume));
 }
 void BoxDAC::beepRaw(uint16_t sin, uint16_t cos, uint32_t length, uint8_t volume) {
-    Log.info("beep sin=%i, cos=%i, len=%l, vol=%X", sin, cos, length, volume);
+    Log.info("beep sr=%i sin=%X, cos=%X, len=%X, vol=%X", audioOutputI2S->GetRate(), sin, cos, length, volume);
     logBeepVolume(volume);
 
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
@@ -568,19 +585,34 @@ uint8_t BoxDAC::readByte(ADDR_P3_MCLK source_register) {
     return readByte((uint8_t)source_register);
 }
 
+uint8_t BoxDAC::getSampleRateIndex() {
+    uint16_t sr = audioOutputI2S->GetRate();
+    if (sr == 48000) {
+        return 4;
+    } else if (sr == 44100) {
+        return 3;
+    } else if (sr == 32000) {
+        return 2;
+    } else if (sr == 22050) {
+        return 1;
+    }
+    return 0; //16000
+}
+
 bool BoxDAC::increaseVolume() {
     bool result = false;
+    uint16_t (*pBeep)[2] = ofwButtonFreqTable[getSampleRateIndex()];
+
     if (current_volume < VOL_MAX) {
-        current_volume += VOL_STEP;
-        setVolume(current_volume);
-        beepRaw(0x278A, 0x79BD, 0x000140); //16kHz
-        //beepMidi(78,50,true);
-        result =  true;
+        setVolume(current_volume+VOL_STEP);
+        beepRaw(pBeep[0][0], pBeep[0][1], 0x000140); //beepRaw(0x278A, 0x79BD, 0x000140); //16kHz - 799,69hz/799,80hz/16
+        //beepMidi(79,50,true);
+        result = true;
     } else {
-        beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
+        beepRaw(pBeep[1][0], pBeep[1][1], 0x000140); //beepRaw(0x30F9, 0x763F, 0x000140); //16kHz - 999,77hz/1000,54hz/20
         Box.delayTask(50);
-        beepRaw(0x30F9, 0x763F, 0x000140); //16kHz
-        //beepMidi(84,50,true);
+        beepRaw(pBeep[1][0], pBeep[1][1], 0x000140);
+        //beepMidi(83,50,true);
         Log.info("Max volume reached");
     }
     logVolume();
@@ -588,16 +620,18 @@ bool BoxDAC::increaseVolume() {
 }
 bool BoxDAC::decreaseVolume() {
     bool result = false;
+    uint16_t (*pBeep)[2] = ofwButtonFreqTable[getSampleRateIndex()];
+    
     if (current_volume > VOL_MIN) {
-        current_volume -= VOL_STEP;
-        setVolume(current_volume);
-        beepRaw(0x18F5, 0x7D87, 0x000140); //16kHz
-        //beepMidi(70, 50, true);
+        setVolume(current_volume-VOL_STEP);
+        beepRaw(pBeep[2][0], pBeep[2][1], 0x000140); //beepRaw(0x18F5, 0x7D87, 0x000140); //16kHz - 499,71hz/501,34hz/10
+        //beepMidi(71, 50, true);
         result = true;
     } else {
-        beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
+        beepRaw(pBeep[3][0], pBeep[3][1], 0x000140); //beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz - 299,89hz/301,57hz/6
+
         Box.delayTask(50);
-        beepRaw(0x0F0A, 0x7F1A, 0x000140); //16kHz
+        beepRaw(pBeep[3][0], pBeep[3][1], 0x000140);
         //beepMidi(62, 50, true);
         Log.info("Min volume reached");
     }
@@ -611,6 +645,7 @@ void BoxDAC::setVolume(uint8_t volume) {
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, volumeConv);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, volumeConv);
     while ((readByte(ADDR_P0_SERIAL::DAC_FLAG_REG) & 0b00010001) != 0b00010001) { Box.delayTask(1); }
+    current_volume = volume;
 }
 
 void BoxDAC::logVolume() {

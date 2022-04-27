@@ -47,6 +47,8 @@ class BoxAudioBufferTriple {
         BufferStruct* _bufferRead;
         BufferStruct* _bufferWrite;
 
+        //static uint16_t _dataBufferSize = _eringbuffer - _ringbuffer; //TODO
+        //uint8_t* _dataBuffer = (uint8_t*)_ringbuffer;
         const static uint16_t _dataBufferSize = 0x4000;
         uint8_t* _dataBuffer = (uint8_t*)0x20000000; //lower memory up to 0x4000 length;
         //uint8_t __attribute__((section(".blsec"))) _dataBuffer[_dataBufferSize];

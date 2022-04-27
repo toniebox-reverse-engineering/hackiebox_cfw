@@ -14,7 +14,7 @@
 #include "AudioFileSourceFatFs.h"
 #include "AudioGeneratorTonie.h"
 #include <AudioGenerator.h>
-#include <AudioGeneratorWAV.h>
+#include "AudioGeneratorWAVStatic.h"
 
 //#include "libopus/opus.h"
 
@@ -40,6 +40,10 @@ class BoxDAC : public EnhancedThread {
         void samSay(const char *text, enum ESP8266SAM::SAMVoice voice = ESP8266SAM::SAMVoice::VOICE_SAM, uint8_t speed = 0, uint8_t pitch = 0, uint8_t throat = 0, uint8_t mouth = 0, bool sing = false, bool phoentic = false);
 
         void dmaPingPingComplete();
+
+        void initBatteryTest();
+        void batteryTestLoop();
+
         BoxAudioBufferTriple audioBuffer;
         unsigned long dmaIRQcount = 0;
         unsigned long lastDmaIRQcount = 0xFFFF;
@@ -76,10 +80,11 @@ class BoxDAC : public EnhancedThread {
         bool playFile(const char* path);
         bool _playWAV(const char* path);
 
-        const static uint8_t VOL_MIN = 0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
-        const static uint8_t VOL_MAX = 0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
+        const static uint8_t VOL_MIN = 0x2F; //0xB0+0x7F; //0xB0=-40.0dB /min allowed value 0x81=-63.5dB
+        const static uint8_t VOL_MAX = 0x89; //0x0A+0x7F; //0x0A=+04.0dB /max allowed value 0x30=+24.0dB
         const static uint8_t VOL_STEP = 0x06; //3dB
-        uint8_t current_volume = VOL_MIN;
+        const static uint8_t VOL_TEST = VOL_MIN + 6*VOL_STEP;
+        uint8_t current_volume;
 
         //const static uint8_t VOL_BEEP_MIN = 0x2A; //0x2A=-40dB /min allowed value 0x3F=-61dB
         //const static uint8_t VOL_BEEP_MAX = 0x00; //0x00=+02dB /max allowed value 0x00=+02dB
@@ -100,9 +105,6 @@ class BoxDAC : public EnhancedThread {
         //0x02
         //0x00
 
-
-
-
         bool increaseVolume();
         bool decreaseVolume();
 
@@ -118,6 +120,10 @@ class BoxDAC : public EnhancedThread {
         bool hasStopped();
     
     private:
+        uint8_t _batteryTestFileId;
+        AudioGeneratorWAVStatic _genWAV;
+        AudioFileSourceFatFs _srcSD;
+
         enum class PAGE {
             SERIAL_IO = 0x00,
             DAC_OUT_VOL = 0x01,
@@ -196,6 +202,36 @@ class BoxDAC : public EnhancedThread {
             readByte(ADDR_P3_MCLK source_register);
 
         void initDACI2C();
+
+        uint8_t getSampleRateIndex();
+        uint16_t ofwButtonFreqTable[5][4][2] = {
+            {   //16000
+                {0x278A, 0x79BD}, //+
+                {0x30F9, 0x763F}, //++
+                {0x18F5, 0x7D87}, //-
+                {0x0F0A, 0x7F1A}  //--
+            }, {//22050
+                {0x1CEA, 0x7CB1}, //+
+                {0x23F9, 0x7AD5}, //++
+                {0x122A, 0x7EB2}, //-
+                {0x0AED, 0x7F87}  //--
+            }, {//32000
+                {0x1404, 0x7E6D}, //+
+                {0x18F7, 0x7D8A}, //++
+                {0x0C8A, 0x7F61}, //-
+                {0x0788, 0x7FC7}  //--
+            }, {//44100
+                {0x0E8D, 0x7F2B}, //+
+                {0x122C, 0x7EB4}, //++
+                {0x091B, 0x7FAC}, //-
+                {0x0578, 0x7FE2}  //--
+            }, {//48000
+                {0x0D60, 0x7F4D}, //+
+                {0x10B4, 0x7EE7}, //++
+                {0x085E, 0x7FB9}, //-
+                {0x0506, 0x7FE6}  //--
+            }
+        };
 
         uint32_t frequencyTable[128] = {
             818, 

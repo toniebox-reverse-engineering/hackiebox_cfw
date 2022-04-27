@@ -11,6 +11,9 @@ void BoxBattery::begin() {
     _batteryAdcRaw = analogRead(60);
     _batteryAdcLowRaw = 9999;
 
+    batteryTestThread.setInterval(10*60*1000);
+    batteryTestThread.enabled = false;
+
     loop();
     logBatteryStatus();
 
@@ -41,8 +44,6 @@ void BoxBattery::loop() {
         _wasLow = false;
         _wasCritical = false;
     }
-
-    _batteryTestThread.runIfNeeded();
 }
 
 bool BoxBattery::isChargerConnected() {
@@ -92,7 +93,7 @@ void BoxBattery::reloadConfig() {
     _batteryCriticalAdc = config->battery.criticalAdc;
 }
 
-void BoxBattery::_doBatteryTestStep() {
+void BoxBattery::doBatteryTestStep() {
     Log.info("Write battery test data...");
 
     FileFs file;
@@ -128,7 +129,7 @@ void BoxBattery::_doBatteryTestStep() {
 void BoxBattery::startBatteryTest() {
     Log.info("Start battery test...");
 
-    _batteryTestThread.enabled = true;
+    batteryTestThread.enabled = true;
     _batteryTestStartMillis = millis();
     FileFs file;
     if (file.open(_batteryTestFilename, FA_CREATE_ALWAYS | FA_WRITE)) {
@@ -143,23 +144,24 @@ void BoxBattery::startBatteryTest() {
         file.writeString("Comments");
         file.writeString("\r\n");
         file.writeString("0;;;;;;");
-        sprintf(output, "vFactor=%u, vChargerFactor=%u;", _batteryVoltageFactor, _batteryVoltageChargerFactor);
+        sprintf(output, "vFactor=%lu, vChargerFactor=%lu;v2-wav", _batteryVoltageFactor, _batteryVoltageChargerFactor);
         file.writeString(output);
         file.writeString("\r\n");
         file.close();
 
-       _batteryTestThread.run();
+        batteryTestThread.run();
+        Box.boxDAC.initBatteryTest();
     } else {
         Log.error("Couldn't init battery log %s", _batteryTestFilename);
-        _batteryTestThread.enabled = false;
+        batteryTestThread.enabled = false;
     }
 }
 void BoxBattery::stopBatteryTest() {
-    if (!_batteryTestThread.enabled)
+    if (!batteryTestThread.enabled)
         return;
     Log.info("Stop battery test...");
-    _batteryTestThread.enabled = false;
-    _doBatteryTestStep();
+    batteryTestThread.enabled = false;
+    doBatteryTestStep();
     FileFs file;
     if (file.open(_batteryTestFilename, FA_OPEN_APPEND | FA_WRITE)) {
         char output[13+5+1];
@@ -170,11 +172,11 @@ void BoxBattery::stopBatteryTest() {
         file.close();
     } else {
         Log.error("Couldn't write battery log %s", _batteryTestFilename);
-        _batteryTestThread.enabled = false;
+        batteryTestThread.enabled = false;
     }
 }
 bool BoxBattery::batteryTestActive() {
-    return _batteryTestThread.enabled;
+    return batteryTestThread.enabled;
 }
 
 BoxBattery::BatteryStats BoxBattery::getBatteryStats() {

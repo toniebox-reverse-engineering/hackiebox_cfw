@@ -8,17 +8,16 @@ class LogStreamSse : public Stream {
         size_t println();
 
         size_t write(uint8_t);
-        int available() {};
-        int read(){};
-        void flush(){};
-        int peek(){};
+        int available() { return 0; };
+        int read() { return 0; };
+        int peek() { return 0; };
+        void flush() { };
 
-        bool isLineFinished();
         void setSsePaused(bool paused);
 
     private:
-        bool _lineFinished = true;
         bool _ssePaused = true;
+        bool _tagIsOpen = false;
 };
 
 #endif

@@ -2,9 +2,10 @@
 #include "wiring_private.h"
 #include "Hackiebox.h"
 
-void BoxLEDs::begin() {
-    PWMPrepare(PIN_RED);
-    //disableRedLED(true);
+void BoxLEDs::begin(bool swd) {
+    disableRedLED(swd); //PWMPrepare(PIN_RED);
+    if (swd) 
+        Log.info("Keep red LED inactive to enable SWD");
 
     PWMPrepare(PIN_GREEN);
     PWMPrepare(PIN_BLUE);
@@ -70,13 +71,16 @@ void BoxLEDs::_handleAnimation(ANIMATION* animation) {
 }
 
 void BoxLEDs::disableRedLED(bool disabled) {
-    _redLedDisabled = disabled;
+    if (_redLedDisabled == disabled)
+        return;
+
     if (disabled) {
         MAP_PinModeSet(PIN_19, PIN_MODE_1); //TCK
         MAP_PinModeSet(PIN_20, PIN_MODE_1); //TMS
     } else {
         PWMPrepare(PIN_RED);
     }
+    _redLedDisabled = disabled;
 }
 
 unsigned long BoxLEDs::getDurationByIterations(uint8_t iterations, ANIMATION_TYPE animationType) {
@@ -278,7 +282,7 @@ void BoxLEDs::setAllBool(bool red, bool green, bool blue) {
     setBlueBool(blue);
 }
 
-void BoxLEDs::setAll(uint8_t intensity) {
+void BoxLEDs::setWhite(uint8_t intensity) {
     setAll(intensity, intensity, intensity);
 }
 
@@ -290,6 +294,12 @@ void BoxLEDs::setAll(uint8_t red, uint8_t green, uint8_t blue) {
 
 void BoxLEDs::setAll(CRGB crgb) {
     setAll(crgb.red, crgb.green, crgb.blue);
+}
+
+void BoxLEDs::setAll(uint32_t color) {
+    CRGB crgb;
+    crgb.setRGB(color);
+    setAll(crgb);
 }
 
 void BoxLEDs::testLEDs() {

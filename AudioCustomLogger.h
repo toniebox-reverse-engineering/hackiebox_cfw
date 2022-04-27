@@ -18,6 +18,7 @@ public:
         va_list args;
 	    va_start(args, msg);
 	    Log.printFormat(msg, args);
+        return 0; //TOOD?
     };
 };
 

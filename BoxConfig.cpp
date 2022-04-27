@@ -75,7 +75,9 @@ String BoxConfig::getAsJson() {
     JsonObject miscDoc = doc.createNestedObject("misc");
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
+    miscDoc["swd"] = miscCfg->swd;
 
+    _json = "";
     serializeJson(doc, _json);
     return _json;
 }
@@ -115,6 +117,7 @@ bool BoxConfig::setFromJson(String json) {
     JsonObject miscDoc = doc["misc"];
     ConfigMisc* miscCfg = &_config.misc;
     miscCfg->autodump = miscDoc["autodump"].as<bool>();
+    miscCfg->swd = miscDoc["swd"].as<bool>();
 
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
@@ -126,6 +129,9 @@ bool BoxConfig::setFromJson(String json) {
         case 3:
             miscCfg->autodump = false;
             _config.version = 4;
+        case 4:
+            miscCfg->swd = false;
+            _config.version = 5;
             write();
             break;
         default:
@@ -166,4 +172,5 @@ void BoxConfig::_initializeConfig() {
 
     ConfigMisc* misc = &_config.misc;
     misc->autodump = false;
+    misc->swd = false;
 }

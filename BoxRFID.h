@@ -35,6 +35,9 @@ class BoxRFID : public EnhancedThread {
         bool dumpTagMemory(bool overwrite);
 
     private:
+        void turnFieldOn();
+        void turnFieldOff();
+
         enum class REG_CMD_WORD_BITS : uint8_t {
             COMMAND_B7 = 0b10000000,
             REGISTER_B7 = 0b00000000,

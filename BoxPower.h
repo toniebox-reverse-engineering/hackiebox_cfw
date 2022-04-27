@@ -19,6 +19,7 @@ class BoxPower : public EnhancedThread {
         
         void
             feedSleepTimer(),
+            feedSleepTimerSilent(),
             reset(),
             hibernate();
 

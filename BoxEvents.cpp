@@ -8,9 +8,9 @@ void BoxEvents::loop() {
 }
 
 void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::PressedType pressType, BoxButtonEars::PressedTime pressLength) {
-    char* nameEar;
-    char* nameType;
-    char* nameLength;
+    const char* nameEar;
+    const char* nameType;
+    const char* nameLength;
 
     switch (earId) {
     case BoxButtonEars::EarButton::SMALL:
@@ -203,7 +203,7 @@ void BoxEvents::handlePowerEvent(BoxPower::PowerEvent event) {
 }
 
 void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient) {
-    char* orientText;
+    const char* orientText;
     switch (orient) {
     case BoxAccelerometer::Orientation::EARS_UP:
         orientText = "ears up";
@@ -247,12 +247,12 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
 
         if (!Box.boxDAC.hasStopped() && (memcmp(Box.boxRFID.tagUid, Box.boxTonie.currentUid, 8) == 0)) {
             Log.info("Continue playing last file");
-            Box.boxDAC.play();
+            Box.boxPlayer.play();
         } else {
             DirFs dir; 
             if(Config.get()->misc.autodump) {
                 Log.info("Autodump...");
-                char* rdump = "/rDUMP";
+                const char* rdump = "/rDUMP";
                 if (!dir.openDir(rdump)) {
                     Log.info("Create dir %s...", rdump);
                     if (!FatFs.mkdir(rdump)) {
@@ -269,7 +269,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                 Log.info("No Autodump");
             }
             
-            char* rcontent = "/rCONTENT";
+            const char* rcontent = "/rCONTENT";
             if (!dir.openDir(rcontent)) {
                 Log.info("Create dir %s...", rcontent);
                 if (!FatFs.mkdir(rcontent)) {
@@ -292,25 +292,7 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
                     Log.info("...fail!");
                 }
             } else {
-                bool foundFile = false;
-                while (dir.nextFile()) {
-                    if (!dir.isDir()) {
-                        foundFile = true;
-                        break;
-                    }
-                }
-                if (!foundFile) {
-                    Log.info("No file play.");
-                } else {
-                    uint8_t filepath[256];
-                    sprintf(
-                        (char*)filepath,
-                        "%s/%s",
-                        path,
-                        dir.fileName()
-                    );
-                    Box.boxDAC.playFile((const char*)filepath);
-                }
+                Box.boxPlayer.playDir((const char*)path, BoxPlayer::PLAYER_FLAGS::NONE);
             }
         }
         break;
