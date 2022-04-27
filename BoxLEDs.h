@@ -198,7 +198,7 @@ class BoxLEDs : public EnhancedThread {
         };
         
         void
-            begin(),
+            begin(bool swd),
             loop();
         
         void testLEDs();
@@ -257,7 +257,7 @@ class BoxLEDs : public EnhancedThread {
         CRGB _wheel(uint8_t wheelPos);
         void _handleAnimation(ANIMATION* animation);
 
-        bool _redLedDisabled;
+        bool _redLedDisabled = true;
 };
 
 #endif

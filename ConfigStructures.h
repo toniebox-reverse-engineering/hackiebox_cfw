@@ -1,7 +1,7 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_ACTIVE_VERSION 4
+#define CONFIG_ACTIVE_VERSION 5
 
 typedef struct {
   uint32_t voltageFactor;
@@ -41,6 +41,7 @@ typedef struct {
 
 typedef struct {
   bool autodump;
+  bool swd;
 } ConfigMisc;
 
 typedef struct {

@@ -2,9 +2,10 @@
 #include "wiring_private.h"
 #include "Hackiebox.h"
 
-void BoxLEDs::begin() {
-    PWMPrepare(PIN_RED);
-    //disableRedLED(true);
+void BoxLEDs::begin(bool swd) {
+    disableRedLED(swd); //PWMPrepare(PIN_RED);
+    if (swd) 
+        Log.info("Keep red LED inactive to enable SWD");
 
     PWMPrepare(PIN_GREEN);
     PWMPrepare(PIN_BLUE);
@@ -70,13 +71,16 @@ void BoxLEDs::_handleAnimation(ANIMATION* animation) {
 }
 
 void BoxLEDs::disableRedLED(bool disabled) {
-    _redLedDisabled = disabled;
+    if (_redLedDisabled == disabled)
+        return;
+
     if (disabled) {
         MAP_PinModeSet(PIN_19, PIN_MODE_1); //TCK
         MAP_PinModeSet(PIN_20, PIN_MODE_1); //TMS
     } else {
         PWMPrepare(PIN_RED);
     }
+    _redLedDisabled = disabled;
 }
 
 unsigned long BoxLEDs::getDurationByIterations(uint8_t iterations, ANIMATION_TYPE animationType) {
