@@ -23,7 +23,7 @@ void crash(crashSource source, uint32_t* sp) {
         _file.close();
     }
     Log.info("...done");
-    Log.info("Dumping REGISTERS 0xE000E000-0xE000F000 to /revvox/memdump...");
+    Log.info("Dumping REGISTERS 0xE000E000-0xE000F000 to /revvox/regdump...");
     _isOpen = _file.open("/revvox/regdump", FA_CREATE_ALWAYS | FA_WRITE);
     if (_isOpen) {
         _file.write((void *)0xE000E000, 0x1000);
