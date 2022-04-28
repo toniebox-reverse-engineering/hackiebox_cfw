@@ -5,6 +5,15 @@ BoxConfig Config;
 BoxEvents Events;
 Hackiebox Box;
 
+
+void _SlDrvHandleGeneralEvents(SlDeviceEvent_t *pSlDeviceEvent) { }
+int Report(const char *format, ...) {
+    //Workaround for defined Report in the WiFi/utility/
+    va_list args;
+	va_start(args, format);
+    Log.printFormat(format, args);
+    return 0;
+}
 void crash(crashSource source, uint32_t* sp) {
     //Box.logStreamSse.setSsePaused(true);
     Log.info("crashSource=%i, sp=%X, sp=%X", source, sp, (uint32_t)sp-0x20004000);
