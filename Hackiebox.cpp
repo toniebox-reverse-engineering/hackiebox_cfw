@@ -41,6 +41,10 @@ void crash(crashSource source, uint32_t* sp) {
         _file.close();
     }
     Log.info("...done");
+    
+    __asm__ volatile("bkpt");
+    
+    Box.boxPower.hibernate();
 }
 void Hackiebox::setup() {  
     if (!watchdog_start()) {
