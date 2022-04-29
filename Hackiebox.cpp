@@ -6,7 +6,9 @@ BoxEvents Events;
 Hackiebox Box;
 
 
-void _SlDrvHandleGeneralEvents(SlDeviceEvent_t *pSlDeviceEvent) { }
+void _SlDrvHandleGeneralEvents(SlDeviceEvent_t *pSlDeviceEvent) {
+    Log.error("Received _SlDrvHandleGeneralEvents Event=%i", pSlDeviceEvent->Event);
+}
 int Report(const char *format, ...) {
     //Workaround for defined Report in the WiFi/utility/
     va_list args;
