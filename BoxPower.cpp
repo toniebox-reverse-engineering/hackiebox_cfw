@@ -47,7 +47,8 @@ void BoxPower::_preparePowerDown() {
     Log.info("Prepare power down...");
     //TODO
     //smartconfig down
-    Box.watchdog_stop();
+    Box.logStreamMulti.flush();
+    Box.boxPlayer.stop();
     setSdPower(false);
     setOtherPower(false);
     Box.boxLEDs.setAllBool(false);
