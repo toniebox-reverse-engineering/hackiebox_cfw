@@ -57,6 +57,7 @@ void WrapperWiFi::loop() {
       Events.handleWiFiEvent(_state);
       setInterval(5000);
     }
+    break;
   case ConnectionState::CONNECTED:
     if (WiFi.status() != WL_CONNECTED) {
       _state = ConnectionState::DISCONNECTED;
