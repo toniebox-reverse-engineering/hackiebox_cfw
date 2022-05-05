@@ -1,11 +1,11 @@
 #ifndef ConfigStructures_h
 #define ConfigStructures_h
 
-#define CONFIG_ACTIVE_VERSION 5
+#define CONFIG_ACTIVE_VERSION 6
 
 typedef struct {
   uint32_t voltageFactor;
-  uint32_t voltageChargerFactor;
+  uint32_t _deprecated_voltageChargerFactor;
   uint16_t lowAdc;
   uint16_t criticalAdc;
   uint8_t sleepMinutes;

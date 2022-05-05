@@ -52,7 +52,6 @@ class BoxBattery : public EnhancedThread {
 
     private:
         uint32_t _batteryVoltageFactor;
-        uint32_t _batteryVoltageChargerFactor;
         uint16_t _batteryLowAdc;
         uint16_t _batteryCriticalAdc;
 
@@ -64,6 +63,9 @@ class BoxBattery : public EnhancedThread {
 
         const char* _batteryTestFilename = "/revvox/batteryTest.csv";
         uint64_t _batteryTestStartMillis;
+
+        const static uint8_t BATTERY_VOLTAGE_PIN = 60;
+        void _readBatteryAdc();
 };
 
 #endif

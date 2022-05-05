@@ -8,8 +8,7 @@ void BoxBattery::begin() {
 
     _wasLow = false;
     _wasCritical = false;
-    _batteryAdcRaw = analogRead(60);
-    _batteryAdcLowRaw = 9999;
+    _readBatteryAdc();
 
     batteryTestThread.setInterval(10*60*1000);
     batteryTestThread.enabled = false;
@@ -17,10 +16,10 @@ void BoxBattery::begin() {
     loop();
     logBatteryStatus();
 
-    setInterval(500);
+    setInterval(100);
 }
 void BoxBattery::loop() {
-    _batteryAdcRaw = analogRead(60);
+    _readBatteryAdc();
     _charger.read();
     
     if (_batteryAdcRaw < _batteryAdcLowRaw || isChargerConnected())
@@ -46,6 +45,11 @@ void BoxBattery::loop() {
     }
 }
 
+void BoxBattery::_readBatteryAdc() {
+    uint16_t adcValue = analogReadAvg(BATTERY_VOLTAGE_PIN, 1);
+    _batteryAdcRaw = adcValue;
+}
+
 bool BoxBattery::isChargerConnected() {
     if (_charger.isPressed())
         return true;
@@ -55,10 +59,7 @@ uint16_t BoxBattery::getBatteryAdcRaw() {
     return _batteryAdcRaw;
 }
 uint16_t BoxBattery::getBatteryVoltage() {
-    if (isChargerConnected()) {
-        return 10000 * getBatteryAdcRaw() / _batteryVoltageChargerFactor;
-    }
-    return 10000 * getBatteryAdcRaw() / _batteryVoltageFactor;
+    return 1000 * getBatteryAdcRaw() / _batteryVoltageFactor;
 }
 bool BoxBattery::isBatteryLow() {
     if (getBatteryAdcRaw() < _batteryLowAdc)
@@ -88,7 +89,6 @@ void BoxBattery::reloadConfig() {
     ConfigStruct* config = Config.get();
 
     _batteryVoltageFactor = config->battery.voltageFactor;
-    _batteryVoltageChargerFactor = config->battery.voltageChargerFactor;
     _batteryLowAdc = config->battery.lowAdc;
     _batteryCriticalAdc = config->battery.criticalAdc;
 }
@@ -144,7 +144,7 @@ void BoxBattery::startBatteryTest() {
         file.writeString("Comments");
         file.writeString("\r\n");
         file.writeString("0;;;;;;");
-        sprintf(output, "vFactor=%lu, vChargerFactor=%lu;v2-wav", _batteryVoltageFactor, _batteryVoltageChargerFactor);
+        sprintf(output, "vFactor=%lu;v3-wav", _batteryVoltageFactor);
         file.writeString(output);
         file.writeString("\r\n");
         file.close();
