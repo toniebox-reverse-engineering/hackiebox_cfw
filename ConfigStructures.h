@@ -42,6 +42,7 @@ typedef struct {
 typedef struct {
   bool autodump;
   bool swd;
+  uint8_t watchdogSeconds;
 } ConfigMisc;
 
 typedef struct {

@@ -75,6 +75,7 @@ String BoxConfig::getAsJson() {
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
     miscDoc["swd"] = miscCfg->swd;
+    miscDoc["watchdogSeconds"] = miscCfg->watchdogSeconds;
 
     _json = "";
     serializeJson(doc, _json);
@@ -116,6 +117,7 @@ bool BoxConfig::setFromJson(String json) {
     ConfigMisc* miscCfg = &_config.misc;
     miscCfg->autodump = miscDoc["autodump"].as<bool>();
     miscCfg->swd = miscDoc["swd"].as<bool>();
+    miscCfg->watchdogSeconds = miscDoc["watchdogSeconds"].as<uint8_t>();
 
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
@@ -182,4 +184,5 @@ void BoxConfig::_initializeConfig() {
     ConfigMisc* misc = &_config.misc;
     misc->autodump = false;
     misc->swd = false;
+    misc->watchdogSeconds = 10;
 }
