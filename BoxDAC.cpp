@@ -187,6 +187,7 @@ void BoxDAC::loop() {
     }
 }
 void BoxDAC::loop(uint16_t timeoutMs) {
+    checkHeadphoneState();
     if (audioPlaying) {
         if (!audioGenerator || !audioSource) {
             audioPlaying = false;
@@ -775,4 +776,17 @@ void BoxDAC::initDACI2C() {
     // Extract END
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
     send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128);
+}
+
+void BoxDAC::checkHeadphoneState() {
+    send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
+    uint8_t intrFlags = readByte(ADDR_P0_SERIAL::DAC_INTR_FLAGS);
+    if ((intrFlags & 0b00010000) == 0b00010000) {
+        intrFlags = readByte(ADDR_P0_SERIAL::INTR_FLAGS);
+        if ((intrFlags & 0b00010000) == 0b00010000) {
+            Events.handleHeadphoneEvent(HeadphoneEvent::INSERTED);
+        } else { 
+            Events.handleHeadphoneEvent(HeadphoneEvent::REMOVED);
+        }
+    }
 }

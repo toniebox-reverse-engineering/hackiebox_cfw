@@ -307,3 +307,14 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
     }
     Box.boxPower.feedSleepTimer();
 }
+
+void BoxEvents::handleHeadphoneEvent(BoxDAC::HeadphoneEvent event) {
+    switch (event){
+    case BoxDAC::HeadphoneEvent::INSERTED:
+        Log.info("Headphones connected");
+        break;
+    case BoxDAC::HeadphoneEvent::REMOVED:
+        Log.info("Headphones disconnected");
+        break;
+    }
+}
