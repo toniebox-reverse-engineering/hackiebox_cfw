@@ -135,6 +135,11 @@ bool BoxConfig::setFromJson(String json) {
             batteryCfg->criticalAdc = 8869;
             batteryCfg->voltageFactor = 27850;
             _config.version = 6;
+        case 6:
+            miscCfg->watchdogSeconds = 10;
+            if (batteryCfg->voltageFactor == 67690) //Fix for wrong value in previous CFW
+                batteryCfg->voltageFactor = 27850;
+            _config.version = 7;
             write();
             break;
         default:
@@ -153,7 +158,7 @@ void BoxConfig::_initializeConfig() {
     //(4936,0258+0x59)/(10000/0x663d) = adc
     //(10000/0x663d)×13152−0x59 = v-OFW
     ConfigBattery* battery = &_config.battery;
-    battery->voltageFactor = 67690;
+    battery->voltageFactor = 27850;
     battery->lowAdc = 9658; //OFW 0xE11 (9657,837)
     battery->criticalAdc = 8869; //OFW 0xCE3/0xCE4 (8867,4124/8870,0297)
     battery->sleepMinutes = 15;
