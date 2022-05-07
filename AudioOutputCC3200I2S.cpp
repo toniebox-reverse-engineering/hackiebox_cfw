@@ -93,10 +93,12 @@ bool AudioOutputCC3200I2S::ConsumeSample(int16_t sample[2])
   ms[1] = sample[1];
   MakeSampleStereo16( ms );
 
-  if (this->mono) {
+  if (this->mono && this->channels == 2) {
     // Average the two samples and overwrite
     int32_t ttl = ms[LEFTCHANNEL] + ms[RIGHTCHANNEL];
     ms[LEFTCHANNEL] = ms[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
+  } else if (this->channels == 1) {
+    ms[LEFTCHANNEL] = ms[RIGHTCHANNEL];
   }
 
   writeBuffer->buffer[writeBuffer->position++] = ms[LEFTCHANNEL];
