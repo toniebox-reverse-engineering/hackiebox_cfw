@@ -117,6 +117,9 @@ class BoxDAC : public EnhancedThread {
         void logVolume();
         void logBeepVolume(uint8_t volume);
 
+        void muteSpeaker(bool mute);
+        void muteHeadphones(bool mute);
+
         void
             play(),
             pause(),

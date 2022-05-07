@@ -119,6 +119,13 @@ void BoxDAC::begin() {
 
     Log.info("...done");
 
+    uint8_t headsetDetect = readByte(ADDR_P0_SERIAL::HEADSET_DETECT);
+    Log.info("Headset detect=%B", headsetDetect); // Always no Headset detected?! TODO
+    if ((headsetDetect & 0b00100000) == 0b00100000) {
+        Events.handleHeadphoneEvent(HeadphoneEvent::INSERTED);
+    } else { 
+        Events.handleHeadphoneEvent(HeadphoneEvent::REMOVED);
+    }
     //samSay("Hackiebox by Team Revvox!");
 }
 void BoxDAC::opusTest() {
@@ -776,6 +783,36 @@ void BoxDAC::initDACI2C() {
     // Extract END
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
     send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128);
+}
+
+
+void BoxDAC::muteSpeaker(bool mute) {
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    uint8_t state = readByte(ADDR_P1_DAC_OUT::SPK_DRIVER);
+
+    if (mute) {
+        state &= ~(0b00000100);
+    } else {
+        state |= 0b00000100;
+    }
+
+    send(ADDR_P1_DAC_OUT::SPK_DRIVER, state);
+}
+void BoxDAC::muteHeadphones(bool mute) {
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    uint8_t stateL = readByte(ADDR_P1_DAC_OUT::HPL_DRIVER);
+    uint8_t stateR = readByte(ADDR_P1_DAC_OUT::HPR_DRIVER);
+
+    if (mute) {
+        stateL &= ~(0b00000100);
+        stateR &= ~(0b00000100);
+    } else {
+        stateL |= 0b00000100;
+        stateR |= 0b00000100;
+    }
+
+    send(ADDR_P1_DAC_OUT::HPL_DRIVER, stateL);
+    send(ADDR_P1_DAC_OUT::HPR_DRIVER, stateR);
 }
 
 void BoxDAC::checkHeadphoneState() {

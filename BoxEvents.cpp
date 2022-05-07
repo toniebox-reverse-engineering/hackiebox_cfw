@@ -312,9 +312,13 @@ void BoxEvents::handleHeadphoneEvent(BoxDAC::HeadphoneEvent event) {
     switch (event){
     case BoxDAC::HeadphoneEvent::INSERTED:
         Log.info("Headphones connected");
+        Box.boxDAC.muteSpeaker(true);
+        Box.boxDAC.muteHeadphones(false);
         break;
     case BoxDAC::HeadphoneEvent::REMOVED:
         Log.info("Headphones disconnected");
+        Box.boxDAC.muteHeadphones(true);
+        Box.boxDAC.muteSpeaker(false);
         break;
     }
 }
