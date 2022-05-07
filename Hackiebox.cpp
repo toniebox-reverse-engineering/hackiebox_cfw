@@ -222,7 +222,8 @@ bool Hackiebox::watchdog_start(uint8_t timeoutS) {
     watchdog_feed();
     if (timeoutS == 0) {
         watchdog_start(53);
-        watchdog_stop();
+        //watchdog_stop(); // Random watchdog triggers?!
+        watchdog_enabled = false;
     } else {
         if (timeoutS > 53)
             timeoutS = 53; //otherwise uint32_t of WatchdogReloadSet will overflow.
