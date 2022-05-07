@@ -775,8 +775,8 @@ void BoxDAC::initDACI2C() {
 
 
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
-    //send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD5);  // DAC power on, Left=left, Right=Right, DAC Softstep HP STEREO
-    send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xF1);  // DAC power on, Left=left, Right=Right, DAC Softstep SPEAKER MONO
+    send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD5);  // DAC power on, Left=left, Right=Right, DAC Softstep HP STEREO
+    //send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xF1);  // DAC power on, Left=left, Right=Right, DAC Softstep SPEAKER MONO
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xDC);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xDC);
     //Excel 219
