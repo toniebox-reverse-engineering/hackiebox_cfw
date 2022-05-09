@@ -27,6 +27,13 @@ size_t LogStreamMulti::write(const uint8_t *buffer, size_t size) {
     }
     memcpy(&_buffer[_getBufferPosition()], buffer+position, size-position);
 
+    for (uint8_t i=position; i<size-position; i++) {
+        if (_buffer[i] == '\n') {
+            flush();
+            break;
+        }
+    }
+
     size_t result = 0; //TODO
     return size;
 }
