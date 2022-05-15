@@ -41,6 +41,8 @@ void crash(crashSource source, uint32_t* sp) {
         _file.close();
     }
     Log.info("...done");
+
+    Box.logStreamMulti.flush(); //Write all buffered logs to SD/SSE 
     
     __asm__ volatile("bkpt");
     
