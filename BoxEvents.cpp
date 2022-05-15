@@ -10,7 +10,7 @@ void BoxEvents::loop() {
 void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::PressedType pressType, BoxButtonEars::PressedTime pressLength) {
     const char* nameEar;
     const char* nameType;
-    const char* nameLength;
+    const char* nameDuration;
 
     switch (earId) {
     case BoxButtonEars::EarButton::SMALL:
@@ -41,21 +41,26 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
 
     switch (pressLength) {
     case BoxButtonEars::PressedTime::SHORT:
-        nameLength = "short";
+        nameDuration = "short";
         break;
     case BoxButtonEars::PressedTime::LONG:
-        nameLength = "long";
+        nameDuration = "long";
         break;
     case BoxButtonEars::PressedTime::VERY_LONG:
-        nameLength = "very long";
+        nameDuration = "very long";
         break;
     default:
-        nameLength = "unknown length";
+        nameDuration = "unknown length";
         break;
     }
 
-    Log.info("%s %s-%s", nameEar, nameLength, nameType);
+
+    Log.info("%s %s-%s", nameEar, nameDuration, nameType);
     Box.boxPower.feedSleepTimer();
+
+    char earEvent[34];
+    snprintf(earEvent, 34, "{\"id\":%i,\"type\":%i,\"duration\":%i}", earId, pressType, pressLength);
+    Box.webServer.sendEvent("Ear", earEvent, false);
 
     if (pressType == BoxButtonEars::PressedType::PRESS) {
         if (pressLength == BoxButtonEars::PressedTime::SHORT) {
@@ -126,6 +131,10 @@ void BoxEvents::handleEarEvent(BoxButtonEars::EarButton earId, BoxButtonEars::Pr
 }
 
 void BoxEvents::handleBatteryEvent(BoxBattery::BatteryEvent state) {
+    char batteryEvent[12];
+    snprintf(batteryEvent, 12, "{\"state\":%i}", state);
+    Box.webServer.sendEvent("Battery", batteryEvent, false);
+
     switch (state) {
     case BoxBattery::BatteryEvent::BAT_CRITICAL:
         Log.info("Battery is critical, connect the charger, hibernating!");
@@ -167,10 +176,9 @@ void BoxEvents::handleWiFiEvent(WrapperWiFi::ConnectionState state) {
         Box.boxWiFi.mDnsAdvertiseSetup();
         break;
     case WrapperWiFi::ConnectionState::DISCONNECTED:
-        //Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Cyan, 3);
+        Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Red, 3);
         Log.info("WiFi lost");
         break;
-    
     default:
         break;
     }
@@ -235,15 +243,24 @@ void BoxEvents::handleAccelerometerOrientationEvent(BoxAccelerometer::Orientatio
         break;
     }
     Log.info("Box' orientation changed to %s", orientText);
+    
+    char orientEvent[9];
+    snprintf(orientEvent, 9, "{\"id\":%i}", orient);
+    Box.webServer.sendEvent("Orientation", orientEvent, false);
+
     Box.boxPower.feedSleepTimer();
 }
 
 void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
+    uint8_t uid[24];
+    uid[0] = '\0';
+
     switch (event) { 
     case BoxRFID::TAG_EVENT::TAG_PLACED:
         Log.info("Tag placed", event);
         Box.boxLEDs.setIdleAnimation(BoxLEDs::ANIMATION_TYPE::PARTY, BoxLEDs::CRGB::White);
         Box.boxRFID.logUID();
+        Box.boxRFID.getUID(uid);
 
         if (!Box.boxDAC.hasStopped() && (memcmp(Box.boxRFID.tagUid, Box.boxTonie.currentUid, 8) == 0)) {
             Log.info("Continue playing last file");
@@ -305,6 +322,12 @@ void BoxEvents::handleTagEvent(BoxRFID::TAG_EVENT event) {
         Log.error("Unknown TAG_EVENT=%X", event);
         break;
     }
+
+    
+    char tagEvent[44];
+    snprintf(tagEvent, 44, "{\"event\":%i,\"uid\":\"%s\"}", event, uid, false);
+    Box.webServer.sendEvent("Tag", tagEvent, false);
+
     Box.boxPower.feedSleepTimer();
 }
 
@@ -321,4 +344,7 @@ void BoxEvents::handleHeadphoneEvent(BoxDAC::HeadphoneEvent event) {
         Box.boxDAC.muteSpeaker(false);
         break;
     }
+    char hpEvent[12];
+    snprintf(hpEvent, 12, "{\"event\":%i}", hpEvent);
+    Box.webServer.sendEvent("Headphones", hpEvent, false);
 }
