@@ -513,20 +513,27 @@ void WrapperWebServer::handleUploadFlashFile() {
   handleNotFound();
 }
 
-void WrapperWebServer::sendEvent(const char* eventname, const char* content) {
+void WrapperWebServer::sendEvent(const char* eventname, const char* content, bool escapeData) {
   bool clientConnected = false;
   for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
     if (!(subscription[i].clientIP)) 
       continue;
     
+    Box.logStreamMulti.flush();
     sampleMemory(4);
     if (subscription[i].client.connected()) {
       clientConnected = true;
       subscription[i].client.print("data: { \"type\":\"");
       subscription[i].client.print(eventname);
-      subscription[i].client.print("\", \"data\":\"");
-      subscription[i].client.print(content);
-      subscription[i].client.print("\" }");
+      if (escapeData) {
+        subscription[i].client.print("\", \"data\":\"");
+        subscription[i].client.print(content);
+        subscription[i].client.print("\" }");
+      } else {
+        subscription[i].client.print("\", \"data\":");
+        subscription[i].client.print(content);
+        subscription[i].client.print("}");
+      }
       subscription[i].client.println("\n"); // Extra newline required by SSE standard
     } else {
       Log.info("Client not listening on channel %i, remove subscription", i);
