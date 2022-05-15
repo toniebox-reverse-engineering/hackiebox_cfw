@@ -538,7 +538,7 @@ void WrapperWebServer::sendEvent(const char* eventname, const char* content) {
     }
   }
   if (clientConnected) 
-    Box.boxPower.feedSleepTimer();
+    Box.boxPower.feedSleepTimerSilent();
 }
 void WrapperWebServer::sseKeepAlive() {
   sendEvent("keep-alive", "");
