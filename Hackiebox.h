@@ -39,7 +39,7 @@ class Hackiebox {
             loop();
         
         bool
-            watchdog_start(),
+            watchdog_start(uint8_t timeoutS),
             watchdog_isFed();
         void
             watchdog_stop(),
@@ -72,6 +72,7 @@ class Hackiebox {
         LogStreamSd logStreamSd;
         LogStreamSse logStreamSse;
 
+        bool watchdog_enabled;
     private:/*
         typedef void (*fAPPWDTDevCallbk)();
         void 

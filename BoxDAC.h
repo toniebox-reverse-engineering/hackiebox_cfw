@@ -20,6 +20,10 @@
 
 class BoxDAC : public EnhancedThread { 
     public:
+        enum class HeadphoneEvent {
+           INSERTED,
+           REMOVED
+        };
         void
             begin(),
             loop(),
@@ -113,6 +117,9 @@ class BoxDAC : public EnhancedThread {
         void logVolume();
         void logBeepVolume(uint8_t volume);
 
+        void muteSpeaker(bool mute);
+        void muteHeadphones(bool mute);
+
         void
             play(),
             pause(),
@@ -149,6 +156,8 @@ class BoxDAC : public EnhancedThread {
             DAC_DOSR_VAL_LSB = 0x0E,
             CODEC_IF_CTRL1 = 0x1B,
             DAC_FLAG_REG = 0x26,
+            DAC_INTR_FLAGS = 0x2C,
+            INTR_FLAGS = 0x2E,
             INT1_CTRL_REG = 0x30,
             GPIO1_INOUT_CTRL = 0x33,
             DAC_PROC_BLOCK_SEL = 0x3C,
@@ -202,6 +211,7 @@ class BoxDAC : public EnhancedThread {
             readByte(ADDR_P3_MCLK source_register);
 
         void initDACI2C();
+        void checkHeadphoneState();
 
         uint8_t getSampleRateIndex();
         uint16_t ofwButtonFreqTable[5][4][2] = {

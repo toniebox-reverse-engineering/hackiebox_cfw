@@ -41,13 +41,15 @@ void crash(crashSource source, uint32_t* sp) {
         _file.close();
     }
     Log.info("...done");
+
+    Box.logStreamMulti.flush(); //Write all buffered logs to SD/SSE 
     
     __asm__ volatile("bkpt");
     
     Box.boxPower.hibernate();
 }
 void Hackiebox::setup() {  
-    if (!watchdog_start()) {
+    if (!watchdog_start(10)) {
         watchdog_stop();
         //reset box?!
     }
@@ -76,6 +78,8 @@ void Hackiebox::setup() {
     boxSD.begin();
     Config.begin(); //SD Card needed!
     ConfigStruct* config = Config.get();
+
+    watchdog_start(config->misc.watchdogSeconds);
     
     boxPower.begin();
     boxI2C.begin();
@@ -211,22 +215,31 @@ void Hackiebox::watchdog_unfeed() {
     _watchdog_fed = false;
 }
 void watchdog_handler() {
-    if (Box.watchdog_isFed()) {
+    if (Box.watchdog_isFed() || !Box.watchdog_enabled) {
         MAP_WatchdogIntClear(WDT_BASE);
         Box.watchdog_unfeed();
     }
 }
-bool Hackiebox::watchdog_start() {
+bool Hackiebox::watchdog_start(uint8_t timeoutS) {
     watchdog_feed();
+    if (timeoutS == 0) {
+        watchdog_start(53);
+        //watchdog_stop(); // Random watchdog triggers?!
+        watchdog_enabled = false;
+    } else {
+        if (timeoutS > 53)
+            timeoutS = 53; //otherwise uint32_t of WatchdogReloadSet will overflow.
+        
+        MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
+        MAP_WatchdogUnlock(WDT_BASE);
+        MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
+        MAP_WatchdogStallEnable(WDT_BASE); //Allow Debugging
+        MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
+        MAP_WatchdogReloadSet(WDT_BASE, 80000000*timeoutS);
+        MAP_WatchdogEnable(WDT_BASE);
 
-    MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
-    MAP_WatchdogUnlock(WDT_BASE);
-    MAP_IntPrioritySet(INT_WDT, INT_PRIORITY_LVL_1);
-    MAP_WatchdogStallEnable(WDT_BASE); //Allow Debugging
-    MAP_WatchdogIntRegister(WDT_BASE, watchdog_handler);
-    MAP_WatchdogReloadSet(WDT_BASE, 80000000*10); //10s
-    MAP_WatchdogEnable(WDT_BASE);
-
+        watchdog_enabled = true;
+    }
     return MAP_WatchdogRunning(WDT_BASE);
 }
 void Hackiebox::watchdog_stop() {  
@@ -234,5 +247,7 @@ void Hackiebox::watchdog_stop() {
     MAP_WatchdogReloadSet(WDT_BASE, 0xFFFFFFFF); //set timer to high value
     MAP_WatchdogIntClear(WDT_BASE);
     MAP_WatchdogIntUnregister(WDT_BASE);
+
+    watchdog_enabled = false;
 }
 

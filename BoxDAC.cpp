@@ -119,6 +119,13 @@ void BoxDAC::begin() {
 
     Log.info("...done");
 
+    uint8_t headsetDetect = readByte(ADDR_P0_SERIAL::HEADSET_DETECT);
+    Log.info("Headset detect=%B", headsetDetect); // Always no Headset detected?! TODO
+    if ((headsetDetect & 0b00100000) == 0b00100000) {
+        Events.handleHeadphoneEvent(HeadphoneEvent::INSERTED);
+    } else { 
+        Events.handleHeadphoneEvent(HeadphoneEvent::REMOVED);
+    }
     //samSay("Hackiebox by Team Revvox!");
 }
 void BoxDAC::opusTest() {
@@ -187,6 +194,7 @@ void BoxDAC::loop() {
     }
 }
 void BoxDAC::loop(uint16_t timeoutMs) {
+    checkHeadphoneState();
     if (audioPlaying) {
         if (!audioGenerator || !audioSource) {
             audioPlaying = false;
@@ -767,12 +775,55 @@ void BoxDAC::initDACI2C() {
 
 
     send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
-    //send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD5);  // DAC power on, Left=left, Right=Right, DAC Softstep HP STEREO
-    send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xF1);  // DAC power on, Left=left, Right=Right, DAC Softstep SPEAKER MONO
+    send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xD5);  // DAC power on, Left=left, Right=Right, DAC Softstep HP STEREO
+    //send(ADDR_P0_SERIAL::DAC_DATA_PATH_SETUP, 0xF1);  // DAC power on, Left=left, Right=Right, DAC Softstep SPEAKER MONO
     send(ADDR_P0_SERIAL::DAC_VOL_L_CTRL, 0xDC);
     send(ADDR_P0_SERIAL::DAC_VOL_R_CTRL, 0xDC);
     //Excel 219
     // Extract END
     send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
     send(ADDR_P1_DAC_OUT::L_VOL_TO_SPK, 128);
+}
+
+
+void BoxDAC::muteSpeaker(bool mute) {
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    uint8_t state = readByte(ADDR_P1_DAC_OUT::SPK_DRIVER);
+
+    if (mute) {
+        state &= ~(0b00000100);
+    } else {
+        state |= 0b00000100;
+    }
+
+    send(ADDR_P1_DAC_OUT::SPK_DRIVER, state);
+}
+void BoxDAC::muteHeadphones(bool mute) {
+    send(ADDR::PAGE_CONTROL, PAGE::DAC_OUT_VOL);
+    uint8_t stateL = readByte(ADDR_P1_DAC_OUT::HPL_DRIVER);
+    uint8_t stateR = readByte(ADDR_P1_DAC_OUT::HPR_DRIVER);
+
+    if (mute) {
+        stateL &= ~(0b00000100);
+        stateR &= ~(0b00000100);
+    } else {
+        stateL |= 0b00000100;
+        stateR |= 0b00000100;
+    }
+
+    send(ADDR_P1_DAC_OUT::HPL_DRIVER, stateL);
+    send(ADDR_P1_DAC_OUT::HPR_DRIVER, stateR);
+}
+
+void BoxDAC::checkHeadphoneState() {
+    send(ADDR::PAGE_CONTROL, PAGE::SERIAL_IO);
+    uint8_t intrFlags = readByte(ADDR_P0_SERIAL::DAC_INTR_FLAGS);
+    if ((intrFlags & 0b00010000) == 0b00010000) {
+        intrFlags = readByte(ADDR_P0_SERIAL::INTR_FLAGS);
+        if ((intrFlags & 0b00010000) == 0b00010000) {
+            Events.handleHeadphoneEvent(HeadphoneEvent::INSERTED);
+        } else { 
+            Events.handleHeadphoneEvent(HeadphoneEvent::REMOVED);
+        }
+    }
 }

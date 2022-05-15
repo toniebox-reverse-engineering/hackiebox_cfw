@@ -18,8 +18,7 @@ size_t LogStreamSse::write(uint8_t character)  {
             if (_tagIsOpen) {
                 client->print("\" }\n\n"); // Extra newline required by SSE standard
                 tagIsOpen = false;
-            } 
-            client->flush();
+            }
         } else {
             if (!_tagIsOpen) {
                 client->print("data: { \"type\":\"");

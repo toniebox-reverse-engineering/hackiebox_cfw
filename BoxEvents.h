@@ -17,7 +17,8 @@ class BoxEvents {
            WIFI,
            POWER,
            ACCELEROMETER,
-           TAG
+           TAG,
+           HEADPHONE
         };
 
         void
@@ -30,6 +31,7 @@ class BoxEvents {
         void handlePowerEvent(BoxPower::PowerEvent event);
         void handleAccelerometerOrientationEvent(BoxAccelerometer::Orientation orient);
         void handleTagEvent(BoxRFID::TAG_EVENT event);
+        void handleHeadphoneEvent(BoxDAC::HeadphoneEvent event);
 
     private:
 };

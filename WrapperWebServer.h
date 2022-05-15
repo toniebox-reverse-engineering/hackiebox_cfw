@@ -20,6 +20,10 @@ class WrapperWebServer : public EnhancedThread {
     void
         begin(),
         loop();
+
+    void
+        sendEvent(const char* eventname, const char* content, bool escapeData = true);
+        //sendEventJSON(char* eventname, xyzjsondoc jsonContent)
     
     private:
         void
@@ -37,9 +41,7 @@ class WrapperWebServer : public EnhancedThread {
 
         void
             sseHandler(uint8_t channel),
-            sseKeepAlive(),
-            sendEvent(const char* eventname, const char* content);
-            //sendEventJSON(char* eventname, xyzjsondoc jsonContent);
+            sseKeepAlive();
 
 
         bool 

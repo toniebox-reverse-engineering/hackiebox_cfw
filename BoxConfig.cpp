@@ -53,7 +53,6 @@ String BoxConfig::getAsJson() {
     JsonObject batteryDoc = doc.createNestedObject("battery");
     ConfigBattery* batteryCfg = &_config.battery;
     batteryDoc["voltageFactor"] = batteryCfg->voltageFactor;
-    batteryDoc["voltageChargerFactor"] = batteryCfg->voltageChargerFactor;
     batteryDoc["lowAdc"] = batteryCfg->lowAdc;
     batteryDoc["criticalAdc"] = batteryCfg->criticalAdc;
     batteryDoc["sleepMinutes"] = batteryCfg->sleepMinutes;
@@ -76,6 +75,7 @@ String BoxConfig::getAsJson() {
     ConfigMisc* miscCfg = &_config.misc;
     miscDoc["autodump"] = miscCfg->autodump;
     miscDoc["swd"] = miscCfg->swd;
+    miscDoc["watchdogSeconds"] = miscCfg->watchdogSeconds;
 
     _json = "";
     serializeJson(doc, _json);
@@ -95,7 +95,6 @@ bool BoxConfig::setFromJson(String json) {
     JsonObject batteryDoc = doc["battery"];
     ConfigBattery* batteryCfg = &_config.battery;
     batteryCfg->voltageFactor = batteryDoc["voltageFactor"].as<uint32_t>();
-    batteryCfg->voltageChargerFactor = batteryDoc["voltageChargerFactor"].as<uint32_t>();
     batteryCfg->lowAdc = batteryDoc["lowAdc"].as<uint16_t>();
     batteryCfg->criticalAdc = batteryDoc["criticalAdc"].as<uint16_t>();
     batteryCfg->sleepMinutes = batteryDoc["sleepMinutes"].as<uint8_t>();
@@ -118,6 +117,7 @@ bool BoxConfig::setFromJson(String json) {
     ConfigMisc* miscCfg = &_config.misc;
     miscCfg->autodump = miscDoc["autodump"].as<bool>();
     miscCfg->swd = miscDoc["swd"].as<bool>();
+    miscCfg->watchdogSeconds = miscDoc["watchdogSeconds"].as<uint8_t>();
 
     // Convert old config version to latest one.
     if (_config.version != CONFIG_ACTIVE_VERSION) {
@@ -132,6 +132,16 @@ bool BoxConfig::setFromJson(String json) {
         case 4:
             miscCfg->swd = false;
             _config.version = 5;
+        case 5:
+            batteryCfg->lowAdc = 9658;
+            batteryCfg->criticalAdc = 8869;
+            batteryCfg->voltageFactor = 27850;
+            _config.version = 6;
+        case 6:
+            miscCfg->watchdogSeconds = 10;
+            if (batteryCfg->voltageFactor == 67690) //Fix for wrong value in previous CFW
+                batteryCfg->voltageFactor = 27850;
+            _config.version = 7;
             write();
             break;
         default:
@@ -147,11 +157,12 @@ bool BoxConfig::setFromJson(String json) {
 void BoxConfig::_initializeConfig() { 
     _config.version = CONFIG_ACTIVE_VERSION;
 
+    //(4936,0258+0x59)/(10000/0x663d) = adc
+    //(10000/0x663d)×13152−0x59 = v-OFW
     ConfigBattery* battery = &_config.battery;
-    battery->voltageFactor = 67690;
-    battery->voltageChargerFactor = 71907;
-    battery->lowAdc = 2500;
-    battery->criticalAdc = 2400;
+    battery->voltageFactor = 27850;
+    battery->lowAdc = 9658; //OFW 0xE11 (9657,837)
+    battery->criticalAdc = 8869; //OFW 0xCE3/0xCE4 (8867,4124/8870,0297)
     battery->sleepMinutes = 15;
 
     ConfigButtonEars* buttons = &_config.buttonEars;
@@ -173,4 +184,5 @@ void BoxConfig::_initializeConfig() {
     ConfigMisc* misc = &_config.misc;
     misc->autodump = false;
     misc->swd = false;
+    misc->watchdogSeconds = 10;
 }
