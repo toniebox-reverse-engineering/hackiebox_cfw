@@ -21,13 +21,18 @@ class BoxAccelerometer : public EnhancedThread {
             EARS_DOWN2 = 0x4
         };
         enum class TapOn {
-            NONE = 0x0,
-            LEFT = 0x1,
-            RIGHT = 0x2, //17,34,68 - 34
-            FRONT = 0x3, //16, 17
-            BACK = 0x4,
-            TOP = 0x5, //16,32,64,68,24 - 16
-            BOTTOM = 0x6 //17
+            NONE = 0x00,
+            LEFT = 0x01,
+            RIGHT = 0x02, //17,34,68 - 34
+            FRONT = 0x04, //16, 17
+            BACK = 0x08,
+            TOP = 0x10, //16,32,64,68,24 - 16
+            BOTTOM = 0x20, //17
+
+            LEFT_FRONT = LEFT + FRONT,
+            RIGHT_FRONT = RIGHT + FRONT,
+            LEFT_BACK = LEFT + BACK,
+            RIGHT_BACK = RIGHT + BACK
         };
 
         void

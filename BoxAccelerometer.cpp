@@ -14,21 +14,21 @@ void BoxAccelerometer::begin() {
     _accel.setupPL();
 
     
-    _accel.writeRegister(CTRL_REG1, 0x02); //Original 0x02
-    _accel.writeRegister(XYZ_DATA_CFG, 0x02); //Original 0x02
-    _accel.writeRegister(CTRL_REG2, 0x00); //Original 0x00
+    _accel.writeRegister(CTRL_REG1, 0x02); //Original 0x02 //F_READ
+    _accel.writeRegister(XYZ_DATA_CFG, 0x02); //Original 0x02 //FS1
+    _accel.writeRegister(CTRL_REG2, 0x00); //Original 0x00 //Standby
     _accel.writeRegister(F_SETUP, 0x00); //Original 0x00
-    _accel.writeRegister(TRIG_CFG, 0x08); //Original 0x08
-    _accel.writeRegister(PULSE_CFG, 0x54); //Original 0x54
+    _accel.writeRegister(TRIG_CFG, 0x08); //Original 0x08 //Trig_PULSE/ZSPEFE/ELE
+    _accel.writeRegister(PULSE_CFG, 0x54); //Original 0x54 //YSPEFE
     _accel.setupTap(0x1B, 0x3F, 0x3F); //Original 0x1B, 0x3F, 0x3F
-    _accel.writeRegister(PULSE_TMLT, 0x28); //Original 0x28
-    _accel.writeRegister(PULSE_LTCY, 0x7F); //Original 0x7F
-    _accel.writeRegister(HP_FILTER_CUTOFF, 0x10); //Original 0x10
+    _accel.writeRegister(PULSE_TMLT, 0x28); //Original 0x28 //TMLT3/TMLT5
+    _accel.writeRegister(PULSE_LTCY, 0x7F); //Original 0x7F //LTCY6/LTCY5/LTCY4/LTCY3/LTCY2/LTCY1/LTCY0
+    _accel.writeRegister(HP_FILTER_CUTOFF, 0x10); //Original 0x10 //Pulse_LPF_EN
 
-    _accel.writeRegister(CTRL_REG3, 0x12); //Original 0x12
-    _accel.writeRegister(CTRL_REG4, 0x40); //Original 0x40
-    _accel.writeRegister(CTRL_REG5, 0x40); //Original 0x40
-    _accel.writeRegister(CTRL_REG1, 0x03); //Original 0x03
+    _accel.writeRegister(CTRL_REG3, 0x12); //Original 0x12 //WAKE_PULSE/IPOL
+    _accel.writeRegister(CTRL_REG4, 0x40); //Original 0x40 //INT_EN_FIFO
+    _accel.writeRegister(CTRL_REG5, 0x40); //Original 0x40 //INT_CFG_FIFO INT1
+    _accel.writeRegister(CTRL_REG1, 0x03); //Original 0x03 //F_READ/ACTIVE
 
     Log.info("...done");
 }
@@ -51,13 +51,13 @@ void BoxAccelerometer::loop() {
 
         uint8_t tap = _accel.readTap();
         if (tap) {
-            bool AxZ  = tap&0b1000000; //event on axis
-            bool AxY  = tap&0b0100000;
-            bool AxX  = tap&0b0010000;
-            //bool DPE  = tap&0b0001000; //double
-            bool PolZ = tap&0b0000100; //0=positive 1=negative
-            bool PolY = tap&0b0000010;
-            bool PolX = tap&0b0000001;
+            bool AxZ  = (tap&0b1000000)>0; //event on axis
+            bool AxY  = (tap&0b0100000)>0;
+            bool AxX  = (tap&0b0010000)>0;
+            //bool DPE  = (tap&0b0001000)>0; //double
+            bool PolZ = !((tap&0b0000100)>0); //0=positive 1=negative
+            bool PolY = !((tap&0b0000010)>0);
+            bool PolX = !((tap&0b0000001)>0);
 
             //X+ = box bottom
             //X- = box top
@@ -80,22 +80,85 @@ void BoxAccelerometer::loop() {
             if (AxY && AxZ) {
                 if (PolY && PolZ) {
                     tapOn = TapOn::BACK;
-                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 2);
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
                 } else if (!PolY && !PolZ) {
                     tapOn = TapOn::FRONT;
-                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Violet, 2);
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Violet, 3);
                 } else if (PolY && !PolZ) {
                     tapOn = TapOn::LEFT;
-                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 2);
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
                 } else if (!PolY && PolZ) {
                     tapOn = TapOn::RIGHT;
-                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::GreenYellow, 2);
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::GreenYellow, 3);
+                }
+            } else if (AxY) {
+                if (PolY) {
+                    tapOn = TapOn::LEFT_BACK;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Blue, 3);
+                } else {
+                    tapOn = TapOn::LEFT_FRONT;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Violet, 3);
+                }
+            } else if (AxZ) {
+                if (PolZ) {
+                    tapOn = TapOn::RIGHT_BACK;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::Green, 3);
+                } else {
+                    tapOn = TapOn::RIGHT_FRONT;
+                    Box.boxLEDs.setActiveAnimationByIteration(BoxLEDs::ANIMATION_TYPE::BLINK, BoxLEDs::CRGB::GreenYellow, 3);
                 }
             }
 
-            Log.verbose("Tap recieved %B, direction %X", tap, tapOn);
-
+            Log.disableNewline(true);
+            Log.verbose("Tap recieved %B, direction=%X, ", tap, tapOn);
+            Log.disableNewline(false);
+            switch (tapOn)
+            {
+            case TapOn::LEFT:
+                Log.printfln("LEFT");
+                break;
             
+            case TapOn::RIGHT:
+                Log.printfln("RIGHT");
+                break;
+            
+            case TapOn::FRONT:
+                Log.printfln("FRONT");
+                break;
+            
+            case TapOn::BACK:
+                Log.printfln("BACK");
+                break;
+            
+            case TapOn::TOP:
+                Log.printfln("TOP");
+                break;
+            
+            case TapOn::BOTTOM:
+                Log.printfln("BOTTOM");
+                break;
+
+            case TapOn::LEFT_FRONT:
+                Log.printfln("LEFT_FRONT");
+                break;
+            
+            case TapOn::RIGHT_FRONT:
+                Log.printfln("RIGHT_FRONT");
+                break;
+            
+            case TapOn::LEFT_BACK:
+                Log.printfln("LEFT_BACK");
+                break;
+            
+            case TapOn::RIGHT_BACK:
+                Log.printfln("RIGHT_BACK");
+                break;
+            
+            default:
+                break;
+                Log.printfln("OTHER");
+            }
+
         }
         
     }
