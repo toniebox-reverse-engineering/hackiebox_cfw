@@ -27,7 +27,18 @@ The custom bootloader is fully functional. The hackiebox custom firmware itself 
 - [Overcome limited include path of Energia](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/11)
 - [Set up buildchain without Energia / micropython dependencies](https://github.com/toniebox-reverse-engineering/hackiebox_cfw/issues/13)
 ### Known bugs
-- WiFi configuration is cleared and replaced with the credentials from the json config
+- WiFi configuration is cleared and replaced with the credentials from the json config## Installation
+### Preface
+It is recommended to have a second copy of the cfw to be able to load the working image and update a broken cfw image over your backup cfw.
+### Copy to sd
+First of all you need to create "/revvox/web" on your sd card (subdir revvox should be already there if you have successfully installed the sd bootloader) and copy over the content of the /web/ directory of this repository. The same applies to the "/revvox/audio" directory for WAV-playback during the battery test. In addition you have to copy your cfw image to your selected slot(s) on the sd card. (ex. "/revvox/boot/ng-cfw1.bin")
+### First boot
+Reinsert the sd card and run the cfw once. Then shutdown the box again (put the box onto the front where the speaker/tonie logo is and press both ears for 10s). Then remove the sd card again and add your wifi credentials to the created "/revvox/hackiebox.config.json" config file. 
+## Firmware updates
+To update the firmware ota you can just use the hackiebox website und the box' ip address. (Expert->File Upload).
+## Additional information for developers
+Keep in mind that connecting the RX Pin of the box to a serial interface blocks the big ear. For reading the log messages it is enough to have the TX Pin only connected (beside GND). 
+In general there is something wrong with the firmware. If you start to refactor the firmware or make bigger changes, it may crash on startup. The reason is currently unknown. Could be a linker problem or some kind of overflow.
 
 ## Compiling
 ### Preface
@@ -53,15 +64,4 @@ The folder with the boards packages are located at:
 [ESP8266SAM](https://github.com/toniebox-reverse-engineering/ESP8266SAM)
 ### Build
 Open hackiebox_cfw.ino with energia and build the cfw. Remember the path where the hackiebox.ino.bin is saved. Usally you find it at `C:\Users\<User>\AppData\Local\Temp\arduino_build_XXXXXX`.
-## Installation
-### Preface
-It is recommended to have a second copy of the cfw to be able to load the working image and update a broken cfw image over your backup cfw.
-### Copy to sd
-First of all you need to create "/revvox/web" on your sd card (subdir revvox should be already there if you have successfully installed the sd bootloader) and copy over the content of the /web/ directory of this repository. The same applies to the "/revvox/audio" directory for WAV-playback during the battery test. In addition you have to copy your cfw image to your selected slot(s) on the sd card. (ex. "/revvox/boot/pre-img1.bin")
-### First boot
-Reinsert the sd card and run the cfw once. Then shutdown the box again (put the box onto the front where the speaker/tonie logo is and press both ears for 10s). Then remove the sd card again and add your wifi credentials to the created "/revvox/hackiebox.config.json" config file. 
-## Firmware updates
-To update the firmware ota you can just use the hackiebox website und the box' ip address. (Expert->File Upload).
-## Additional information for developers
-Keep in mind that connecting the RX Pin of the box to a serial interface blocks the big ear. For reading the log messages it is enough to have the TX Pin only connected (beside GND). 
-In general there is something wrong with the firmware. If you start to refactor the firmware or make bigger changes, it may crash on startup. The reason is currently unknown. Could be a linker problem or some kind of overflow.
+
