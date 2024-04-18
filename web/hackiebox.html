@@ -1,156 +1,129 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <!-- Bootstrap Table CSS-->
+  <!-- Bootstrap Table CSS-->
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css" integrity="sha384-stUTdwV9AgSXI+zB6SWTZSIq0SP1EKWXA/H6rWp1hNmSwvjkuFCwPhqcA01KnlWS" crossorigin="anonymous">
 
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-switch@3.4.0/dist/css/bootstrap3/bootstrap-switch.css" integrity="sha384-Wg1u8Kclt9oq0YZoQpkNL8aE9jWVU205nvS5LwJ4MZ3BgvZki5FkD+egd0luNjHV" crossorigin="anonymous">
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.7.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
-    
+
     <title>Hackiebox Custom Firmware by Team RevvoX</title>
 
-    <style>
-      /* Show it is fixed to the top */
-      #body-div {
-        min-height: 75rem;
-        padding-top: 56px;
-      }
-      #main {
-        padding-top: 10px;
-      }
+  <style>
+    /* Show it is fixed to the top */
+    #body-div {
+      min-height: 75rem;
+      padding-top: 56px;
+    }
 
-      .nav-scroller {
-        position: relative;
-        z-index: 2;
-        height: 2.75rem;
-        overflow-y: hidden;
-      }
+    #main {
+      padding-top: 10px;
+    }
 
-      .nav-scroller .nav {
-        display: -ms-flexbox;
-        display: flex;
-        -ms-flex-wrap: nowrap;
-        flex-wrap: nowrap;
-        padding-bottom: 1rem;
-        margin-top: -1px;
-        overflow-x: auto;
-        color: rgba(255, 255, 255, .75);
-        text-align: center;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-      }
-      .nav-underline .nav-link {
-        padding-top: .75rem;
-        padding-bottom: .75rem;
-        font-size: .875rem;
-        color: #6c757d;
-      }
+    .nav-scroller {
+      position: relative;
+      z-index: 2;
+      height: 2.75rem;
+      overflow-y: hidden;
+    }
 
-      .nav-underline .nav-link:hover {
-        color: #007bff;
-      }
+    .nav-scroller .nav {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      padding-bottom: 1rem;
+      margin-top: -1px;
+      overflow-x: auto;
+      color: rgba(255, 255, 255, .75);
+      text-align: center;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
 
-      .nav-underline .active {
-        font-weight: 500;
-        color: #343a40;
-      }
+    .nav-underline .nav-link {
+      padding-top: .75rem;
+      padding-bottom: .75rem;
+      font-size: .875rem;
+      color: #6c757d;
+    }
+
+    .nav-underline .nav-link:hover {
+      color: #007bff;
+    }
+
+    .nav-underline .active {
+      font-weight: 500;
+      color: #343a40;
+    }
 
       .text-white-50 { color: rgba(255, 255, 255, .5); }
 
-      .bg-purple { background-color: #6f42c1; }
-    </style>
-  </head>
-  <body>
-    <div id="loading-div">
+    .bg-purple {
+      background-color: #6f42c1;
+    }
+
+    @keyframes spin {
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading-div">
       LOADING...
-    </div>
-    <div id="body-div" style="display:none;">
-      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="#" onclick="site.loadPage('home'); return false;">Hackiebox CFW by RevvoX</a>
+  </div>
+  <div id="body-div" style="display:none;">
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="#" onclick="site.loadPage('home'); return false;">Hackiebox CFW by RevvoX</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-          <ul id="mainMenu" class="navbar-nav mr-auto">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul id="mainMenu" class="navbar-nav mr-auto">
           <li class="nav-item">
             <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true"></a>
           </li>
-          </ul>
-          <form class="form-inline mt-2 mt-md-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search" data-kpxc-id="kpxcpw342845639">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form>
-        </div>
-      </nav>
-      <div id="submenu" class="nav-scroller bg-white shadow-sm">
-        <div id="submenu-settings">
-          <nav class="nav nav-underline">
-            <a class="nav-link active" href="#">Dashboard</a>
-            <a class="nav-link" href="#">
-              Friends
-              <span class="badge badge-pill bg-light align-text-bottom">27</span>
-            </a>
-            <a class="nav-link" href="#">Explore</a>
-            <a class="nav-link" href="#">Suggestions</a>
-          </nav>
+        </ul>
+      </div>
+      <span class="navbar-text d-none d-md-inline" id="domainPort"></span>
+    </nav>
+    <div id="submenu" class="nav-scroller bg-white shadow-sm">
+      <div id="submenu-settings">
+        <nav class="nav nav-underline">
+          <a class="nav-link active" href="#">Dashboard</a>
+          <a class="nav-link" href="#">
+            Friends
+            <span class="badge badge-pill bg-light align-text-bottom">27</span>
+          </a>
+          <a class="nav-link" href="#">Explore</a>
+          <a class="nav-link" href="#">Suggestions</a>
+        </nav>
+      </div>
+    </div>
+
+
+    <main id="main" role="main" class="" style="padding-left: 10px; padding-right: 10px;">
+      <div id="main-home">
+        <div class="jumbotron">
+          <h1>Home</h1>
+            <p class="lead">This example is a quick exercise to illustrate how fixed to top navbar works. As you scroll, it will remain fixed to the top of your browser’s viewport.</p>
+          <a class="btn btn-lg btn-primary" href="/docs/4.4/components/navbar/" role="button">View navbar docs »</a>
         </div>
       </div>
-      
-      
-      <main id="main" role="main" class="" style="padding-left: 10px; padding-right: 10px;">
-        <div id="main-home">
-          <div class="jumbotron">
-            <h1>Home</h1>
-            <p class="lead">This example is a quick exercise to illustrate how fixed to top navbar works. As you scroll, it will remain fixed to the top of your browser’s viewport.</p>
-            <a class="btn btn-lg btn-primary" href="/docs/4.4/components/navbar/" role="button">View navbar docs »</a>
-          </div>
-        </div>
-        <div id="main-settings">
-          <h1>Settings</h1>
-          <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
-            <img class="mr-3" src="/docs/4.4/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48"/>
-            <div class="lh-100">
-              <h6 class="mb-0 text-white lh-100">Bootstrap</h6>
-              <small>Since 2011</small>
-            </div>
-          </div>
-          <div class="my-3 p-3 bg-white rounded shadow-sm">
-            <h6 class="border-bottom border-gray pb-2 mb-0">Recent updates</h6>
-            <div class="media text-muted pt-3">
-              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff" dy=".3em">32x32</text></svg>
-              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                <strong class="d-block text-gray-dark">@username</strong>
-                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
-              </p>
-            </div>
-            <div class="media text-muted pt-3">
-              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#e83e8c"></rect><text x="50%" y="50%" fill="#e83e8c" dy=".3em">32x32</text></svg>
-              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                <strong class="d-block text-gray-dark">@username</strong>
-                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
-              </p>
-            </div>
-            <div class="media text-muted pt-3">
-              <svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 32x32"><title>Placeholder</title><rect width="100%" height="100%" fill="#6f42c1"></rect><text x="50%" y="50%" fill="#6f42c1" dy=".3em">32x32</text></svg>
-              <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                <strong class="d-block text-gray-dark">@username</strong>
-                Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
-              </p>
-            </div>
-            <small class="d-block text-right mt-3">
-              <a href="#">All updates</a>
-            </small>
-          </div>
-        </div>
-        <div id="main-content" class="w-100">
-          <h1>Content</h1>
+      <div id="main-content" class="w-100">
+        <h1>Content</h1>
           <table class="table" id="table-content"
             data-search="true"
             data-pagination="true"
@@ -161,232 +134,236 @@
             data-show-columns-toggle-all="true"
             data-show-toggle="true"
             data-mobile-responsive="true"
-            data-check-on-init="true"
+          data-check-on-init="true"
             data-sort-priority='[{"sortName": "language","sortOrder":"asc"},{"sortName":"no","sortOrder":"asc"}]'
             >
-            <thead>
-              <tr>
-                <th data-field="language" data-sortable="true">Lang.</th>
-                <th data-field="no" data-sortable="true">#</th>
-                <th data-field="model" data-sortable="true">Model No</th>
-                <th data-field="pic" data-field="image" data-formatter="imageFormatter">Picture</th>
-                <th data-field="audio_id" data-sortable="true">Audio ID</th>
-                <th data-field="title" data-sortable="true">Title</th>
-                <th data-field="series" data-sortable="true">Series</th>
-                <th data-field="episodes" data-sortable="true" data-visible="false">Episodes</th>
-                <th data-field="tracks" data-sortable="true" data-visible="false">Tracks</th>
-                <th data-field="category" data-sortable="true">Category</th>
+          <thead>
+            <tr>
+              <th data-field="language" data-sortable="true">Lang.</th>
+              <th data-field="no" data-sortable="true">#</th>
+              <th data-field="model" data-sortable="true">Model No</th>
+              <th data-field="pic" data-field="image" data-formatter="imageFormatter">Picture</th>
+              <th data-field="audio_id" data-sortable="true">Audio ID</th>
+              <th data-field="title" data-sortable="true">Title</th>
+              <th data-field="series" data-sortable="true">Series</th>
+              <th data-field="episodes" data-sortable="true" data-visible="false">Episodes</th>
+              <th data-field="tracks" data-sortable="true" data-visible="false">Tracks</th>
+              <th data-field="category" data-sortable="true">Category</th>
 
-                <th scope="col">Location/UID</th>
-              </tr>
-            </thead>
-          </table>
+              <th scope="col">Location/UID</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div id="main-filelist" class="w-100">
+        <h1>Filelist</h1>
+        <div id="filemanager" style="height: 70vh; max-height: 400px; position: relative;"></div>
+      </div>
+      <div id="main-boxtests">
+        <h1>Box Tests</h1>
+        <div>
+          <h2>Power</h2>
+          <p>
+            <input type="checkbox" name="test-check-power-sd"> SD
+          </p>
+          <p>
+            <input type="checkbox" name="test-check-power-main"> Audio, Accelerometer, RFID, LED Blue / Red?
+          </p>
         </div>
-        <div id="main-boxtests">
-          <h1>Box Tests</h1>
-          <div>
-            <h2>Power</h2>
-            <p>
-              <input type="checkbox" name="test-check-power-sd"> SD
-            </p>
-            <p>
-              <input type="checkbox" name="test-check-power-main"> Audio, Accelerometer, RFID, LED Blue / Red?
-            </p>
-          </div>
-          <div>
-            <h2>Ears</h2>
-            <p>
-              <input type="checkbox" name="test-check-ear-small" disabled="disabled"> Small ear
-              <input type="checkbox" name="test-check-ear-big" disabled="disabled"> Big ear
-            </p>
-          </div>
-          <div>
-            <h2>Accelerometer</h2>
-            <p>
-              x, y, z
-              tap events
-            </p>
-          </div>
-          <div>
-            <h2>RFID</h2>
-            <p>
-              UID, Set Privacy, Reveal Privacy
-            </p>
-          </div>
-          <div>
-            <h2>SD</h2>
-            <p>
-              List files
-            </p>
-          </div>
-          <div>
-            <h2>LEDs</h2>
-            <p>
-              <input type="checkbox" name="test-check-led-red"> Red
-              <input type="checkbox" name="test-check-led-green"> Green
-              <input type="checkbox" name="test-check-led-blue"> Blue
-            </p>
-          </div>
-          <div>
-            <h2>WiFi</h2>
-            <p>
-              
-            </p>
-          </div>
-          <div>
-            <h2>Battery</h2>
-            <p>
-              <input type="checkbox" name="test-check-battery-charger" disabled="disabled"> Charging
-            </p>
-            <p>
-              VAL
-            </p>
-          </div>
-          <div>
-            <h2>Serial</h2>
-          </div>
+        <div>
+          <h2>Ears</h2>
+          <p>
+            <input type="checkbox" name="test-check-ear-small" disabled="disabled"> Small ear
+            <input type="checkbox" name="test-check-ear-big" disabled="disabled"> Big ear
+          </p>
         </div>
-        <div id="main-fileupload">
-          <h1>File Upload</h1>
+        <div>
+          <h2>Accelerometer</h2>
+          <p>
+            x, y, z
+            tap events
+          </p>
+        </div>
+        <div>
+          <h2>RFID</h2>
+          <p>
+            UID, Set Privacy, Reveal Privacy
+          </p>
+        </div>
+        <div>
+          <h2>SD</h2>
+          <p>
+            List files
+          </p>
+        </div>
+        <div>
+          <h2>LEDs</h2>
+          <p>
+            <input type="checkbox" name="test-check-led-red"> Red
+            <input type="checkbox" name="test-check-led-green"> Green
+            <input type="checkbox" name="test-check-led-blue"> Blue
+          </p>
+        </div>
+        <div>
+          <h2>WiFi</h2>
+          <p>
+
+          </p>
+        </div>
+        <div>
+          <h2>Battery</h2>
+          <p>
+            <input type="checkbox" name="test-check-battery-charger" disabled="disabled"> Charging
+          </p>
+          <p>
+            VAL
+          </p>
+        </div>
+        <div>
+          <h2>Serial</h2>
+        </div>
+      </div>
+      <div id="main-fileupload">
+        <h1>File Upload</h1>
           <form id="uploadFile" method="post" enctype="multipart/form-data" onsubmit="submitOverlayPost(event, '/api/upload/');">
-            <div class="form-group">
-              <label for="file">Target</label>
-              <select id="uploadTarget" class="form-control" aria-label="Default select example">
-                <option value="file">SD</option>
-                <option value="flash-file">Flash</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="file">Local file</label>
+          <div class="form-group">
+            <label for="file">Target</label>
+            <select id="uploadTarget" class="form-control" aria-label="Default select example">
+              <option value="file">SD</option>
+              <option value="flash-file">Flash</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="file">Local file</label>
               <input id="file" name="file" type="file" size="50" accept="*/*" class="form-control" onchange="setFilesize();"> 
-            </div>
-            <div class="form-group">
-              <label for="file">Overwrite</label></br>
-              <input name="overwrite" type="checkbox" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="filepath">SD/Flash path</label>
-              <input name="filepath" type="text" class="form-control">
-            </div>
-            <div class="form-group">
-              <input id="filesize" name="filesize" type="hidden" value="0">
-              <input type="submit" value="Upload" class="form-control">
-            </div>
-          </form>
-        </div>
-        <div id="main-console">
-          <h1>Console</h1>
-          <div style="padding: 10px; background-color: black;">
-            <div id="xtermjs"></div>
           </div>
+          <div class="form-group">
+            <label for="file">Overwrite</label></br>
+            <input name="overwrite" type="checkbox" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="filepath">SD/Flash path</label>
+            <input name="filepath" type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <input id="filesize" name="filesize" type="hidden" value="0">
+            <input type="submit" value="Upload" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div id="main-console">
+        <h1>Console</h1>
+        <div style="padding: 10px; background-color: black;">
+          <div id="xtermjs"></div>
         </div>
-        <div id="main-about">
-          <div class="jumbotron">
-            <h1>About</h1>
-            <p class="lead">Hackiebox Custom Firmware {version} by Team RevvoX</p>
-            <p class="">Build date: {build-date}</p>
+      </div>
+      <div id="main-about">
+        <div class="jumbotron">
+          <h1>About</h1>
+          <p class="lead">Hackiebox Custom Firmware {version} by Team RevvoX</p>
+          <p class="">Build date: {build-date}</p>
             <p class=""><a href="https://github.com/toniebox-reverse-engineering" target="_blank">Toniebox Reverse Engineering GitHub</a></p>
-          </div>
-          <h2>Team RevvoX</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Member</th>
-                <th scope="col">Scope</th>
-                <th scope="col">Personal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>g3gg0</td>
-                <td>Reversing Toniebox software + Tonie RFID / audio files, teddy Dev</td>
-                <td><a href="https://www.g3gg0.de/wordpress/" target="_blank">g3gg0's hobby hacking blog</a></td>
-              </tr>
-              <tr>
-                <td>Gambrius</td>
-                <td>Reversing Tonie RFID / audio files / tonies.json</td>
-                <td><a href="http://gt-blog.de/" target="_blank">Gambrius Tech Blog</a></td>
-              </tr>
-              <tr>
-                <td>Honeybee</td>
-                <td>Reversing Toniebox hardware, Hackiebox CFW Dev</td>
-                <td>summsisumm</td>
-              </tr>
-              <tr>
-                <td>moritz</td>
-                <td>Reversing Toniebox hardware / schematics</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-          <h2>Credits</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Scope</th>
-                <th scope="col">Personal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Boxine</td>
-                <td>For creating such a small cute box to tinker with!</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Wolfgang</td>
-                <td>Support Audio/RFID implementation Hackiebox CFW</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Michael</td>
-                <td>Sharing self created schematics of the box to improve our pcb documentation</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Daniel Campora</td>
-                <td>Creating the cc3200 port of micropython</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Kiril Zyapkov from ALLTERCO</td>
-                <td>Creating the cc3200tool</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>bluenazgul</td>
-                <td>Testing</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>daniel</td>
-                <td>Hackiebox CFW Dev</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>spacehuhn</td>
-                <td>Creating SimpleCLI</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Earle F. Philhower, III</td>
-                <td>ESP8266 Audio library with SAM port.</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Telegram Toniebox Hacking Community</td>
-                <td>THX2YOU</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-      </main>
-    </div>
+        <h2>Team RevvoX</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Member</th>
+              <th scope="col">Scope</th>
+              <th scope="col">Personal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>g3gg0</td>
+              <td>Reversing Toniebox software + Tonie RFID / audio files, teddy Dev</td>
+              <td><a href="https://www.g3gg0.de/wordpress/" target="_blank">g3gg0's hobby hacking blog</a></td>
+            </tr>
+            <tr>
+              <td>Gambrius</td>
+              <td>Reversing Tonie RFID / audio files / tonies.json</td>
+              <td><a href="http://gt-blog.de/" target="_blank">Gambrius Tech Blog</a></td>
+            </tr>
+            <tr>
+              <td>Honeybee</td>
+              <td>Reversing Toniebox hardware, Hackiebox CFW Dev</td>
+              <td>summsisumm</td>
+            </tr>
+            <tr>
+              <td>moritz</td>
+              <td>Reversing Toniebox hardware / schematics</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <h2>Credits</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Scope</th>
+              <th scope="col">Personal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Boxine</td>
+              <td>For creating such a small cute box to tinker with!</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Wolfgang</td>
+              <td>Support Audio/RFID implementation Hackiebox CFW</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Michael</td>
+              <td>Sharing self created schematics of the box to improve our pcb documentation</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Daniel Campora</td>
+              <td>Creating the cc3200 port of micropython</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Kiril Zyapkov from ALLTERCO</td>
+              <td>Creating the cc3200tool</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>bluenazgul</td>
+              <td>Testing</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>daniel</td>
+              <td>Hackiebox CFW Dev</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>spacehuhn</td>
+              <td>Creating SimpleCLI</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Earle F. Philhower, III</td>
+              <td>ESP8266 Audio library with SAM port.</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Telegram Toniebox Hacking Community</td>
+              <td>THX2YOU</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
@@ -394,313 +371,411 @@
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js" integrity="sha384-W/LH8RGi1CAONGTnvEB4NWjQ6p4GE6qGHSFZUOalxWWwyvcIr8btqBmjvMSBs+HT" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/multiple-sort/bootstrap-table-multiple-sort.js" integrity="sha384-MgH1FlFbvyjPxrvMK/Fr+KL+cd0ck0HW5IHjdh+o3jItnQ+3BV87gxPFNxz5xwbs" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/mobile/bootstrap-table-mobile.min.js" integrity="sha384-LOjwcKPHMdZtBozkXFs5WKUKTc3uH13dd0rly8aXMpwVx5i1wc14svJdyJVWiS8G" crossorigin="anonymous"></script>
-    
+
     <script src="https://unpkg.com/bootstrap-switch@3.4.0/dist/js/bootstrap-switch.js" integrity="sha384-q3sTGLJpoYQ878rzOOulCOOPuCgPNS+mTduIHtCHtBFILPoptsW7Bk716ckhZlMt" crossorigin="anonymous"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/xterm@4.7.0/lib/xterm.js" integrity="sha256-5UsA6dt/gD3hmMmEMSJ+o0Zi0gTXk7OzVaQGQUuxXpU=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.4.0/lib/xterm-addon-fit.js" integrity="sha256-tz+EctGh0/ncEhZZNAq5oLZlPJUDVGe849gA44c/zX0=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm@4.7.0/lib/xterm.js"
+    integrity="sha256-5UsA6dt/gD3hmMmEMSJ+o0Zi0gTXk7OzVaQGQUuxXpU=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.4.0/lib/xterm-addon-fit.js"
+    integrity="sha256-tz+EctGh0/ncEhZZNAq5oLZlPJUDVGe849gA44c/zX0=" crossorigin="anonymous"></script>
 
-    <script src="local-echo.js"></script>
+  <link rel="stylesheet" type="text/css" href="file-explorer/file-explorer.css">
+  <script type="text/javascript" src="file-explorer/file-explorer.js"></script>
 
-    <script>
-      class Site {
-        constructor(page = null) {
-          this._params = new URLSearchParams(window.location.search);
-          this._mainMenu = new MainMenu();
-          this._contentPage = new ContentPage();
-          this._server = this._params.get("server");
-          this._console = new WebConsole(this);
+  <script src="local-echo.js"></script>
+
+  <script>
+    class Site {
+      constructor(page = null) {
+        this._params = new URLSearchParams(window.location.search);
+        this._mainMenu = new MainMenu(this);
+        this._contentPage = new ContentPage();
+        this._server = this._params.get("server");
+        this._console = new WebConsole(this);
           this._initSse();
 
-          $("input[type='checkbox']").bootstrapSwitch();
+        $("input[type='checkbox']").bootstrapSwitch();
 
-          if (page == null) {
-            this.loadPage(this._params.get("page"));
-          } else {
-            this.loadPage(page);
-          }
-        }
-        loadPage(page) {
-          this._loading(true);
-          switch (page) {
-            case "content":
-              this._contentPage.generatePage();
-              break;
-            case "console":
-            case "settings":
-            case "help":
-            case "boxtests":
-            case "fileupload":
-            case "about":
-
-              break;
-            default:
-              page = "home";
-              break;
-          }
-
-          $("#main").children().hide();
-          $("#submenu").children().hide();
-          $("#submenu").hide();
-
-          $("#navbarCollapse ul").children().removeClass("active");
-          $("#nav-page-" + page).addClass("active");
-
-          $("#main-" + page).show();
-
-          if (this._mainMenu.hasSubMenu(page)) {
-            $("#submenu").show();
-            $("#submenu-" + page).show();
-          }
-
-          this._page = page;
-          this._loading(false);
-
-          switch (page) {
-            case "console":
-              this._console.open();
-              break;
-          }
-        }
-        _loading(isLoading) {
-          if (isLoading) {
-            $("#loading-div").show();
-            $("#body-div").hide();
-          } else {
-            $("#loading-div").hide();
-            $("#body-div").show();
-          }
-        }
-        getDomainPort() {
-          if (this._server == null || this._server == "")
-            return location.hostname+(location.port ? ':'+location.port: '');
-          return this._server;
-        }
-        _initSse() {
-          var that = this;
-          $.get("http://"+this.getDomainPort()+"/api/sse/sub", function(data) {
-            if (data == "MAX_CLIENTS") {
-              alert(data);
-            } else {
-              that._sseEventSource = new EventSource("http://"+that.getDomainPort()+data);
-              that._sseEventSource.addEventListener('message', function(e) {
-                var data = JSON.parse(e.data);
-                switch (data.type) {
-                  case "keep-alive":
-                    //IGNORE
-                    break;
-                
-                  default:
-                    break;
-                }
-              }, false);
-            }
-          })
-          .fail(function() {
-            alert( "sse sub error" );
-          });
+        if (page == null) {
+          this.loadPage(this._params.get("page"));
+        } else {
+          this.loadPage(page);
         }
       }
-      class ContentPage {
-        constructor() {
-          this._source = "http://gt-blog.de/JSON/tonies_json.php?source=cfw";
-          this._data = null;
+      loadPage(page) {
+        this._loading(true);
+        switch (page) {
+          case "console":
+          case "help":
+          case "boxtests":
+          case "fileupload":
+          case "about":
+
+            break;
+          case "content":
+            this._contentPage.generatePage();
+            break;
+          case "filelist":
+            break;
+          default:
+            page = "fileupload";
+            break;
         }
-        _downloadData(async = true) {
-          var tmpData;
-          $.ajax({ dataType: "json", url: this._source, async: async, data: this._data, success: function( data ) {
+
+        $("#main").children().hide();
+        $("#submenu").children().hide();
+        $("#submenu").hide();
+
+        $("#navbarCollapse ul").children().removeClass("active");
+        $("#nav-page-" + page).addClass("active");
+
+        $("#main-" + page).show();
+
+        if (this._mainMenu.hasSubMenu(page)) {
+          $("#submenu").show();
+          $("#submenu-" + page).show();
+        }
+
+        this._page = page;
+        this._loading(false);
+
+        switch (page) {
+          case "console":
+            this._console.open();
+            break;
+        }
+      }
+      _loading(isLoading) {
+        if (isLoading) {
+          $("#loading-div").show();
+          $("#body-div").hide();
+        } else {
+          $("#loading-div").hide();
+          $("#body-div").show();
+        }
+      }
+      getDomainPort() {
+        if (this._server == null || this._server == "")
+          return location.hostname + (location.port ? ':' + location.port : '');
+        return this._server;
+      }
+      _initSse() {
+        var that = this;
+        $.get("http://" + this.getDomainPort() + "/api/sse/sub", function (data) {
+          if (data == "MAX_CLIENTS") {
+            alert(data);
+          } else {
+            that._sseEventSource = new EventSource("http://" + that.getDomainPort() + data);
+            that._sseEventSource.addEventListener('message', function (e) {
+              var data = JSON.parse(e.data);
+              switch (data.type) {
+                case "keep-alive":
+                  //IGNORE
+                  break;
+
+                default:
+                  break;
+              }
+            }, false);
+          }
+        })
+          .fail(function () {
+            alert("sse sub error");
+          });
+      }
+    }
+    class ContentPage {
+      constructor() {
+        this._source = "http://gt-blog.de/JSON/tonies_json.php?source=cfw";
+        this._data = null;
+      }
+      _downloadData(async = true) {
+        var tmpData;
+        $.ajax({
+          dataType: "json", url: this._source, async: async, data: this._data, success: function (data) {
             //TODO: htmlencode everything to prevent xss
             tmpData = data;
-          }});
-          this._data = tmpData;
-        }
-        _getData() {
-          if (this._data == null) 
-            this._downloadData(false);
-          return this._data;
-        }
-        generatePage() {
-          let data = this._getData();
-          let tab = $('#table-content')
-          tab.bootstrapTable({data: data});
-
-          /*data.forEach(entry => {
-            
-          });*/
-        }
+          }
+        });
+        this._data = tmpData;
       }
-      class MainMenu {
-        constructor() {
-          this._setEntries();
-        }
-        hasSubMenu(page) {
-          var retVal = false;
-          this._entries.forEach(entry => {
-            let subentries = entry["sub"];
-            if (entry["id"] == page && entry["submenu"]) {
-              retVal = true;
-              return;
-            }
+      _getData() {
+        if (this._data == null)
+          this._downloadData(false);
+        return this._data;
+      }
+      generatePage() {
+        let data = this._getData();
+        let tab = $('#table-content')
+        tab.bootstrapTable({ data: data });
 
-            if (subentries) {
-              subentries.forEach(subentry => {
-                if (subentry["id"] == page && subentry["submenu"]) {
-                  retVal = true;
-                  return;
-                }
-              });
-            }
-          });
-          return retVal;
-        }
+        /*data.forEach(entry => {
+          
+        });*/
+      }
+    }
+    class MainMenu {
+      constructor(site) {
+        this._site = site;
+        this._setEntries();
+      }
+      hasSubMenu(page) {
+        var retVal = false;
+        this._entries.forEach(entry => {
+          let subentries = entry["sub"];
+          if (entry["id"] == page && entry["submenu"]) {
+            retVal = true;
+            return;
+          }
 
-        _setEntries() {
-          this._entries = [
-            { "id": "home", "name": "Home" },
-            { "id": "content", "name": "Content", "submenu": true },
-            { "id": "settings", "name": "Settings", "submenu": true },
-            { "id": "expert", "name": "Expert", "sub":
+          if (subentries) {
+            subentries.forEach(subentry => {
+              if (subentry["id"] == page && subentry["submenu"]) {
+                retVal = true;
+                return;
+              }
+            });
+          }
+        });
+        return retVal;
+      }
+
+      _setEntries() {
+        this._entries = [
+          { "id": "content", "name": "Tonies", "submenu": false },
+          { "id": "filelist", "name": "Filelist", "submenu": false },
+          {
+            "id": "expert", "name": "Expert", "sub":
               [
-                { "id": "boxtests", "name": "Box Tests", "submenu": true },
+                { "id": "boxtests", "name": "Box Tests", "submenu": false },
                 { "id": "fileupload", "name": "File Upload", "submenu": false },
                 { "id": "console", "name": "Console", "submenu": false },
+                { "id": "reboot", "name": "Reboot Box", "url": "http://" + this._site.getDomainPort() + "/api/ajax?cmd=box-power&sub=reset" },
               ]
-            },
-            { "id": "help", "name": "Help","sub":
+          },
+          {
+            "id": "help", "name": "Help", "sub":
               [
-                { "id": "help", "name": "Help", "submenu": true },
+                { "id": "help", "name": "Help", "submenu": false },
                 { "id": "github", "name": "GitHub", "url": "https://github.com/toniebox-reverse-engineering/hackiebox_cfw" },
                 { "id": "about", "name": "About" }
               ]
-            }
-          ];
-          this._generateMenu();
-        }
-        _generateMenu() {
-          this._entries.forEach(entry => {
-            let subentries = entry["sub"];
-            let menu = $("#mainMenu");
+          }
+        ];
+        this._generateMenu();
+      }
+      _generateMenu() {
+        this._entries.forEach(entry => {
+          let subentries = entry["sub"];
+          let menu = $("#mainMenu");
 
-            let li = $("<li/>")
-              .addClass("nav-item")
-              .attr("id", "nav-page-"+entry["id"]);
-            if (!subentries) {
+          let li = $("<li/>")
+            .addClass("nav-item")
+            .attr("id", "nav-page-" + entry["id"]);
+          if (!subentries) {
+            let a = $("<a/>")
+              .addClass("nav-link")
+              .attr("href", "#")
+              .attr("target", "_blank")
+              .attr("onclick", "site.loadPage('" + entry["id"] + "'); return false;")
+              .html(entry["name"]);
+            if (entry["url"]) {
+              a.attr("href", entry["url"]);
+              a.removeAttr("onclick");
+            }
+            li.append(a);
+
+          } else {
+            li.addClass("dropdown");
+            let a = $("<a/>")
+              .addClass("nav-link")
+              .addClass("dropdown-toggle")
+              .attr("id", "dropdown-" + entry["id"])
+              .attr("data-toggle", "dropdown")
+              .attr("aria-haspopup", "true")
+              .attr("aria-expanded", "false")
+              .attr("href", "#")
+              .html(entry["name"]);
+            li.append(a);
+            let div = $("<div/>")
+              .addClass("dropdown-menu")
+              .attr("aria-labelledby", "dropdown-" + entry["id"]);
+            subentries.forEach(subentry => {
               let a = $("<a/>")
-                .addClass("nav-link")
+                .addClass("dropdown-item")
+                .attr("id", "nav-page-dropdown-" + entry["id"] + "-" + subentry["id"])
                 .attr("href", "#")
                 .attr("target", "_blank")
-                .attr("onclick", "site.loadPage('" + entry["id"] + "'); return false;")
-                .html(entry["name"]);
-              if (entry["url"]) {
-                a.attr("href", entry["url"]);
+                .attr("onclick", "site.loadPage('" + subentry["id"] + "'); return false;")
+                .html(subentry["name"]);
+              if (subentry["url"]) {
+                a.attr("href", subentry["url"]);
                 a.removeAttr("onclick");
               }
-              li.append(a);
-
-            } else {
-              li.addClass("dropdown");
-              let a = $("<a/>")
-                .addClass("nav-link")
-                .addClass("dropdown-toggle")
-                .attr("id", "dropdown-" + entry["id"])
-                .attr("data-toggle", "dropdown")
-                .attr("aria-haspopup", "true")
-                .attr("aria-expanded", "false")
-                .attr("href", "#")
-                .html(entry["name"]);
-              li.append(a);
-              let div = $("<div/>")
-                .addClass("dropdown-menu")
-                .attr("aria-labelledby", "dropdown-" + entry["id"]);
-              subentries.forEach(subentry => {
-                let a = $("<a/>")
-                  .addClass("dropdown-item")
-                  .attr("id", "nav-page-dropdown-"+entry["id"]+"-"+subentry["id"])
-                  .attr("href", "#")
-                  .attr("target", "_blank")
-                  .attr("onclick", "site.loadPage('" + subentry["id"] + "'); return false;")
-                  .html(subentry["name"]);
-                  if (subentry["url"]) {
-                    a.attr("href", subentry["url"]);
-                    a.removeAttr("onclick");
-                  }
-                div.append(a);
-              });
-              li.append(div);
-            }
-            menu.append(li);
-          });
-          $('.dropdown-toggle').dropdown();
-        }
-      }
-      class WebConsole {
-        constructor(site) {
-          this._site = site;
-          this._term = new Terminal({
-            cursorBlink: "block",
-            theme: { foreground: "#00ff00" }
-          });
-          this._localEcho = new LocalEchoController();
-          this._fitAddon = new FitAddon.FitAddon();
-
-          this._term.loadAddon(this._fitAddon);
-          this._term.loadAddon(this._localEcho);
-
-          this._localEcho.addAutocompleteHandler(function(index, tokens) {
-            if (index == 0) return ["help", "i2c", "beep", "rfid"];
-            return [];
-          });
-
-          this._readPrompt();
-
-          var that = this;
-          $(window).on("resize", function() {
-            that._fitAddon.fit();
-          });
-        }
-        open() {
-          if (!this._opened) {
-            this._term.open(document.getElementById("xtermjs"));
-            this._opened = true;
+              div.append(a);
+            });
+            li.append(div);
           }
-          this._fitAddon.fit();
+          menu.append(li);
+        });
+        $('.dropdown-toggle').dropdown();
+      }
+    }
+    class WebConsole {
+      constructor(site) {
+        this._site = site;
+        this._term = new Terminal({
+          cursorBlink: "block",
+          theme: { foreground: "#00ff00" }
+        });
+        this._localEcho = new LocalEchoController();
+        this._fitAddon = new FitAddon.FitAddon();
+
+        this._term.loadAddon(this._fitAddon);
+        this._term.loadAddon(this._localEcho);
+
+        this._localEcho.addAutocompleteHandler(function (index, tokens) {
+          if (index == 0) return ["help", "i2c", "beep", "rfid"];
+          return [];
+        });
+
+        this._readPrompt();
+
+        var that = this;
+        $(window).on("resize", function () {
+          that._fitAddon.fit();
+        });
+      }
+      open() {
+        if (!this._opened) {
+          this._term.open(document.getElementById("xtermjs"));
+          this._opened = true;
         }
-        _readPrompt() {
-          var that = this;
-          this._localEcho.read("hackiebox@"+this._site.getDomainPort()+"$ ", "> ")
-            .then(function(input) {
-              $.get( "http://" + that._site.getDomainPort() + "/api/ajax", { cmd: "cli", cli: input }, function(data) {
-                  that._term.writeln(data);
-                  that._readPrompt();
-                })
-                .fail(function() {
-                  that._term.writeln("ERROR: no connection to host");
-                  that._readPrompt();
-                });
+        this._fitAddon.fit();
+      }
+      _readPrompt() {
+        var that = this;
+        this._localEcho.read("hackiebox@" + this._site.getDomainPort() + "$ ", "> ")
+          .then(function (input) {
+            $.get("http://" + that._site.getDomainPort() + "/api/ajax", { cmd: "cli", cli: input }, function (data) {
+              that._term.writeln(data);
+              that._readPrompt();
             })
-            .catch(function(error) { alert(`Error reading: ${error}`);});
-        }
+              .fail(function () {
+                that._term.writeln("ERROR: no connection to host");
+                that._readPrompt();
+              });
+          })
+          .catch(function (error) { alert(`Error reading: ${error}`); });
       }
+    }
+  </script>
+  <script>
+    var site;
+    $(function () {
+      site = new Site("home");
+      document.getElementById("domainPort").innerText = site.getDomainPort();
+    });
+    function imageFormatter(value) {
+      return '<img src="' + value + '" style="max-width:100px;max-height:100px;">'
+    }
+    function submitOverlayPost(e, target) {
+      setFilesize();
+      var action = "http://" + site.getDomainPort() + target + document.getElementById("uploadTarget").value + "?" + $(e.target).serialize();
+      $(e.target).attr("action", action);
+    }
+    function setFilesize() {
+      var files = document.getElementById("file").files;
+      if (typeof files[0] !== 'undefined') {
+        document.getElementById("filesize").value = files[0].size;
+      }
+    }
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var elem = document.getElementById('filemanager');
+    
+      var options = {
+        initpath: [
+          [ '', 'root (/)', { canmodify: true } ]
+        ],
+    
+        onrefresh: function(folder, required) {
+          if (folder === this.GetCurrentFolder())
+          {
+          }
+    
+          var $this = this;
+
+          var dir = "/";
+          if(folder.GetPathIDs() && folder.GetPathIDs().length > 0) {
+            dir = folder.GetPathIDs().toString().replaceAll(",","/");
+          }
+
+          $.getJSON("http://" + that._site.getDomainPort() + "/api/ajax?cmd=get-dir&dir=" + dir, function(data) {
+
+            const formattedData = data.files.map(item => {
+                const container = {};
+
+                container["id"] = item.name;
+                container["name"] = item.name;
+                container["type"] = item.dir ? "folder" : "file";
+
+                return container;
+            })
+
+            if (formattedData)  folder.SetEntries(formattedData);
+            else if (required)  $this.SetNamedStatusBarText('folder', $this.EscapeHTML('Failed to load folder.  ' + data.error));
+
+          });
+
+        },
+
+        ondelete: function(deleted, folder, ids, entries, recycle) {
+          var $this = this;
+
+          if (!recycle && !confirm('Are you sure you want to permanently delete ' + (entries.length == 1 ? '"' + entries[0].name + '"' : entries.length + ' items') +  '?'))  deleted('Cancelled deletion');
+          else
+          {
+            var dir = "/";
+            if(folder.GetPathIDs() && folder.GetPathIDs().length > 0) {
+              dir = folder.GetPathIDs().toString().replaceAll(",","/");
+            }
+
+            entries.forEach((entry) => {
+              const filepath = dir + "/" + entry.name;
+              
+              var params = "cmd=delete-file&filepath=";
+              if(entry.type === "folder") {
+                params = "cmd=delete-dir&dir=";
+              }
+
+              $.getJSON("http://" + that._site.getDomainPort() + "/api/ajax?" + params + filepath, function(data) {
+                if (data.success) deleted(true);
+              }).fail(function( jqxhr, textStatus, error ) {
+                deleted('Server/network error.');
+              });
+            });
+          }
+        },
+    
+        oninitdownload: function(startdownload, folder, ids, entries) {
+
+          var dir = "/";
+          if(folder.GetPathIDs() && folder.GetPathIDs().length > 0) {
+            dir = folder.GetPathIDs().toString().replaceAll(",","/");
+          }
+
+          entries.forEach((entry) => {
+            const filepath = dir + "/" + entry.name;
+            window.open("http://" + that._site.getDomainPort() + "/api/ajax?cmd=get-file&filepath=" + filepath , '_blank');
+          });
+        },
+      };
+    
+      var fe = new window.FileExplorer(elem, options);
+    })();
     </script>
-    <script>
-      var site;
-      $(function() {
-          site = new Site("console");
-      });
-      function imageFormatter(value) {
-        return '<img src="'+value+'" style="max-width:100px;max-height:100px;">'
-      }
-      function submitOverlayPost(e, target) {
-        setFilesize();
-        var action = "http://" + site.getDomainPort() + target + document.getElementById("uploadTarget").value + "?" + $(e.target).serialize();
-        $(e.target).attr("action", action);
-      }
-      function setFilesize() {
-        var files = document.getElementById("file").files;
-        if(typeof files[0] !== 'undefined') {
-          document.getElementById("filesize").value = files[0].size;
-        }
-      }
-    </script>
-  </body>
+</body>
+
 </html>
